@@ -26,6 +26,10 @@ The host and plugins use DataFusion 55.1.0 and Arrow 59.3.0. This is an experime
 Python bootstrap API with exact-build checks, not a stable binary compatibility
 promise. Installed native packages are trusted code.
 
+The [maintainer design review](../../docs/development/extensions/design-review.md)
+consolidates the delivered architecture, necessary host changes, evidence,
+limitations and proposed upstream PR sequence.
+
 ## Build and run
 
 Prerequisites: Rust 1.97.1, Python 3.12 with a shared library, uv, Git, protoc,

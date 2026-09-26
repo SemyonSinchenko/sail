@@ -76,7 +76,7 @@ def start_server(binary, directory, mode="local", extra_pythonpath=None, extra_e
     paths = [sysconfig.get_paths()["purelib"]]
     if extra_pythonpath:
         paths.insert(0, str(extra_pythonpath))
-    env.update(PYTHONHOME=sys.base_prefix, DYLD_LIBRARY_PATH=sysconfig.get_config_var("LIBDIR") or "", PYTHONPATH=os.pathsep.join(paths), SAIL_EXPERIMENTAL_EXTENSIONS="1", SAIL_MODE="local-cluster" if mode == "process-cluster" else mode,
+    env.update(PYTHONHOME=sys.base_prefix, DYLD_LIBRARY_PATH=sysconfig.get_config_var("LIBDIR") or "", LD_LIBRARY_PATH=sysconfig.get_config_var("LIBDIR") or "", PYTHONPATH=os.pathsep.join(paths), SAIL_EXPERIMENTAL_EXTENSIONS="1", SAIL_MODE="local-cluster" if mode == "process-cluster" else mode,
                SAIL_EXECUTION__DEFAULT_PARALLELISM="4")
     env.update(SAIL_EXPERIMENTAL_PROCESS_WORKERS="1" if mode == "process-cluster" else "0",
                SAIL_CLUSTER__WORKER_INITIAL_COUNT="2", SAIL_CLUSTER__WORKER_MAX_COUNT="2",

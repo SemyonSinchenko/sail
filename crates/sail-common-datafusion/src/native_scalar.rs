@@ -1,15 +1,13 @@
+use std::any::Any;
+use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, OnceLock};
 
 use arrow_schema::{DataType, FieldRef};
-use datafusion_common::Result;
-use datafusion_common::plan_datafusion_err;
+use datafusion_common::{Result, plan_datafusion_err};
 use datafusion_expr::{
     ColumnarValue, ReturnFieldArgs, ScalarFunctionArgs, ScalarUDF, ScalarUDFImpl, Signature,
 };
-use std::any::Any;
-use std::collections::HashMap;
-use std::sync::{Mutex, OnceLock};
 
 /// Retains the Python owner and gives each catalog alias its own name. The
 /// underlying kernel still receives the original argument/return field metadata.

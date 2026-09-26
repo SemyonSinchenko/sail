@@ -1,12 +1,14 @@
-use super::*;
-use crate::job_graph::JobGraphOptions;
-use crate::shuffle::ShuffleCompression;
+use std::sync::atomic::{AtomicUsize, Ordering};
+
 use datafusion::arrow::datatypes::Schema;
 use datafusion::physical_plan::empty::EmptyExec;
 use sail_common_datafusion::driver_extension::{
     BoundDriverPlan, DriverDescriptor, DriverExtensionBinding, DriverExtensionExec,
 };
-use std::sync::atomic::{AtomicUsize, Ordering};
+
+use super::*;
+use crate::job_graph::JobGraphOptions;
+use crate::shuffle::ShuffleCompression;
 
 #[derive(Debug)]
 struct CommitThenLoseAcknowledgement(Arc<AtomicUsize>);

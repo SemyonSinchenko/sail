@@ -130,8 +130,7 @@ impl ServerSessionFactory {
         self.apply_execution_config(&mut config)?;
         self.apply_execution_parquet_config(&mut config);
         self.apply_optimizer_config(&mut config)?;
-        let config = self.mutator.mutate_config(config, info)?;
-        crate::extensions::register_extensions(config, &self.config.mode)
+        self.mutator.mutate_config(config, info)
     }
 
     fn create_session_state(&mut self, info: &mut ServerSessionInfo) -> Result<SessionState> {
@@ -139,6 +138,7 @@ impl ServerSessionFactory {
         let runtime = self
             .runtime_env
             .create(|builder| self.mutator.mutate_runtime_env(builder, info))?;
+        let config = crate::extensions::register_extensions(config, &self.config.mode, &runtime)?;
         // We do not add default features to the session state,
         // since we manage data sources and functions ourselves.
         let builder = SessionStateBuilder::new()

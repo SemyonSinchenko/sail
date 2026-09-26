@@ -37,6 +37,7 @@ grust-algorithms = { version = "=0.23.0", features = ["arrow"] }
 grust-algorithm-procedures = { version = "=0.23.0", features = ["arrow"] }
 grust-procedures = "=0.23.0"
 grust-core = "=0.23.0"
+grust-arrow = "=0.23.0"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
 
 [dev-dependencies]

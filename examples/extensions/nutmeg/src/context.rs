@@ -1,5 +1,8 @@
 //! DataFusion's exported codec keeps a Weak<TaskContextProvider>. Keep a strong
 //! owner with both provider and physical plan, beyond Python/capsule lifetimes.
+use std::fmt;
+use std::sync::Arc;
+
 use arrow::datatypes::SchemaRef;
 use async_trait::async_trait;
 use datafusion::catalog::{Session, TableProvider};
@@ -11,8 +14,6 @@ use datafusion::physical_plan::{
 use datafusion_common::tree_node::TreeNodeRecursion;
 use datafusion_common::{Result, internal_err};
 use datafusion_execution::{TaskContext, TaskContextProvider};
-use std::fmt;
-use std::sync::Arc;
 
 #[derive(Debug)]
 pub(crate) struct ContextProvider(pub Arc<TaskContext>);

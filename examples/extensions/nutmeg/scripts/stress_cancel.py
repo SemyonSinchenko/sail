@@ -39,6 +39,7 @@ def main():
     parser.add_argument("--test-binary")
     parser.add_argument("--jobs", type=int, default=4)
     parser.add_argument("--runs", type=int, default=10)
+    parser.add_argument("--test-name", default="tests::dropped_blocked_stream_cancels_and_keeps_exported_batch_valid")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if args.runs < 1 or args.jobs < 1:
@@ -58,7 +59,7 @@ def main():
     try:
         binary = args.test_binary
         if not binary:
-            command = ["cargo", "test", "--release", "--no-run", "--locked", "--manifest-path", str(manifest), "--message-format=json-render-diagnostics"]
+            command = ["cargo", "test", "--release", "--lib", "--no-run", "--locked", "--manifest-path", str(manifest), "--message-format=json-render-diagnostics"]
             env = os.environ.copy()
             env["CARGO_INCREMENTAL"] = "0"
             env["CARGO_BUILD_JOBS"] = str(args.jobs)
@@ -84,7 +85,7 @@ def main():
                 raise RuntimeError("cargo did not report a test executable")
         if "release" not in Path(binary).parts:
             raise RuntimeError("expected a release-profile test executable")
-        command = [binary, "tests::dropped_blocked_stream_cancels_and_keeps_exported_batch_valid", "--exact", "--nocapture"]
+        command = [binary, args.test_name, "--exact", "--nocapture"]
         report["command"] = command
 
         def run(mode, index):
@@ -97,6 +98,8 @@ def main():
             print(mode, index, result.returncode, flush=True)
             if result.returncode:
                 raise RuntimeError(result.stdout + result.stderr)
+            if "1 passed" not in result.stdout or "0 failed" not in result.stdout:
+                raise RuntimeError("stress filter did not execute exactly one passing test")
 
         run("unsaturated", 0)
         for _ in range(os.cpu_count() or 1):

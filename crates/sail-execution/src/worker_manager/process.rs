@@ -5,9 +5,10 @@ use std::time::Duration;
 use futures::future::BoxFuture;
 use sail_common::actor::ActorSystem;
 use sail_common::config::{CliConfigEnv, ClusterConfigEnv, ExecutionConfigEnv};
-use tokio::process::{Child, Command};
+use tokio::process::Child;
 use tokio::sync::Mutex;
 
+use super::process_command::{WORKER_COMMAND_ENV, worker_command};
 use crate::error::{ExecutionError, ExecutionResult};
 use crate::id::WorkerId;
 use crate::worker_manager::{WorkerLaunchOptions, WorkerManager};
@@ -27,11 +28,9 @@ impl WorkerManager for ProcessWorkerManager {
     ) -> BoxFuture<'static, ExecutionResult<()>> {
         let children = self.children.clone();
         Box::pin(async move {
-            let executable = std::env::current_exe()
-                .map_err(|e| ExecutionError::InternalError(e.to_string()))?;
-            let mut command = Command::new(executable);
+            let configured = std::env::var(WORKER_COMMAND_ENV).ok();
+            let mut command = worker_command(configured.as_deref())?;
             command
-                .arg("worker")
                 .kill_on_drop(true)
                 .env_remove(CliConfigEnv::RUN_PYTHON)
                 .env(ClusterConfigEnv::ENABLE_TLS, options.enable_tls.to_string())

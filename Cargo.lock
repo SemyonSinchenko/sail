@@ -7654,6 +7654,7 @@ dependencies = [
  "pin-project-lite",
  "prost",
  "sail-common",
+ "sail-native-resource-ffi",
  "serde",
  "serde_arrow",
  "serde_json",
@@ -7973,6 +7974,10 @@ dependencies = [
  "sail-common-datafusion",
  "sail-function",
 ]
+
+[[package]]
+name = "sail-native-resource-ffi"
+version = "0.1.0"
 
 [[package]]
 name = "sail-object-store"

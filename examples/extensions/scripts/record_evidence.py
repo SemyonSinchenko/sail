@@ -5,10 +5,12 @@ from datetime import datetime, timezone
 import hashlib
 from importlib import metadata
 import json
+import os
 from pathlib import Path
 import platform
 import re
 import runpy
+import shutil
 import subprocess
 import sys
 
@@ -37,6 +39,26 @@ def native_files(distribution):
             for path in package.files or [] if str(path).endswith((".so", ".dylib", ".pyd"))}
 
 
+def resource_envelope():
+    # On Linux this is guest-visible memory, not the physical Mac's RAM.
+    visible_memory = os.sysconf("SC_PHYS_PAGES") * os.sysconf("SC_PAGE_SIZE")
+    cgroup = {}
+    for name in ("memory.max", "memory.peak", "cpu.max", "cpuset.cpus.effective"):
+        path = Path("/sys/fs/cgroup") / name
+        if path.is_file():
+            cgroup[name] = path.read_text().strip()
+    disk = shutil.disk_usage(args.target)
+    return {
+        "os_visible_memory_bytes": visible_memory,
+        "cpu_affinity_count": len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else None,
+        "cgroup_v2": cgroup,
+        "target_disk_total_bytes": disk.total,
+        "target_disk_free_bytes_after_gate": disk.free,
+        "container_image": os.environ.get("SAIL_GATE_IMAGE_ID"),
+        "virtual_machine_profile": os.environ.get("SAIL_GATE_VM_PROFILE"),
+    }
+
+
 identity = runpy.run_path(str(repo / "crates/sail-session/src/extensions/package_identity.py"))["identity"]
 identities = {}
 for entry in metadata.entry_points(group="pysail.extensions"):
@@ -58,8 +80,13 @@ receipt = {
     "timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     "host": platform.node(),
     "platform": platform.platform(),
+    "machine": platform.machine(),
+    "logical_cpus": os.cpu_count(),
+    "cargo_build_jobs": os.environ.get("CARGO_BUILD_JOBS"),
+    "resource_envelope": resource_envelope(),
     "sail_commit": command("git", "rev-parse", "HEAD"),
     "rust": command("rustc", "--version"),
+    "rustfmt": command("rustup", "run", os.environ.get("SAIL_EXTENSION_FMT_TOOLCHAIN", "nightly-2026-05-28"), "rustfmt", "--version"),
     "python": sys.version,
     "modes": ["local", "local-cluster", "process-cluster"],
     "native_plugins": "separate installed wheels; driver-resident Nutmeg, independently loaded worker Sedona",
@@ -84,12 +111,16 @@ receipt = {
     "installed_native_files": {name: native_files(name) for name in
                                ["sail-sedona-extension", "sail-nutmeg"]},
     "cancellation_stress": json.loads((args.target / "cancellation-stress.json").read_text()),
+    "snapshot_stress": json.loads((args.target / "snapshot-stress.json").read_text()),
+    "sedona_native_dependencies": json.loads((args.target / "sedona-native-dependencies.json").read_text()),
     "outcome": "passed local and distributed native extension gates",
     "boundaries": {
-        "distributed_extensions": "local-cluster actors and separate Sail worker processes on one host; multi-host/Kubernetes deployment not qualified",
+        "distributed_extensions": "this gate covers actor and separate-process workers on one host; two-host evidence is recorded separately; Kubernetes is not qualified",
+        "graph_tables": "ordinary DataFusion joins/aggregations execute on workers without native staging or CSR; staged Arrow scans/native kernels remain driver-resident",
+        "memory_admission": "native session quotas reserve from the shared same-config host pool with experimental extensions enabled; quotas are nonspillable, and unbounded configuration remains unbounded; not an RSS cap",
         "sedona_indexed_join": "not implemented; baseline spatial SQL correctness tested",
         "geometry_client_udt": "not qualified; results collected as scalars/text",
-        "kernel_cancellation": "blocked-output native FFI lifetime tested; fresh projection build not interruptible",
+        "kernel_cancellation": "native FFI retained-output lifetime and client-driven kernel/accounting tests; fresh projection build and final canonical sort remain synchronous",
         "mutation_replay": "driver-native regions have one attempt; acknowledgement loss is indeterminate; a new request is a new operation",
     },
 }

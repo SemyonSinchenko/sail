@@ -3,19 +3,25 @@
 This branch implements a local and distributed proof of concept for the fifth-revision
 [Sail extension proposal](https://github.com/querygraph/grust/blob/7fc0514/docs/proposals/sail-extension-api.md).
 The [implementation plan](../../docs/development/extensions/implementation-plan.md)
-and [independent review](../../docs/development/extensions/implementation-review.md)
+and [graph-table follow-up plan](../../docs/development/extensions/datafusion-graph-plan.md)
 describe the implementation, evidence and remaining indexed spatial-join work.
+The [review and resolution record](../../docs/development/extensions/implementation-review-resolution.md)
+separates the original findings, implemented corrections and remaining acceptance gaps.
 
 - **Apache SedonaDB:** 128 actual native/GEOS scalar UDFs, imported from a separate
   Python wheel through DataFusion FFI. Spark SQL, DataFrame expressions and
   Apache Sedona's unmodified Connect helpers call them by name. Ordinary Sail
   spatial joins evaluate those predicates.
-- **Nutmeg:** session-scoped graph staging, native Grust algorithms, and graph
+- **Nutmeg graph tables:** normal Sail relations with degree, triplet and bounded
+  walk helpers compiled into DataFusion joins/aggregations. This path runs on
+  workers with extensions disabled and constructs no CSR.
+- **Nutmeg native kernels:** session-scoped graph staging, native Grust algorithms, and graph
   drop through Spark Connect relation extensions. Staging consumes two DataFrame
   inputs atomically, including every partition. Reads pin a graph revision and
   stream results through DataFusion FFI.
 
-Both packages have independent Cargo workspaces and no Sail Rust dependency.
+Both packages have independent Cargo workspaces and no Sail engine dependency.
+Nutmeg shares a small dependency-free memory-lease ABI definition with Sail.
 The host and plugins use DataFusion 55.1.0 and Arrow 59.3.0. This is an experimental
 Python bootstrap API with exact-build checks, not a stable binary compatibility
 promise. Installed native packages are trusted code.
@@ -69,6 +75,16 @@ native stage, and its output can feed worker stages. Regions containing a Nutmeg
 operation have one attempt, even when ordinary tasks allow retries. An error
 after a mutation might have committed is reported as indeterminate.
 
+Native graph sessions prepay their configured quota from Sail's process memory
+pool. With extensions enabled, matching pool configurations share admission
+across sessions/runtimes. A finite Greedy/Fair configuration enforces contention;
+an unbounded pool remains unbounded. Native quotas cannot spill and stay charged
+until the last session, producer, plan or exported buffer owner releases them.
+The native budget subdivides that prepaid host quota; it accounts for graph
+buffers and admitted build/kernel workspace. This is not an allocator-level
+limit on every allocation or total process RSS. Runtime, transport, metadata
+and other nonparticipating allocations still need headroom.
+
 ```python
 from pyspark.sql.connect.session import SparkSession
 from pyspark.sql import functions as F
@@ -81,8 +97,13 @@ edges = spark.range(3, numPartitions=4).selectExpr(
     "CAST(id AS STRING) AS source", "CAST((id + 1) % 3 AS STRING) AS target"
 )
 nm = Nutmeg(spark)
+graph = nm.tables(nodes, edges)
+graph.degrees().show()  # ordinary Sail worker plans; no native snapshot or CSR
+graph.walks(2).show()
 print(nm.stage("cycle", nodes, edges))
+nm.nodes("cycle").show()  # normalized Arrow snapshot scan, no CSR
 nm.run("cycle", "pagerank").select("nodeId", "score").show()
+print(nm.status())
 print(nm.drop("cycle"))
 spark.stop()
 ```
@@ -101,11 +122,16 @@ components, including an isolated vertex.
 
 For a commit-specific PoC receipt, create a detached worktree at the candidate SHA,
 build there using its own target directory, then run `scripts/verify.sh` from
-this directory. It refuses a moving branch/dirty tracked tree and prints the
+this directory. Install its pinned nightly formatter with
+`rustup toolchain install nightly-2026-05-28 --profile minimal --component rustfmt`;
+compilation still uses the selected stable Rust toolchain. The formatter honors
+the repository's import-grouping rules, matching the CI check. Verification
+refuses a moving branch/dirty tracked tree and prints the
 exact verified SHA. Package native tests exercise real FFI calls as well as the
 wire/server tests. Evidence records build errors as well as final outcomes.
 
-Not implemented here: distributed graph residency, automatic retries of native
+Not implemented here: distributed residency of native staged graphs/CSR,
+distributed iterative native graph algorithms, automatic retries of native
 driver operations, Sedona's optimized `SpatialJoinExec`, Sedona aggregate/window
 UDF registration, geometry-column collection through the Sedona client UDT,
 generic catalogs/formats or mutable per-query Sedona options. `ST_AsText`, counts
@@ -116,8 +142,31 @@ The process-worker fixture runs multiple processes on one host. It does not
 qualify multi-host networking or a Kubernetes deployment. Kubernetes workers
 receive the opt-in flag but require the wheels in their image.
 
+The separate two-host harness checks actual network execution with a worker on
+each machine. Copy `scripts/two-host.example.json` outside the source tree and
+replace the example addresses, paths and SSH host. Install identical executable
+and native wheel bytes on both machines; the harness refuses identity mismatches.
+The advertised addresses and configured ports must be reachable between hosts,
+and the controller must already have working noninteractive SSH to the worker.
+
+```bash
+.venv/bin/python examples/extensions/scripts/two_host.py \
+  --config /path/to/two-host.json --output /path/to/new-evidence-directory
+```
+
+The receipt retains host/package identities, results, both worker endpoints,
+successful task records from both workers, and process cleanup checks. Failure
+receipts retain completed checks and errors. The trusted startup worker launcher
+uses literal JSON argv and a bounded heartbeat lease; it is a PoC harness, not a
+general cluster deployment service. See the
+[Linux environment recipe](../../docs/development/extensions/linux-environment.md)
+for the independent Colima gate.
+
 Nutmeg staging is overwrite-only. A newly planned request is a new
 operation; no exactly-once guarantee spans retries/reconnects. A single completed
 physical mutation returns its cached receipt on repeat execution; an in-flight or
 abandoned attempt is refused as indeterminate. The per-session default graph
-budget is 256 MiB. Kernel admission and host execution budgets remain distinct.
+budget is 256 MiB, nested inside its prepaid host reservation. Graph projection
+construction and staging's final canonical sort are synchronous regions that
+query interruption cannot preempt; streaming kernel cancellation does not imply
+preemption of those regions.

@@ -1,10 +1,12 @@
 # Native Nutmeg Sail extension proof of concept
 
-This separately compiled Python extension uses real Nutmeg/Grust graph kernels.
-It has no Sail Rust dependencies. The host discovers `sail_nutmeg:extension` in
-`pysail.extensions`, checks the manifest, and calls `bind(session_id)` once for
-each session. The native binding owns an independent graph store, read log and
-256 MiB memory budget. A recycled session ID receives a new store.
+This package provides ordinary Sail graph-table plans and independently compiled
+Nutmeg/Grust native graph kernels. The native wheel has no Sail engine dependency;
+it shares only a dependency-free resource ABI definition with the host.
+The host discovers `sail_nutmeg:extension`, validates its manifest and calls
+`bind_with_resources` with a host-issued memory lease. Each session has its own
+graph store/read log and a default 256 MiB cap prepaid from Sail's memory pool.
+A recycled session ID receives a new store.
 
 Binding prepares the finite algorithm-schema catalog once per library: tiny
 kernels run on an isolated three-node setup graph under a fixed 16 MiB budget.
@@ -35,11 +37,18 @@ vendored Nutmeg source and local changes are described in
 
 ```python
 from sail_nutmeg import Nutmeg
-nm = Nutmeg(spark)  # an extension-enabled local Sail Connect session
+nm = Nutmeg(spark)
 nodes = spark.createDataFrame([("a",), ("b",), ("c",)], "node_id string")
 edges = spark.createDataFrame([("a", "b"), ("b", "c")], "source string, target string")
+# Ordinary distributed Sail plans; also works with extensions disabled.
+graph = nm.tables(nodes, edges).validate()
+graph.degrees().show()
+graph.walks(2).show()
+# Explicit native snapshot/kernel execution requires extensions enabled.
 receipt = nm.stage("g", nodes.repartition(4), edges.repartition(4))
+nm.nodes("g").filter("node_id = 'a'").show()
 nm.run("g", "pagerank").orderBy("nodeId").show()
+print(nm.status())
 nm.drop("g")
 ```
 
@@ -48,6 +57,52 @@ Staging eagerly executes and returns one receipt (`graph`, `nodeCount`,
 provider pins graph rows when Sail resolves it, so subsequent overwrite/drop
 cannot change that provider's read. A new analysis or execution request may
 resolve a new provider and therefore pin a newer revision.
+
+`tables` accepts DataFrames or table names and retains lazy references to normal
+Sail relations. It preserves identifier types, properties, duplicate edges and
+self-loops. `validate()` checks unique/non-null node IDs and valid endpoints.
+`out_degrees`, `in_degrees`, `degrees`, `triplets`, `walks(hops)` and
+`closed_walks(hops)` build ordinary joins/aggregations, with no staging or CSR.
+Walks may revisit vertices/edges. These references follow underlying table
+consistency; they are not immutable native snapshots.
+
+`nodes` and `edges` expose normalized staged Arrow rows. These scans build no CSR.
+Native algorithm readers of the same revision/options share one synchronized
+projection cache, while overwrite/drop preserves already-pinned revisions.
+Each provider pins at server resolution; two separately resolved providers are
+not an atomic pair of reads across a concurrent overwrite. The Rust
+`SessionRegistry::snapshot` API can obtain both scans from one pinned revision.
+The displayed revision increases on overwrite but restarts after drop/recreate;
+the shared published entry, not the name/revision strings alone, identifies the
+cache. Snapshots are in-memory ownership objects, not durable snapshot IDs.
+
+Staging casts structural IDs to UTF8 and normalizes supported properties to
+`property.*`/`present.*` columns; it does not preserve every original field type.
+Raw node scans return explicitly staged nodes, without synthesizing nodes from
+edge endpoints. Canonical staging retains empty schemas and fills absent
+properties. The lower-level legacy `asStaged` mode still accepts heterogeneous
+batches, but relational scans require a common schema. Staged sources have one
+driver partition; downstream relational operators may redistribute their output.
+
+## Memory admission
+
+`SAIL_NUTMEG_MEMORY_BYTES` selects the native per-session quota. With experimental
+extensions enabled, matching Sail memory-pool configurations share one pool per
+process. Configure `SAIL_RUNTIME__MEMORY_POOL__TYPE=greedy` and
+`SAIL_RUNTIME__MEMORY_POOL__GREEDY__MAX_SIZE` for a finite bound; an unbounded
+configuration remains unbounded. Other sessions and participating DataFusion
+operators contend with the prepaid native quotas.
+
+Admission is coarse: the full session allowance is reserved up front, even when
+idle, and cannot spill. A versioned C callback lease retains the host reservation
+through native snapshots, producers and exported Arrow buffers. The final owner
+releases it. Native normalization and canonicalization reserve conservative
+buffer/scratch bounds before allocation. These participating reservations are
+not a total RSS limit; runtime, transport, Rust metadata and other untracked
+allocations need headroom. Bounds include Arrow builder growth and can refuse a
+write whose eventual retained arrays alone would fit. Excess reservation is
+returned after conversion; no dynamic lending or automatic CSR eviction is added.
+The fixed schema-probe budget described above is outside user session quotas.
 
 ## Wire contract
 
@@ -65,6 +120,11 @@ library protobuf. Unknown fields and unsupported versions fail.
   limits are supported.
 - Drop: `{"version":1,"verb":"drop","graph":"g"}`. Input-free and lazy on the
   server; the client collects the `graph`/`dropped` receipt.
+- Scans: `{"version":1,"verb":"nodes","graph":"g"}` or `"verb":"edges"`.
+  Input-free providers pin the current staged revision during planning.
+- Diagnostics: `{"version":1,"verb":"diagnostics","graph":"__session__"}`.
+  Returns execution-time memory, graph revision/cache and actual kernel-state
+  data as JSON in a `status` column; the client decodes this in `status()`.
 
 Every partition is streamed into the admitted staging transaction. Nodes and
 edges become visible together as one revision, after both streams finish.
@@ -85,8 +145,10 @@ Algorithm execution uses Nutmeg's existing lazy `AlgorithmExec`, bounded
 channel, work/memory admission and stream-drop cancellation. Native schema and
 actual batches share the same Grust/GDS naming rules. The host retains its task
 context for input plans rather than executing them under a reconstructed
-foreign context. The PoC requires local execution; distributed plan codecs,
-worker placement and cross-request mutation retry protocols remain outside it.
+foreign context. Local and distributed modes use explicit native driver placement
+and codecs. Relational graph helpers run through worker plans; staged graph state
+and native kernels remain driver-resident. Driver-native regions do not retry;
+cross-request mutation idempotency remains outside this interface.
 Projection construction and staging's final canonical sort use the store's
 synchronous admission path. Query interruption cannot preempt that region;
 staging interruption around the commit boundary can leave an unacknowledged

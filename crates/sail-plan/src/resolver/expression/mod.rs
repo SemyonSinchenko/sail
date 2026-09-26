@@ -13,6 +13,7 @@ use crate::resolver::state::PlanResolverState;
 mod attribute;
 mod cast;
 mod function;
+mod geometry;
 mod grouping;
 mod lambda;
 mod literal;
@@ -106,7 +107,7 @@ impl PlanResolver<'_> {
     ) -> PlanResult<NamedExpr> {
         use spec::Expr;
 
-        match expr {
+        let mut result = match expr {
             Expr::Literal(literal) => self.resolve_expression_literal(literal, state),
             Expr::UnresolvedAttribute {
                 name,
@@ -340,7 +341,9 @@ impl PlanResolver<'_> {
             Expr::NamedArgument { .. } => Err(PlanError::invalid(
                 "named argument expression can only be used in UDF arguments",
             )),
-        }
+        }?;
+        result.expr = geometry::preserve_geometry(result.expr, schema)?;
+        Ok(result)
     }
 
     pub(super) async fn resolve_named_expressions(

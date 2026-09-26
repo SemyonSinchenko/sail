@@ -16,9 +16,11 @@ complete dependency graph. The package uses PyO3 **0.29.0**.
 ## Build and check
 
 Requirements: Rust 1.95 or newer, Python 3.12, `maturin`, a C compiler, and GEOS
-3.12 or newer discoverable through `geos-config`. The checked macOS build uses
-Rust 1.97.1, CPython 3.12.13 and GEOS 3.14.1. The repair step bundles GEOS shared
-libraries in the wheel.
+3.12 or newer discoverable through `geos-config`. Build receipts record the
+actual toolchain/library versions. On Linux maturin repairs shared dependencies;
+on macOS an explicit delocate step bundles GEOS. Repaired wheels carry the
+minimum OS tag required by their actual libraries, not a guessed older target.
+The branch build script verifies bundled dependency paths before installation.
 
 ```sh
 cd examples/extensions/sedona
@@ -26,11 +28,17 @@ python3 scripts/prepare.py
 export CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=4 CARGO_PROFILE_DEV_DEBUG=0
 export CARGO_TARGET_DIR=/tmp/sedona-extension-target
 export PYO3_PYTHON=/opt/homebrew/bin/python3.12
-maturin build --locked --interpreter "$PYO3_PYTHON" --auditwheel repair --out dist
-python -m pip install dist/*.whl
+maturin build --locked --interpreter "$PYO3_PYTHON" --auditwheel repair --out dist/raw
+# macOS (install the locked delocate build dependency first):
+python -m delocate.cmd.delocate_wheel -w dist/repaired dist/raw/*.whl
+python ../scripts/check_wheel.py dist/repaired/*.whl
+uv pip install --python "$PYO3_PYTHON" dist/repaired/*.whl
 python scripts/smoke.py
 cargo test --locked
 ```
+
+For both platforms, prefer `examples/extensions/scripts/build.sh` from the Sail
+root; it selects the appropriate repair steps and installs only repaired wheels.
 
 Use the Python executable in the Sail server environment for installation and
 the smoke test; adjust `PYO3_PYTHON` to that interpreter when building elsewhere.
@@ -80,8 +88,11 @@ The extension does not silently override these names.
 Each bound session uses immutable default Sedona options. DataFusion FFI carries
 string configuration, but cannot carry Sedona's typed CRS/runtime services.
 Host `SET sedona.*` propagation is not implemented. Worker discovery and task
-codecs must be qualified before claiming distributed extension support; the
-manifest's `placement: any` describes the stateless functions' intended placement.
+codecs are implemented for actor workers and separate Sail worker processes;
+the scalar expressions use `placement: any`. Geometry composition regressions
+cover dynamic WKB, CASE/coalesce, array extraction and shuffles. Platform and
+deployment qualification must use the exact candidate's receipts, as recorded in
+the [follow-up plan](../../../docs/development/extensions/datafusion-graph-plan.md).
 
 The indexed-join increment needs the proposal's physical join hook, function
 ownership matching, `JoinFilter` side/index remapping, retained residuals,

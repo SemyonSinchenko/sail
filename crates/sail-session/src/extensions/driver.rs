@@ -206,9 +206,10 @@ impl DriverExtensionBinding for NativeBinding {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use datafusion::datasource::empty::EmptyTable;
     use datafusion::physical_plan::empty::EmptyExec;
+
+    use super::*;
 
     #[tokio::test]
     async fn driver_binding_releases_archived_snapshot_but_keeps_inflight_plan_alive() -> Result<()>

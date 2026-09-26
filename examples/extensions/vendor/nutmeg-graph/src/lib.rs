@@ -47,7 +47,7 @@ use arrow::array::{
     Array, ArrayData, ArrayRef, AsArray, BooleanArray, FixedSizeListArray, Float64Array,
     Int64Array, StringArray, StringBuilder, new_null_array,
 };
-use arrow::buffer::{Buffer, OffsetBuffer};
+use arrow::buffer::{BooleanBuffer, Buffer, OffsetBuffer};
 use arrow::compute::{SortOptions, cast, interleave, is_not_null};
 use arrow::datatypes::{DataType, Field, Float32Type, Schema, SchemaRef};
 use arrow::record_batch::RecordBatch;
@@ -78,7 +78,10 @@ use grust_procedures::{
 };
 use once_cell::sync::{Lazy, OnceCell};
 
+mod admission;
+mod graph_tables;
 mod prepared_schema;
+pub use graph_tables::GraphSnapshot;
 pub use prepared_schema::prepare_output_schemas;
 mod session;
 pub use session::{GraphStaging, SessionRegistry};
@@ -376,7 +379,11 @@ fn utf8(column: &ArrayRef) -> Result<ArrayRef> {
 }
 
 fn constant(value: &str, rows: usize) -> ArrayRef {
-    Arc::new(StringArray::from(vec![value; rows]))
+    let mut builder = StringBuilder::with_capacity(rows, value.len().saturating_mul(rows));
+    for _ in 0..rows {
+        builder.append_value(value);
+    }
+    Arc::new(builder.finish())
 }
 
 fn node_schema() -> SchemaRef {
@@ -607,20 +614,30 @@ const SORTED_BATCH_ROWS: usize = 64 * 1024;
 /// rest is released on return.
 fn canonicalize(
     part: Part,
-    batches: Vec<RecordBatch>,
+    mut batches: Vec<RecordBatch>,
+    declared: Option<SchemaRef>,
     budget: &Budget<'_>,
 ) -> Result<(Vec<RecordBatch>, Admitted)> {
-    let batches: Vec<RecordBatch> = batches.into_iter().filter(|b| b.num_rows() > 0).collect();
+    if let Some(schema) = declared {
+        batches.push(RecordBatch::new_empty(schema));
+    }
     if batches.is_empty() {
         return Ok((batches, Admitted::default()));
     }
     let mut work = Admitted::default();
-    let (batches, filled) = unify(batches)?;
-    // Columns an append lacked, made just now; small beside the part, and
-    // measured rather than bounded, since `new_null_array` sizes by type.
-    budget.admit(&mut work, filled, || {
-        format!("{filled} bytes of columns an append lacked")
+    let fill_bound = admission::unify_bound(&batches);
+    budget.admit(&mut work, fill_bound, || {
+        format!("{fill_bound} bytes to fill columns an append lacked")
     })?;
+    let (batches, filled) = unify(batches)?;
+    if filled > fill_bound {
+        return internal_err!("nutmeg: schema unification exceeded its pre-admitted bound");
+    }
+    work.shrink_to(filled).map_err(err)?;
+    let batches: Vec<RecordBatch> = batches.into_iter().filter(|b| b.num_rows() > 0).collect();
+    if batches.is_empty() {
+        return Ok((batches, Admitted::default()));
+    }
     let schema = batches[0].schema();
     let structural: &[&str] = match part {
         Part::Nodes => &["node_id"],
@@ -661,12 +678,8 @@ fn canonicalize(
     // Admit the working space before any of it is allocated.
     let total: usize = batches.iter().map(|b| b.num_rows()).sum();
     let permutation = total.saturating_mul(size_of::<(usize, usize)>());
-    let keys_bound = batches
-        .iter()
-        .map(|batch| key_bytes_bound(batch, &key))
-        .try_fold(0usize, |sum, bytes| Some(sum.saturating_add(bytes?)));
-    let copy = sorted_copy_bound(&batches);
-    let keys = keys_bound.unwrap_or(0);
+    let copy = admission::copy_bound(&batches);
+    let keys = admission::sort_keys_bound(&batches, &key);
     let beyond_copy = keys.saturating_sub(copy);
     let need = permutation.saturating_add(beyond_copy).saturating_add(copy);
     let describe = || {
@@ -691,15 +704,10 @@ fn canonicalize(
             converter.convert_columns(&columns)
         })
         .collect::<std::result::Result<_, _>>()?;
-    // A key type the bound does not cover is measured once encoded, and any
-    // excess over the room admitted for keys is admitted before the sort.
     let encoded: usize = rows.iter().map(Rows::size).sum();
     let room = keys.max(copy);
     if encoded > room {
-        let excess = encoded - room;
-        budget.admit(&mut work, excess, || {
-            format!("{excess} bytes more of sort keys, measured once encoded")
-        })?;
+        return internal_err!("nutmeg: sort keys exceeded their pre-admitted bound");
     }
     let mut order: Vec<(usize, usize)> = Vec::with_capacity(total);
     for (b, batch) in batches.iter().enumerate() {
@@ -720,16 +728,11 @@ fn canonicalize(
             .collect::<std::result::Result<Vec<_>, _>>()?;
         out.push(RecordBatch::try_new(schema.clone(), columns)?);
     }
-    // The bound covers every type `interleave` copies exactly; anything it
-    // underestimated is admitted now, and refused like the rest. What it
-    // overestimated is returned now, so the part holds what the copy keeps
-    // alive and not the bound for as long as it is staged.
+    // All copied buffers were admitted before interleave; no post-allocation
+    // top-up can hide an underestimated bound. Return the conservative excess.
     let held = held_bytes(&out);
     if held > sorted.bytes() {
-        let excess = held - sorted.bytes();
-        budget.admit(&mut sorted, excess, || {
-            format!("{excess} bytes more for the sorted copy, measured once made")
-        })?;
+        return internal_err!("nutmeg: sorted copy exceeded its pre-admitted bound");
     } else {
         sorted.shrink_to(held).map_err(err)?;
     }
@@ -737,8 +740,8 @@ fn canonicalize(
 }
 
 /// An upper bound on the bytes Arrow's row format takes to encode the `key`
-/// columns of `batch`, offsets included, or `None` for a key type it does not
-/// bound (measured instead, once encoded). Per value: one byte of null
+/// columns of `batch`, offsets included, or `None` for a key type covered by
+/// the conservative nested-layout bound in `admission`. Per value: one byte of null
 /// sentinel plus the width for fixed-width types, and for bytes and strings
 /// at most `37 + 9/8 × len` (mini-blocks of 8 bytes plus a continuation byte
 /// up to 32 bytes, then blocks of 32 plus one).
@@ -901,7 +904,8 @@ fn unify(batches: Vec<RecordBatch>) -> Result<(Vec<RecordBatch>, usize)> {
                     let made = match batch.column_by_name(field.name()) {
                         Some(column) => return column.clone(),
                         None if field.name().starts_with("present.") => {
-                            Arc::new(BooleanArray::from(vec![false; rows])) as ArrayRef
+                            Arc::new(BooleanArray::new(BooleanBuffer::new_unset(rows), None))
+                                as ArrayRef
                         }
                         None => new_null_array(field.data_type(), rows),
                     };
@@ -995,15 +999,6 @@ impl Budget<'_> {
         }
     }
 
-    /// Refuse now, before copying, when `bytes` would not fit what is free.
-    fn check(&self, bytes: usize, what: impl FnOnce() -> String) -> Result<()> {
-        match self.charge.check_memory_available(bytes) {
-            Ok(()) => Ok(()),
-            Err(ProcedureError::BudgetExceeded { limit, .. }) => Err(self.refused(&what(), limit)),
-            Err(other) => Err(err(other)),
-        }
-    }
-
     /// The refusal of an admission that the execution with memory limit
     /// `limit` refused: a read's own limit when that is the one, else the
     /// process budget.
@@ -1042,6 +1037,8 @@ impl Budget<'_> {
 struct Entry {
     nodes: Vec<RecordBatch>,
     edges: Vec<RecordBatch>,
+    node_schema: Option<SchemaRef>,
+    edge_schema: Option<SchemaRef>,
     /// The memory admitted for each part's rows, held as long as they are.
     node_bytes: Admitted,
     edge_bytes: Admitted,
@@ -1114,6 +1111,8 @@ impl Part {
 struct Store {
     graphs: RwLock<HashMap<String, Arc<RwLock<Entry>>>>,
     pool: ExecutionContext,
+    /// A host-issued admission lease, retained independently of Python bindings.
+    owner: Option<Arc<graph_tables::HostOwner>>,
 }
 
 static STORE: OnceCell<Store> = OnceCell::new();
@@ -1134,6 +1133,7 @@ impl Store {
         Self {
             graphs: Default::default(),
             pool,
+            owner: None,
         }
     }
 
@@ -1170,6 +1170,7 @@ impl Store {
             order,
             normalized: Vec::new(),
             fresh: Admitted::default(),
+            schema: None,
         }
     }
 
@@ -1512,9 +1513,27 @@ pub struct Staging<'a> {
     normalized: Vec<RecordBatch>,
     /// Admitted for `normalized`.
     fresh: Admitted,
+    schema: Option<SchemaRef>,
 }
 
 impl Staging<'_> {
+    fn remember_schema(&mut self, schema: SchemaRef) -> Result<()> {
+        if self.order == StageOrder::AsStaged {
+            // The legacy unsorted path permits batches with different property
+            // types. Keep that behavior; a relational scan requires one schema.
+            self.schema.get_or_insert(schema);
+            return Ok(());
+        }
+        self.schema = Some(match &self.schema {
+            Some(previous) => Arc::new(Schema::try_merge([
+                previous.as_ref().clone(),
+                schema.as_ref().clone(),
+            ])?),
+            None => schema,
+        });
+        Ok(())
+    }
+
     fn budget(&self) -> Budget<'_> {
         Budget {
             pool: &self.store.pool,
@@ -1526,17 +1545,6 @@ impl Staging<'_> {
 
     /// Rename one batch and admit the memory it keeps.
     pub fn push(&mut self, batch: &RecordBatch) -> Result<()> {
-        if batch.num_rows() == 0 {
-            return Ok(());
-        }
-        // Before copying: the rows themselves must fit what is free. Renaming
-        // shares or copies them, so this refuses a batch that plainly cannot
-        // fit before it is copied.
-        let incoming: usize = batch
-            .columns()
-            .iter()
-            .map(|c| slice_bytes(c.as_ref()))
-            .sum();
         let rows = batch.num_rows();
         let budget = Budget {
             pool: &self.store.pool,
@@ -1544,8 +1552,10 @@ impl Staging<'_> {
             graph: &self.graph,
             part: Some(self.part),
         };
-        budget.check(incoming, || {
-            format!("at least {incoming} bytes for {rows} more rows")
+        let bound = admission::normalization_bound(batch, self.part, &self.mapping)?;
+        let mut admitted = Admitted::default();
+        budget.admit(&mut admitted, bound, || {
+            format!("{bound} bytes to normalize {rows} more rows before allocating")
         })?;
         let normalized = match self.part {
             Part::Nodes => normalize_nodes(batch, &self.mapping)?,
@@ -1554,9 +1564,17 @@ impl Staging<'_> {
         // What the renamed rows keep alive: columns copied by a cast, and the
         // caller's buffers where a column is shared unchanged.
         let held = held_bytes(std::slice::from_ref(&normalized));
-        budget.admit(&mut self.fresh, held, || {
-            format!("{held} bytes for {rows} more rows")
-        })?;
+        if held > bound {
+            return internal_err!("nutmeg: normalization exceeded its pre-admitted bound");
+        }
+        admitted.shrink_to(held).map_err(err)?;
+        self.remember_schema(normalized.schema())?;
+        if rows == 0 {
+            // Empty casts can allocate builder buffers too. They were admitted
+            // above, but only their schema survives this call.
+            return Ok(());
+        }
+        self.fresh.absorb(admitted);
         self.normalized.push(normalized);
         Ok(())
     }
@@ -1615,7 +1633,7 @@ impl Staging<'_> {
         staged.extend(self.normalized.iter().cloned());
         let canonical = self.order == StageOrder::Canonical;
         let (staged, held) = if canonical {
-            canonicalize(self.part, staged, &self.budget())?
+            canonicalize(self.part, staged, self.schema.clone(), &self.budget())?
         } else {
             let mut held = if self.replace {
                 Admitted::default()
@@ -1630,10 +1648,20 @@ impl Staging<'_> {
             Part::Nodes => {
                 e.nodes = staged;
                 e.node_bytes = held;
+                e.node_schema = e
+                    .nodes
+                    .first()
+                    .map(RecordBatch::schema)
+                    .or_else(|| self.schema.clone());
             }
             Part::Edges => {
                 e.edges = staged;
                 e.edge_bytes = held;
+                e.edge_schema = e
+                    .edges
+                    .first()
+                    .map(RecordBatch::schema)
+                    .or_else(|| self.schema.clone());
                 e.edges_canonical = canonical;
             }
         }
@@ -2711,6 +2739,10 @@ impl AlgorithmTable {
             &self.graph,
             &self.args,
             &mut |batch| {
+                let batch = match &store.owner {
+                    Some(owner) => graph_tables::retain_owner(batch, owner.clone())?,
+                    None => batch,
+                };
                 let batch = self.names.rename_batch(batch)?;
                 if batch.schema().fields() != self.schema.fields() {
                     return exec_err!(

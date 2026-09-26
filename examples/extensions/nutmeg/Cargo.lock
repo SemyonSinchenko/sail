@@ -2003,6 +2003,7 @@ dependencies = [
  "futures",
  "grust-algorithm-procedures",
  "grust-algorithms",
+ "grust-arrow",
  "grust-core",
  "grust-procedures",
  "once_cell",
@@ -2482,6 +2483,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9774ba4a74de5f7b1c1451ed6cd5285a32eddb5cccb8cc655a4e50009e06477f"
 
 [[package]]
+name = "sail-native-resource-ffi"
+version = "0.1.0"
+
+[[package]]
 name = "sail-nutmeg-extension"
 version = "0.1.0"
 dependencies = [
@@ -2507,6 +2512,7 @@ dependencies = [
  "futures",
  "nutmeg-graph",
  "pyo3",
+ "sail-native-resource-ffi",
  "serde",
  "serde_json",
  "tokio",

@@ -1,6 +1,7 @@
-use super::*;
 use datafusion::physical_plan::empty::EmptyExec;
 use datafusion::prelude::{SessionConfig, SessionContext};
+
+use super::*;
 
 #[derive(Debug)]
 struct Binding(Arc<dyn ExecutionPlan>);

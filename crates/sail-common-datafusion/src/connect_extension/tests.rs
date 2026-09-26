@@ -220,7 +220,7 @@ fn host_input_preserves_runtime_when_replaced_and_polled_on_a_foreign_thread() -
         Ok(())
     })
     .join()
-    .expect("foreign thread must not panic")?;
+    .map_err(|_| datafusion_common::internal_datafusion_err!("foreign thread panicked"))??;
     assert_eq!(executions.load(Ordering::SeqCst), 2);
     Ok(())
 }

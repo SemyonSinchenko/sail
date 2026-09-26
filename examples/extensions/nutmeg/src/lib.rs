@@ -1,10 +1,12 @@
-//! Independently compiled Nutmeg Connect extension. No Sail Rust dependency.
+//! Independently compiled Nutmeg Connect extension. No Sail engine dependency.
 mod context;
+mod diagnostics;
 mod mutation;
-use context::{ContextProvider, OwnedProvider};
+use std::sync::{Arc, LazyLock};
 
 use arrow::datatypes::SchemaRef;
 use async_trait::async_trait;
+use context::{ContextProvider, OwnedProvider};
 use datafusion::catalog::{Session, TableProvider};
 use datafusion::logical_expr::{Expr, TableType};
 use datafusion::physical_plan::ExecutionPlan;
@@ -16,8 +18,8 @@ use nutmeg_graph::{AlgorithmExec, AlgorithmTable, ColumnNames, SessionRegistry};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyCapsule;
+use sail_native_resource_ffi::{MEMORY_LEASE_CAPSULE, MemoryLease};
 use serde::Deserialize;
-use std::sync::{Arc, LazyLock};
 
 pub const TYPE_URL: &str = "type.googleapis.com/nutmeg.v1.NutmegApi";
 static RUNTIME: LazyLock<tokio::runtime::Runtime> = LazyLock::new(|| {
@@ -101,6 +103,26 @@ fn plan(
                 names,
             )?)))
         }
+        "nodes" | "edges" | "diagnostics" => {
+            if !inputs.is_empty()
+                || request.algorithm.is_some()
+                || !request.options.is_empty()
+                || request.column_names.is_some()
+                || !request.node_mapping.is_empty()
+                || !request.edge_mapping.is_empty()
+            {
+                return plan_err!(
+                    "nutmeg: nodes/edges/diagnostics accept only version, verb and graph"
+                );
+            }
+            if request.verb == "nodes" {
+                registry.nodes(&request.graph)
+            } else if request.verb == "edges" {
+                registry.edges(&request.graph)
+            } else {
+                Ok(Arc::new(diagnostics::DiagnosticsTable(registry.clone())))
+            }
+        }
         "drop" => {
             if !inputs.is_empty() {
                 return plan_err!("nutmeg: drop accepts no inputs");
@@ -118,7 +140,9 @@ fn plan(
                 request.graph,
             )))
         }
-        other => plan_err!("nutmeg: unknown verb {other}; registered verbs: stage, run, drop"),
+        other => plan_err!(
+            "nutmeg: unknown verb {other}; registered verbs: stage, run, nodes, edges, diagnostics, drop"
+        ),
     }
 }
 
@@ -156,13 +180,24 @@ struct BoundExtension {
 #[pymethods]
 impl BoundExtension {
     #[new]
-    #[pyo3(signature = (memory_bytes = 268435456))]
-    fn new(memory_bytes: usize) -> PyResult<Self> {
+    #[pyo3(signature = (memory_bytes = 268435456, host_resource = None))]
+    fn new(memory_bytes: usize, host_resource: Option<Bound<'_, PyCapsule>>) -> PyResult<Self> {
         nutmeg_graph::prepare_output_schemas()
             .map_err(|e| PyValueError::new_err(format!("nutmeg: schema setup failed: {e}")))?;
-        Ok(Self {
-            registry: SessionRegistry::new(memory_bytes),
-        })
+        let registry = match host_resource {
+            Some(capsule) => {
+                let pointer = capsule.pointer_checked(Some(MEMORY_LEASE_CAPSULE))?;
+                // SAFETY: Sail supplies a named, live lease capsule. The importer
+                // checks the fixed version/size header and exact admitted quota
+                // before cloning through host-owned callbacks. No Arc layout is
+                // accessed across the native-library boundary.
+                let lease = unsafe { MemoryLease::import(pointer, memory_bytes as u64) }
+                    .map_err(PyValueError::new_err)?;
+                SessionRegistry::new_with_owner(memory_bytes, Arc::new(lease))
+            }
+            None => SessionRegistry::new(memory_bytes),
+        };
+        Ok(Self { registry })
     }
 
     fn scalar_udfs(&self) -> Vec<Py<PyAny>> {

@@ -13,6 +13,9 @@ pub(super) struct Manifest {
     pub datafusion_version: String,
     pub arrow_version: String,
     pub placement: String,
+    /// A driver-native session quota prepaid from the host's DataFusion pool.
+    #[serde(default)]
+    pub memory_bytes: Option<usize>,
     pub relation_types: Vec<RelationType>,
 }
 
@@ -49,6 +52,14 @@ impl Manifest {
                 self.placement
             );
         }
+        if let Some(bytes) = self.memory_bytes
+            && (bytes == 0 || self.placement != "driver")
+        {
+            return plan_err!(
+                "extension {} memory_bytes must be positive and placement must be driver",
+                self.name
+            );
+        }
         let mut urls = HashSet::new();
         for relation in &self.relation_types {
             if relation.type_url.is_empty()
@@ -79,6 +90,7 @@ mod tests {
             datafusion_version: "55.1.0".into(),
             arrow_version: "59.3.0".into(),
             placement: "driver".into(),
+            memory_bytes: None,
             relation_types: vec![],
         }
     }
@@ -103,6 +115,18 @@ mod tests {
             min_inputs: 2,
             max_inputs: 1,
         });
+        assert!(manifest.validate().is_err());
+    }
+
+    #[test]
+    fn native_session_quota_requires_a_positive_driver_only_cap() {
+        let mut manifest = valid();
+        manifest.memory_bytes = Some(64);
+        assert!(manifest.validate().is_ok());
+        manifest.memory_bytes = Some(0);
+        assert!(manifest.validate().is_err());
+        manifest.memory_bytes = Some(64);
+        manifest.placement = "any".into();
         assert!(manifest.validate().is_err());
     }
 }

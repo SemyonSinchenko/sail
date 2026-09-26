@@ -5,11 +5,15 @@
 mod driver;
 mod manifest;
 mod plan;
+mod python_owner;
+#[cfg(test)]
+mod resource_tests;
 
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex, OnceLock};
 
 use datafusion::catalog::TableProvider;
+use datafusion::execution::runtime_env::RuntimeEnv;
 use datafusion::physical_plan::ExecutionPlan;
 use datafusion::prelude::SessionConfig;
 use datafusion_common::{DataFusionError, Result, plan_err};
@@ -21,15 +25,18 @@ use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyCapsule, PyCapsuleMethods, PyDict, PyList};
 use sail_catalog::manager::CatalogManager;
 use sail_common::config::ExecutionMode;
-use sail_common_datafusion::connect_extension::{ConnectExtensionRegistry, ConnectRelationHandler};
+use sail_common_datafusion::connect_extension::{
+    ConnectExtensionRegistry, ConnectRelationHandler, HostInputExec,
+};
+use sail_common_datafusion::driver_extension::DriverExtensionRegistry;
+use sail_common_datafusion::native_resource::{MEMORY_LEASE_CAPSULE, NativeResourceTracker};
+use sail_common_datafusion::native_scalar::{OwnedScalar, retain_scalar};
 use sail_plan::function::is_built_in_function_name;
 
 use self::driver::{DriverTableProvider, InputPlaceholder};
 use self::manifest::Manifest;
 use self::plan::NativeTableProvider;
-use sail_common_datafusion::connect_extension::HostInputExec;
-use sail_common_datafusion::driver_extension::DriverExtensionRegistry;
-use sail_common_datafusion::native_scalar::{OwnedScalar, retain_scalar};
+use self::python_owner::PythonOwner;
 
 fn py_error(error: impl std::fmt::Display) -> DataFusionError {
     DataFusionError::Plan(format!("native extension: {error}"))
@@ -68,7 +75,7 @@ fn retain_package(py: Python<'_>, identity: String, factory: &Bound<'_, PyAny>) 
 }
 
 struct PythonRelationHandler {
-    owner: Arc<Py<PyAny>>,
+    owner: Arc<PythonOwner>,
     type_url: String,
     identity: String,
     driver_registry: Option<Arc<DriverExtensionRegistry>>,
@@ -112,6 +119,7 @@ impl ConnectRelationHandler for PythonRelationHandler {
             let result = self
                 .owner
                 .bind(py)
+                .map_err(py_error)?
                 .call_method1(
                     "plan_relation",
                     (&self.type_url, PyBytes::new(py, payload), capsules),
@@ -149,6 +157,7 @@ impl ConnectRelationHandler for PythonRelationHandler {
 pub(crate) fn register_extensions(
     mut config: SessionConfig,
     mode: &ExecutionMode,
+    runtime: &Arc<RuntimeEnv>,
 ) -> Result<SessionConfig> {
     let mut registry = ConnectExtensionRegistry::new();
     if std::env::var("SAIL_EXPERIMENTAL_EXTENSIONS").as_deref() != Ok("1") {
@@ -156,6 +165,8 @@ pub(crate) fn register_extensions(
         return Ok(config);
     }
     let distributed = !matches!(mode, ExecutionMode::Local);
+    let resources = Arc::new(NativeResourceTracker::default());
+    config.set_extension(resources.clone());
     let driver_registry = Arc::new(DriverExtensionRegistry::default());
     config.set_extension(driver_registry.clone());
     let catalog = config
@@ -217,14 +228,19 @@ pub(crate) fn register_extensions(
             }
             let identity = package_identity(py, &entry, &metadata)?;
             retain_package(py, identity.clone(), &factory)?;
-            let owner = Arc::new(
-                factory
-                    .call_method1("bind", (&incarnation,))
-                    .map_err(py_error)?
-                    .unbind(),
-            );
+            let bound = if let Some(bytes) = manifest.memory_bytes {
+                let lease = resources.reserve(&runtime.memory_pool, &identity, bytes)?;
+                let capsule =
+                    PyCapsule::new_with_value(py, lease, MEMORY_LEASE_CAPSULE).map_err(py_error)?;
+                factory.call_method1("bind_with_resources", (&incarnation, bytes, capsule))
+            } else {
+                factory.call_method1("bind", (&incarnation,))
+            }
+            .map_err(py_error)?;
+            let owner = Arc::new(PythonOwner::new(bound.unbind()));
             let functions = owner
                 .bind(py)
+                .map_err(py_error)?
                 .call_method0("scalar_udfs")
                 .map_err(py_error)?;
             for function in functions.try_iter().map_err(py_error)? {
@@ -250,13 +266,13 @@ pub(crate) fn register_extensions(
                 aliases.sort();
                 aliases.dedup();
                 // Retain both the bound session and the exporting object.
-                let owner: Arc<dyn std::any::Any + Send + Sync> = Arc::new(
-                    (owner.bind(py), function)
+                let owner: Arc<dyn std::any::Any + Send + Sync> = Arc::new(PythonOwner::new(
+                    (owner.bind(py).map_err(py_error)?, function)
                         .into_pyobject(py)
                         .map_err(py_error)?
                         .into_any()
                         .unbind(),
-                );
+                ));
                 for name in aliases {
                     if is_built_in_function_name(&name)
                         || catalog.get_function(&name).map_err(py_error)?.is_some()

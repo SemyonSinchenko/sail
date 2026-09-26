@@ -10,8 +10,9 @@ use datafusion_proto::physical_plan::PhysicalExtensionCodec;
 use indexmap::{IndexMap, IndexSet};
 use log::{debug, warn};
 use sail_common::actor::ActorContext;
-use sail_common_datafusion::driver_extension::contains_driver_extension;
-use sail_common_datafusion::driver_extension::release_driver_extensions;
+use sail_common_datafusion::driver_extension::{
+    contains_driver_extension, release_driver_extensions,
+};
 use sail_common_datafusion::error::CommonErrorCause;
 use sail_python_udf::error::PyErrExtractor;
 use sail_system_store::SystemEvent;

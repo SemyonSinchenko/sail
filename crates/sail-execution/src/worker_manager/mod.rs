@@ -2,6 +2,7 @@ mod kubernetes;
 mod local;
 mod options;
 mod process;
+mod process_command;
 
 use futures::future::BoxFuture;
 pub(crate) use options::WorkerLaunchOptions;

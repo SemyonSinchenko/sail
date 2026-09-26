@@ -22,6 +22,37 @@ impl SessionRegistry {
         }
     }
 
+    /// Admit the session through a host lease. Snapshots, detached producers and
+    /// exported Arrow buffers keep this owner alive independently of the binding.
+    pub fn new_with_owner(
+        memory_bytes: usize,
+        owner: Arc<dyn std::any::Any + Send + Sync>,
+    ) -> Self {
+        let mut store = Store::new(memory_bytes);
+        store.owner = Some(Arc::new(graph_tables::HostOwner(owner)));
+        Self {
+            store: Arc::new(store),
+            reads: Default::default(),
+        }
+    }
+
+    /// Pin a committed revision without building any topology projection.
+    pub fn snapshot(&self, graph: &str) -> Result<GraphSnapshot> {
+        GraphSnapshot::new(
+            graph.to_owned(),
+            self.store.existing(graph)?,
+            self.store.owner.clone(),
+        )
+    }
+
+    pub fn nodes(&self, graph: &str) -> Result<Arc<dyn TableProvider>> {
+        self.snapshot(graph)?.nodes()
+    }
+
+    pub fn edges(&self, graph: &str) -> Result<Arc<dyn TableProvider>> {
+        self.snapshot(graph)?.edges()
+    }
+
     /// Prepare both parts privately; only `finish` makes them visible.
     pub fn replacing<'a>(
         &'a self,
@@ -50,6 +81,14 @@ impl SessionRegistry {
         self.store.memory()
     }
 
+    /// Keep the host admission lease with an auxiliary exported batch too.
+    pub fn retain_output_owner(&self, batch: RecordBatch) -> Result<RecordBatch> {
+        match &self.store.owner {
+            Some(owner) => graph_tables::retain_owner(batch, owner.clone()),
+            None => Ok(batch),
+        }
+    }
+
     pub fn reads(&self) -> Result<Vec<ReadInfo>> {
         let log = self.reads.lock().map_err(|_| poisoned())?;
         let running = log
@@ -70,13 +109,13 @@ impl SessionRegistry {
         names: ColumnNames,
     ) -> Result<AlgorithmTable> {
         let entry = self.store.existing(graph)?;
-        let snapshot = entry.read().map_err(|_| poisoned())?.clone();
+        // Session writes replace the map entry atomically; they never modify a
+        // published entry's rows. Share that revision and its synchronized CSR
+        // cache across providers, while overwrite/drop only changes the map.
         let store = Store {
-            graphs: RwLock::new(HashMap::from([(
-                graph.to_owned(),
-                Arc::new(RwLock::new(snapshot)),
-            )])),
+            graphs: RwLock::new(HashMap::from([(graph.to_owned(), entry)])),
             pool: self.store.pool.clone(),
+            owner: self.store.owner.clone(),
         };
         let mut table = AlgorithmTable::build(algorithm, graph.to_owned(), options, names, false)?;
         table.session = Some(Self {

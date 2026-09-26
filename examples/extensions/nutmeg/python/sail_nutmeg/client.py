@@ -64,6 +64,31 @@ class Nutmeg:
         """Return a lazy DataFrame, with a graph snapshot pinned during planning."""
         return self._relation("run", graph, algorithm=algorithm, options=options, columnNames=column_names)
 
+    def tables(self, nodes, edges, *, node_id="node_id", source="source", target="target"):
+        """Use ordinary Sail relations for graph queries, without staging or CSR.
+
+        Accepts DataFrames or table names. References remain lazy; they follow
+        the underlying Sail tables' consistency rules at each execution.
+        """
+        from .graph import GraphTables
+        nodes = self.spark.table(nodes) if isinstance(nodes, str) else nodes
+        edges = self.spark.table(edges) if isinstance(edges, str) else edges
+        if nodes.sparkSession is not self.spark or edges.sparkSession is not self.spark:
+            raise ValueError("graph tables must belong to this Nutmeg Spark session")
+        return GraphTables(nodes, edges, node_id=node_id, source=source, target=target)
+
+    def nodes(self, graph):
+        """Scan this session's staged node snapshot as an ordinary DataFrame."""
+        return self._relation("nodes", graph)
+
+    def edges(self, graph):
+        """Scan this session's staged edge snapshot, preserving duplicate edges."""
+        return self._relation("edges", graph)
+
+    def status(self):
+        """Read native admission, revision/cache counts and actual kernel states."""
+        return json.loads(self._relation("diagnostics", "__session__").collect()[0].status)
+
     def drop(self, graph):
         """Drop this session's graph and return its removal receipt."""
         return self._relation("drop", graph).collect()[0]

@@ -1,22 +1,19 @@
 use std::sync::Arc;
 
+mod memory;
+
 use datafusion::execution::DiskManager;
 use datafusion::execution::cache::cache_manager::{
     CacheManagerConfig, FileMetadataCache, FileStatisticsCache, ListFilesCache,
 };
 use datafusion::execution::disk_manager::{DiskManagerBuilder, DiskManagerMode};
-use datafusion::execution::memory_pool::{
-    FairSpillPool, GreedyMemoryPool, MemoryPool, UnboundedMemoryPool,
-};
 use datafusion::execution::runtime_env::{RuntimeEnv, RuntimeEnvBuilder};
 use datafusion_common::Result;
 use log::debug;
 use sail_cache::file_listing_cache::MokaFileListingCache;
 use sail_cache::file_metadata_cache::MokaFileMetadataCache;
 use sail_cache::file_statistics_cache::MokaFileStatisticsCache;
-use sail_common::config::{
-    AppConfig, CacheType, FairMemoryPoolConfig, GreedyMemoryPoolConfig, MemoryPoolConfig,
-};
+use sail_common::config::{AppConfig, CacheType};
 use sail_common::runtime::RuntimeHandle;
 use sail_object_store::DynamicObjectStoreRegistry;
 
@@ -63,22 +60,13 @@ impl RuntimeEnvFactory {
         let builder = RuntimeEnvBuilder::default()
             .with_object_store_registry(Arc::new(registry))
             .with_cache_manager(cache_config)
-            .with_memory_pool(self.create_memory_pool())
+            .with_memory_pool(memory::create_memory_pool(
+                &self.config.runtime.memory_pool,
+                std::env::var("SAIL_EXPERIMENTAL_EXTENSIONS").as_deref() == Ok("1"),
+            )?)
             .with_disk_manager_builder(self.create_disk_manager_builder());
         let builder = mutator(builder)?;
         Ok(Arc::new(builder.build()?))
-    }
-
-    fn create_memory_pool(&self) -> Arc<dyn MemoryPool> {
-        match self.config.runtime.memory_pool {
-            MemoryPoolConfig::Unbounded => Arc::new(UnboundedMemoryPool::default()),
-            MemoryPoolConfig::Greedy(GreedyMemoryPoolConfig { max_size }) => {
-                Arc::new(GreedyMemoryPool::new(max_size))
-            }
-            MemoryPoolConfig::Fair(FairMemoryPoolConfig { max_size }) => {
-                Arc::new(FairSpillPool::new(max_size))
-            }
-        }
     }
 
     fn create_disk_manager_builder(&self) -> DiskManagerBuilder {

@@ -7,6 +7,7 @@ pub mod display;
 pub mod error;
 pub mod extension;
 pub mod formatter;
+pub mod geometry;
 mod java_float;
 pub mod lakesource;
 pub mod literal;
@@ -23,4 +24,5 @@ pub mod utils;
 pub mod variant;
 
 pub mod driver_extension;
+pub mod native_resource;
 pub mod native_scalar;

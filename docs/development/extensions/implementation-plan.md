@@ -1,5 +1,10 @@
 # Sedona and Nutmeg native extension proof of concept
 
+The follow-up branch `work/extensions-datafusion-graphs` implements the
+[graph-table and memory-admission plan](datafusion-graph-plan.md). It supersedes
+this original plan's separate native/host budget design and adds the review's
+geometry, projection-cache and wheel-packaging corrections.
+
 ## Objective and completion contract
 
 Build two separately compiled native Python packages, discovered by one Sail

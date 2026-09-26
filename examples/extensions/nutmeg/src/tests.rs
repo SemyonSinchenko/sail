@@ -1,9 +1,10 @@
-use super::*;
 use arrow::array::{Array, ArrayRef, Int64Array, StringArray};
 use arrow::record_batch::RecordBatch;
 use datafusion::datasource::MemTable;
 use datafusion::physical_plan::collect;
 use datafusion::prelude::SessionContext;
+
+use super::*;
 
 fn batch(columns: &[(&str, Vec<&str>)]) -> RecordBatch {
     RecordBatch::try_from_iter(columns.iter().map(|(name, values)| {

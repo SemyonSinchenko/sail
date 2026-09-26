@@ -7,6 +7,8 @@ TYPE_URL = "type.googleapis.com/nutmeg.v1.NutmegApi"
 
 class Extension:
     def manifest(self):
+        import os
+
         return {
             "name": "nutmeg",
             "version": "0.1.0",
@@ -14,6 +16,7 @@ class Extension:
             "datafusion_version": "55.1.0",
             "arrow_version": "59.3.0",
             "placement": "driver",
+            "memory_bytes": int(os.environ.get("SAIL_NUTMEG_MEMORY_BYTES", "268435456")),
             "relation_types": [{
                 "type_url": TYPE_URL,
                 "accepts_bare": True,
@@ -23,9 +26,14 @@ class Extension:
         }
 
     def bind(self, session_id):
+        raise RuntimeError("Nutmeg requires Sail host memory admission; use bind_with_resources")
+
+    def bind_with_resources(self, session_id, memory_bytes, host_resource):
         from ._native import BoundExtension
         # Each bind allocates fresh state; a recycled session ID inherits nothing.
-        return BoundExtension()
+        # The quota is already admitted by Sail; retain its ABI lease through the
+        # session, pinned graph snapshots, in-flight kernels and Arrow outputs.
+        return BoundExtension(memory_bytes, host_resource)
 
 
 def extension():

@@ -5,7 +5,8 @@ use std::sync::Arc;
 use datafusion::arrow::datatypes::Schema;
 use datafusion::common::metadata::FieldMetadata;
 use datafusion::common::{Result, plan_datafusion_err};
-use datafusion::physical_expr::expressions::Literal;
+use datafusion::execution::FunctionRegistry;
+use datafusion::physical_expr::expressions::{CastExpr, Literal};
 use datafusion::physical_expr::{PhysicalExpr, ScalarFunctionExpr};
 use datafusion_proto::physical_plan::to_proto::serialize_physical_expr_with_converter;
 use datafusion_proto::physical_plan::{
@@ -20,6 +21,7 @@ use super::encode::try_encode_field_ref;
 
 const PREFIX: &[u8] = b"SAIL_NATIVE_SCALAR_EXPR_V1\0";
 const LITERAL_PREFIX: &[u8] = b"SAIL_METADATA_LITERAL_V1\0";
+const CAST_PREFIX: &[u8] = b"SAIL_METADATA_CAST_V1\0";
 const MAX_DESCRIPTOR: usize = 1024 * 1024;
 
 #[derive(Serialize, Deserialize)]
@@ -36,6 +38,26 @@ pub(super) fn encode(
     codec: &dyn PhysicalExtensionCodec,
     converter: &dyn PhysicalProtoConverterExtension,
 ) -> Result<Option<PhysicalExprNode>> {
+    if let Some(cast) = expr.downcast_ref::<CastExpr>()
+        && cast.has_explicit_metadata()
+        && !cast.target_field().metadata().is_empty()
+    {
+        let bytes = try_encode_field_ref(cast.target_field())?;
+        if bytes.len() > MAX_DESCRIPTOR {
+            return Err(plan_datafusion_err!("cast field descriptor too large"));
+        }
+        return Ok(Some(PhysicalExprNode {
+            expr_type: Some(physical_expr_node::ExprType::Extension(
+                PhysicalExtensionExprNode {
+                    expr: [CAST_PREFIX, bytes.as_slice()].concat(),
+                    inputs: vec![serialize_physical_expr_with_converter(
+                        expr, codec, converter,
+                    )?],
+                },
+            )),
+            expr_id: expr.expression_id(),
+        }));
+    }
     if expr.downcast_ref::<Literal>().is_some() {
         let field = expr.return_field(&Schema::empty())?;
         if !field.metadata().is_empty() {
@@ -59,7 +81,8 @@ pub(super) fn encode(
     let Some(scalar) = expr.downcast_ref::<ScalarFunctionExpr>() else {
         return Ok(None);
     };
-    if !scalar.fun().inner().is::<OwnedScalar>() {
+    let field = expr.return_field(&Schema::empty())?;
+    if !scalar.fun().inner().is::<OwnedScalar>() && field.metadata().is_empty() {
         return Ok(None);
     }
     let mut udf = vec![];
@@ -67,7 +90,7 @@ pub(super) fn encode(
     let descriptor = Descriptor {
         name: scalar.fun().name().to_owned(),
         udf,
-        field: try_encode_field_ref(&expr.return_field(&Schema::empty())?)?,
+        field: try_encode_field_ref(&field)?,
         nullable: scalar.nullable(),
     };
     let bytes = serde_json::to_vec(&descriptor)
@@ -100,6 +123,32 @@ pub(super) fn decode(
     let Some(physical_expr_node::ExprType::Extension(node)) = &proto.expr_type else {
         return Ok(None);
     };
+    if let Some(bytes) = node.expr.strip_prefix(CAST_PREFIX) {
+        if bytes.len() > MAX_DESCRIPTOR {
+            return Err(plan_datafusion_err!("cast field descriptor too large"));
+        }
+        let [input] = node.inputs.as_slice() else {
+            return Err(plan_datafusion_err!(
+                "metadata cast requires one cast input"
+            ));
+        };
+        if !matches!(input.expr_type, Some(physical_expr_node::ExprType::Cast(_))) {
+            return Err(plan_datafusion_err!("metadata cast input is not a cast"));
+        }
+        let decoded = converter.proto_to_physical_expr(input, schema, ctx)?;
+        let cast = decoded
+            .downcast_ref::<CastExpr>()
+            .ok_or_else(|| plan_datafusion_err!("metadata cast input is not a cast"))?;
+        let field = try_decode_field_ref(bytes)?;
+        if field.data_type() != cast.cast_type() {
+            return Err(plan_datafusion_err!("metadata cast type mismatch"));
+        }
+        return Ok(Some(Arc::new(CastExpr::new_with_target_field(
+            Arc::clone(cast.expr()),
+            field,
+            Some(cast.cast_options().clone()),
+        ))));
+    }
     if let Some(bytes) = node.expr.strip_prefix(LITERAL_PREFIX) {
         if bytes.len() > MAX_DESCRIPTOR {
             return Err(plan_datafusion_err!("literal field descriptor too large"));
@@ -139,14 +188,17 @@ pub(super) fn decode(
     }
     let descriptor: Descriptor = serde_json::from_slice(bytes)
         .map_err(|e| plan_datafusion_err!("native scalar descriptor: {e}"))?;
-    let udf = ctx
-        .codec()
-        .try_decode_udf(&descriptor.name, &descriptor.udf)?;
-    if !udf.inner().is::<OwnedScalar>() {
-        return Err(plan_datafusion_err!(
-            "native scalar descriptor resolved a non-native function"
-        ));
-    }
+    // Match DataFusion's standard ScalarUdf decoder: an empty definition means
+    // a function from the task registry (e.g. get_field), not an empty Sail UDF
+    // descriptor. Native functions always carry their exact identity bytes.
+    let udf = if descriptor.udf.is_empty() {
+        ctx.task_ctx()
+            .udf(&descriptor.name)
+            .or_else(|_| ctx.codec().try_decode_udf(&descriptor.name, &[]))?
+    } else {
+        ctx.codec()
+            .try_decode_udf(&descriptor.name, &descriptor.udf)?
+    };
     let field = try_decode_field_ref(&descriptor.field)?;
     let args = node
         .inputs
@@ -167,15 +219,16 @@ pub(super) fn decode(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::proto::{
-        RemoteExecutionCodec, decode_remote_physical_expr, encode_remote_physical_expr,
-    };
     use datafusion::arrow::datatypes::{DataType, Field};
     use datafusion::execution::TaskContext;
     use datafusion::logical_expr::ScalarUDF;
     use datafusion::physical_expr::expressions::Column;
     use sail_common_datafusion::native_scalar::retain_scalar;
+
+    use super::*;
+    use crate::proto::{
+        RemoteExecutionCodec, decode_remote_physical_expr, encode_remote_physical_expr,
+    };
 
     #[test]
     fn native_scalar_expression_round_trip_preserves_full_return_field() -> Result<()> {
@@ -232,6 +285,74 @@ mod tests {
                 .value(),
             &datafusion::common::ScalarValue::Float64(Some(2.0))
         );
+        Ok(())
+    }
+
+    #[test]
+    fn builtin_geometry_and_explicit_cast_preserve_metadata_on_workers() -> Result<()> {
+        use datafusion::logical_expr::ReturnFieldArgs;
+        use sail_function::scalar::geo::st_geomfromwkb::StGeomFromWKB;
+
+        let task = TaskContext::default();
+        let schema = Schema::new(vec![Field::new("wkb", DataType::Binary, true)]);
+        let udf = Arc::new(ScalarUDF::from(StGeomFromWKB::new()));
+        let field = udf.return_field_from_args(ReturnFieldArgs {
+            arg_fields: schema.fields(),
+            scalar_arguments: &[None],
+        })?;
+        let scalar: Arc<dyn PhysicalExpr> = Arc::new(ScalarFunctionExpr::new(
+            "st_geomfromwkb",
+            udf,
+            vec![Arc::new(Column::new("wkb", 0))],
+            field.clone(),
+            Arc::clone(task.session_config().options()),
+        ));
+        let cast: Arc<dyn PhysicalExpr> = Arc::new(CastExpr::new_with_target_field(
+            Arc::new(Column::new("wkb", 0)),
+            field.clone(),
+            None,
+        ));
+        for original in [scalar, cast] {
+            let bytes = encode_remote_physical_expr(&RemoteExecutionCodec, &original)?;
+            let restored =
+                decode_remote_physical_expr(&task, &RemoteExecutionCodec, &bytes, &schema)?;
+            assert_eq!(
+                restored.return_field(&schema)?,
+                original.return_field(&schema)?
+            );
+            assert_eq!(restored.return_field(&schema)?.metadata(), field.metadata());
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn metadata_bearing_struct_access_uses_the_task_function_registry() -> Result<()> {
+        let context = datafusion::prelude::SessionContext::new();
+        let task = context.task_ctx();
+        let field =
+            Arc::new(Field::new("value", DataType::Utf8, true).with_metadata(
+                [("description".into(), "ordinary property metadata".into())].into(),
+            ));
+        let schema = Schema::new(vec![Field::new(
+            "node",
+            DataType::Struct(vec![field.clone()].into()),
+            true,
+        )]);
+        let expr: Arc<dyn PhysicalExpr> = Arc::new(ScalarFunctionExpr::new(
+            "get_field",
+            datafusion::functions::core::get_field(),
+            vec![
+                Arc::new(Column::new("node", 0)),
+                Arc::new(Literal::new(datafusion::common::ScalarValue::Utf8(Some(
+                    "value".into(),
+                )))),
+            ],
+            field.clone(),
+            Arc::clone(task.session_config().options()),
+        ));
+        let bytes = encode_remote_physical_expr(&RemoteExecutionCodec, &expr)?;
+        let decoded = decode_remote_physical_expr(&task, &RemoteExecutionCodec, &bytes, &schema)?;
+        assert_eq!(decoded.return_field(&schema)?, field);
         Ok(())
     }
 }

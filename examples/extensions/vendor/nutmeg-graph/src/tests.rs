@@ -1,8 +1,9 @@
-use super::*;
-use arrow::array::{Float32Array, Float64Array, Int32Array};
-use futures::StreamExt;
-use futures::TryStreamExt;
 use std::collections::BTreeSet;
+
+use arrow::array::{Float32Array, Float64Array, Int32Array};
+use futures::{StreamExt, TryStreamExt};
+
+use super::*;
 
 fn edges(source: &[&str], target: &[&str], weight: Option<&[f64]>) -> RecordBatch {
     let mut fields = vec![
@@ -1785,8 +1786,10 @@ fn the_sorts_working_space_is_admitted_before_the_sort() {
     let batch = budget_edges(0, 5_000);
     let (as_staged, as_staged_held) = cost(&batch, StageOrder::AsStaged);
     let (canonical, canonical_held) = cost(&batch, StageOrder::Canonical);
-    // As staged, a write holds its renamed rows and nothing more.
-    assert_eq!(as_staged, as_staged_held);
+    // Normalization now admits its conversion/building workspace before it
+    // allocates, and returns that conservative excess afterwards. Retained
+    // bytes still equal the actual Arrow buffers (checked below).
+    assert!(as_staged > as_staged_held);
     // Sorted, it also needs the copy and the permutation at once.
     assert!(
         canonical > as_staged + as_staged_held / 2,
@@ -1917,7 +1920,13 @@ fn drop_and_restage_return_their_bytes_and_the_budget_recovers() {
     assert_eq!(store.memory().unwrap().used_bytes, held);
     let error = stage(&store, "two", &second, true).unwrap_err().to_string();
     assert!(error.contains("`two`"), "{error}");
-    // Nor for its projection: that is admitted from the same budget.
+    // Reserve the now-idle conservative staging workspace as another consumer.
+    // Whether CSR fits must not depend on the sort bound being smaller than
+    // projection construction; both draw from this same pool.
+    let occupied = store
+        .pool
+        .reserve(store.pool.limits().memory_bytes - held - 1)
+        .unwrap();
     let error = store
         .projection("one", &wcc)
         .err()
@@ -1927,6 +1936,7 @@ fn drop_and_restage_return_their_bytes_and_the_budget_recovers() {
         error.contains("`one`") && error.contains("projection"),
         "{error}"
     );
+    drop(occupied);
     assert_eq!(store.memory().unwrap().used_bytes, held);
     assert!(store.drop("one").unwrap());
     assert_eq!(store.memory().unwrap().used_bytes, 0);
@@ -1990,8 +2000,10 @@ fn a_streamed_write_is_refused_at_the_batch_that_crosses_the_budget() {
         StageOrder::Canonical,
     ));
     let batch = budget_edges(0, 1_000);
-    let (_, held) = cost(&batch, StageOrder::AsStaged);
-    let store = Store::new(3 * held + held / 2);
+    let (peak, held) = cost(&batch, StageOrder::AsStaged);
+    // Room for two retained batches and the third's conversion workspace, but
+    // not for three retained batches plus the fourth's conversion workspace.
+    let store = Store::new(2 * held + peak + held / 2);
     let mapping = ColumnMapping::default();
     let mut staging = store.staging(
         "streamed",
@@ -2405,6 +2417,13 @@ fn concurrent_reads_never_exceed_the_budget_together() {
         .unwrap();
     assert_eq!(first, lone);
     assert_eq!(store.memory().unwrap().used_bytes, baseline);
+    // Setup now reserves conservative conversion/sort bounds. Occupy that
+    // transient headroom after setup so eight readers still contend for two
+    // and a half reads' room, independent of setup's higher peak admission.
+    let occupied = store
+        .pool
+        .reserve(limit - (baseline + 2 * per_read + per_read / 2))
+        .unwrap();
     let done = std::sync::atomic::AtomicBool::new(false);
     let (admitted, refused) = (AtomicUsize::new(0), AtomicUsize::new(0));
     std::thread::scope(|scope| {
@@ -2458,6 +2477,7 @@ fn concurrent_reads_never_exceed_the_budget_together() {
         refused > 0,
         "no read was refused, so the budget was never contended"
     );
+    drop(occupied);
     let memory = store.memory().unwrap();
     assert!(memory.peak_bytes <= limit, "{memory:?}");
     assert_eq!(memory.used_bytes, baseline, "every read's bytes returned");

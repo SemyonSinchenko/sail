@@ -122,6 +122,9 @@ enum ExecutorState {
         span: Span,
     },
     Pausing,
+    // Retain only the terminal identity so a reattaching client receives the
+    // interruption, without retaining the plan, native buffers, or task context.
+    Interrupted,
     Failed(SparkError),
 }
 
@@ -401,6 +404,12 @@ impl Executor {
                 *state = x;
                 return Err(SparkError::internal("task is being paused"));
             }
+            ExecutorState::Interrupted => {
+                *state = ExecutorState::Interrupted;
+                return Err(SparkError::OperationInterrupted(
+                    self.metadata.operation_id.clone(),
+                ));
+            }
         };
         let (tx, rx) = mpsc::channel(1);
         let (notifier, listener) = oneshot::channel();
@@ -445,8 +454,31 @@ impl Executor {
             ExecutorTaskResult::Completed => ExecutorState::Idle,
             ExecutorTaskResult::Failed(e) => ExecutorState::Failed(e),
         };
-        *(self.state.lock()?) = state;
+        let mut current = self.state.lock()?;
+        // An interrupt may have terminalized the operation while the paused
+        // task was being joined. Never restore that task's context afterwards.
+        if matches!(*current, ExecutorState::Pausing) {
+            *current = state;
+        }
         Ok(())
+    }
+
+    pub(crate) async fn interrupt(&self) -> SparkResult<bool> {
+        let previous = {
+            let mut state = self.state.lock()?;
+            mem::replace(state.deref_mut(), ExecutorState::Interrupted)
+        };
+        match previous {
+            ExecutorState::Interrupted => Ok(false),
+            ExecutorState::Running { task, .. } => {
+                let _ = task.notifier.send(());
+                // Drop the returned task context before acknowledging. Native
+                // blocking producers observe their stream cancellation next.
+                drop(task.handle.await?);
+                Ok(true)
+            }
+            _ => Ok(true),
+        }
     }
 
     pub(crate) fn release(&self, response_id: String) -> SparkResult<()> {
@@ -454,7 +486,10 @@ impl Executor {
         let buffer = match state.deref() {
             ExecutorState::Running { task, span: _ } => &task.buffer,
             ExecutorState::Pending { context, span: _ } => &context.buffer,
-            ExecutorState::Idle | ExecutorState::Failed(_) | ExecutorState::Pausing => {
+            ExecutorState::Idle
+            | ExecutorState::Failed(_)
+            | ExecutorState::Pausing
+            | ExecutorState::Interrupted => {
                 return Ok(());
             }
         };
@@ -462,6 +497,9 @@ impl Executor {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests;
 
 pub(crate) fn to_arrow_batch(batch: &RecordBatch) -> SparkResult<ArrowBatch> {
     let mut output = ArrowBatch::default();

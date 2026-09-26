@@ -1,5 +1,7 @@
 //! Lazy, at-most-once graph writes and drops.
-use crate::Request;
+use std::fmt;
+use std::sync::{Arc, Mutex};
+
 use arrow::array::{ArrayRef, BooleanArray, Int64Array, StringArray};
 use arrow::datatypes::{DataType, Field, Schema, SchemaRef};
 use arrow::record_batch::RecordBatch;
@@ -18,8 +20,8 @@ use datafusion_common::{Result, exec_err, plan_err};
 use datafusion_execution::TaskContext;
 use futures::{TryStreamExt, stream};
 use nutmeg_graph::{ColumnMapping, SessionRegistry, StageOrder};
-use std::fmt;
-use std::sync::{Arc, Mutex};
+
+use crate::Request;
 
 #[derive(Debug)]
 enum Operation {
@@ -278,6 +280,14 @@ impl Mutation {
                     self.registry
                         .replacing(&self.graph, nodes, edges, StageOrder::Canonical);
                 for (index, input) in inputs.into_iter().enumerate() {
+                    // A completely empty stream still carries property fields.
+                    // Retain its schema before execution yields any row batches.
+                    let empty = RecordBatch::new_empty(input.schema());
+                    if index == 0 {
+                        staging.push_nodes(&empty)?;
+                    } else {
+                        staging.push_edges(&empty)?;
+                    }
                     // execute_stream coalesces every partition, including uneven
                     // and empty partitions. Never assume the child has width 1.
                     let mut stream = execute_stream(input, context.clone())?;
@@ -298,6 +308,7 @@ impl Mutation {
                 ]
             }
         };
-        Ok(RecordBatch::try_new(self.schema.clone(), columns)?)
+        self.registry
+            .retain_output_owner(RecordBatch::try_new(self.schema.clone(), columns)?)
     }
 }

@@ -1803,6 +1803,7 @@ dependencies = [
  "futures",
  "grust-algorithm-procedures",
  "grust-algorithms",
+ "grust-arrow",
  "grust-core",
  "grust-procedures",
  "once_cell",

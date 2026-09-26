@@ -33,6 +33,9 @@ impl WorkerSessionFactory {
 
 impl SessionFactory<()> for WorkerSessionFactory {
     fn create(&mut self, _info: ()) -> Result<SessionContext> {
+        if std::env::var("SAIL_EXPERIMENTAL_EXTENSIONS").as_deref() == Ok("1") {
+            crate::extensions::load_worker_extensions()?;
+        }
         let runtime = self.runtime_env.create(Ok)?;
         // We still add default features for the worker session
         // since we need built-in functions to be available for the codec

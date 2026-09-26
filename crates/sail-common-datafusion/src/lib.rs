@@ -21,3 +21,5 @@ pub mod streaming;
 pub mod udf;
 pub mod utils;
 pub mod variant;
+
+pub mod native_scalar;

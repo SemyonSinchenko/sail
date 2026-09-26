@@ -228,3 +228,16 @@ normal garbage collection and Connect reattachment enabled. Logs are
 `/tmp/sail-extension-lifecycle-retention-focused.log` and
 `/tmp/sail-extension-lifecycle-retention-matrix.log`. These remain development
 controls until the new detached gate finishes.
+
+## Distributed scalar milestone
+
+The first distributed implementation is intentionally scalar-only. Native
+Sedona UDFs now use the existing Sail physical-plan codec with a bounded,
+versioned descriptor (`SAIL_NATIVE_SCALAR_V1`, extension identity, function
+name). Worker session construction preloads exact-build extension wheels before
+task decoding, and the process-local registry retains the Python/FFI owners.
+Missing or mismatched worker packages fail during decode with an explicit
+diagnostic. Cluster sessions reject relation-exporting packages, so Nutmeg graph
+relations remain local until residency, placement, retries, and atomic commit
+acknowledgements are implemented. This avoids claiming distributed graph
+semantics from a driver-local state object.

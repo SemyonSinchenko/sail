@@ -4,7 +4,6 @@
 //! named capsules. This is deliberately not a promise of a stable Sail C ABI.
 mod manifest;
 mod plan;
-mod scalar;
 
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex, OnceLock};
@@ -26,7 +25,7 @@ use sail_plan::function::is_built_in_function_name;
 
 use self::manifest::Manifest;
 use self::plan::NativeTableProvider;
-use self::scalar::OwnedScalar;
+use sail_common_datafusion::native_scalar::{OwnedScalar, retain_scalar};
 
 fn py_error(error: impl std::fmt::Display) -> DataFusionError {
     DataFusionError::Plan(format!("native extension: {error}"))
@@ -107,11 +106,7 @@ pub(crate) fn register_extensions(
         config.set_extension(Arc::new(registry));
         return Ok(config);
     }
-    if !matches!(mode, ExecutionMode::Local) {
-        return plan_err!(
-            "experimental native extensions support local mode only; {mode:?} needs worker discovery, extension codecs and placement support"
-        );
-    }
+    let distributed = !matches!(mode, ExecutionMode::Local);
     let catalog = config
         .get_extension::<CatalogManager>()
         .ok_or_else(|| py_error("session catalog is missing"))?;
@@ -156,6 +151,12 @@ pub(crate) fn register_extensions(
                 .map_err(py_error)?;
             let manifest: Manifest = serde_json::from_str(&json).map_err(py_error)?;
             manifest.validate()?;
+            if distributed && !manifest.relation_types.is_empty() {
+                return plan_err!(
+                    "extension {} exports relation handlers, which require distributed placement support",
+                    manifest.name
+                );
+            }
             if !identities.insert(manifest.name.to_ascii_lowercase()) {
                 return plan_err!(
                     "duplicate native extension name: {} (entry point {entry_name})",
@@ -197,7 +198,7 @@ pub(crate) fn register_extensions(
                 aliases.sort();
                 aliases.dedup();
                 // Retain both the bound session and the exporting object.
-                let owner = Arc::new(
+                let owner: Arc<dyn std::any::Any + Send + Sync> = Arc::new(
                     (owner.bind(py), function)
                         .into_pyobject(py)
                         .map_err(py_error)?
@@ -214,12 +215,14 @@ pub(crate) fn register_extensions(
                             manifest.name
                         );
                     }
-                    scalars.push(ScalarUDF::new_from_impl(OwnedScalar {
+                    let scalar = ScalarUDF::new_from_impl(OwnedScalar {
                         name,
                         identity: identity.clone(),
                         udf: udf.clone(),
                         owner: Arc::clone(&owner),
-                    }));
+                    });
+                    retain_scalar(scalar.clone())?;
+                    scalars.push(scalar);
                 }
             }
             for relation in manifest.relation_types {
@@ -244,4 +247,84 @@ pub(crate) fn register_extensions(
     }
     config.set_extension(Arc::new(registry));
     Ok(config)
+}
+
+/// Load scalar implementations on an execution worker before it decodes a
+/// distributed physical plan. The worker does not install relation handlers or
+/// mutate the driver catalog; the codec resolves native scalar descriptors from
+/// the process-local registry populated here.
+pub(crate) fn load_worker_extensions() -> Result<()> {
+    Python::attach(|py| {
+        let kwargs = PyDict::new(py);
+        kwargs
+            .set_item("group", "pysail.extensions")
+            .map_err(py_error)?;
+        let entries = py
+            .import("importlib.metadata")
+            .and_then(|m| m.getattr("entry_points"))
+            .and_then(|f| f.call((), Some(&kwargs)))
+            .map_err(py_error)?;
+        for entry in entries.try_iter().map_err(py_error)? {
+            let entry = entry.map_err(py_error)?;
+            let loaded = entry.call_method0("load").map_err(py_error)?;
+            let factory = if loaded.is_callable() {
+                loaded.call0().map_err(py_error)?
+            } else {
+                loaded
+            };
+            let metadata = factory.call_method0("manifest").map_err(py_error)?;
+            let json = py
+                .import("json")
+                .and_then(|m| m.call_method1("dumps", (metadata,)))
+                .and_then(|s| s.extract::<String>())
+                .map_err(py_error)?;
+            let manifest: Manifest = serde_json::from_str(&json).map_err(py_error)?;
+            manifest.validate()?;
+            if manifest.placement == "driver" {
+                continue;
+            }
+            let identity = format!("{}@{}", manifest.name, manifest.version);
+            retain_package(py, identity.clone(), &factory)?;
+            let owner = factory
+                .call_method1("bind", (format!("worker-{identity}"),))
+                .map_err(py_error)?;
+            for function in owner
+                .call_method0("scalar_udfs")
+                .map_err(py_error)?
+                .try_iter()
+                .map_err(py_error)?
+            {
+                let function = function.map_err(py_error)?;
+                let capsule = function
+                    .call_method0("__datafusion_scalar_udf__")
+                    .map_err(py_error)?;
+                let capsule = capsule.cast::<PyCapsule>().map_err(py_error)?;
+                let pointer = capsule
+                    .pointer_checked(Some(c"datafusion_scalar_udf"))
+                    .map_err(py_error)?;
+                let ffi = unsafe { pointer.cast::<FFI_ScalarUDF>().as_ref().clone() };
+                let udf = ScalarUDF::new_from_shared_impl((&ffi).into());
+                let owner: Arc<dyn std::any::Any + Send + Sync> = Arc::new(
+                    (owner.clone(), function)
+                        .into_pyobject(py)
+                        .map_err(py_error)?
+                        .into_any()
+                        .unbind(),
+                );
+                let mut names = vec![udf.name().to_string()];
+                names.extend(udf.aliases().iter().cloned());
+                names.sort_unstable();
+                names.dedup();
+                for name in names {
+                    retain_scalar(ScalarUDF::new_from_impl(OwnedScalar {
+                        name,
+                        identity: identity.clone(),
+                        udf: udf.clone(),
+                        owner: Arc::clone(&owner),
+                    }))?;
+                }
+            }
+        }
+        Ok(())
+    })
 }

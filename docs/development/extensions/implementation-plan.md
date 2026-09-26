@@ -145,4 +145,21 @@ lockfile/wheel hashes, Python/client/toolchain versions, execution mode and actu
 partition counts. Commit only after gates succeed in the same shell && chain.
 This is a branch proof of concept, not a Grust crate release or benchmark.
 
+## Distributed execution milestone
+
+The distributed slice now covers scalar-only extensions. Native scalar UDFs are
+encoded in Sail's existing `PhysicalExtensionCodec` as a bounded
+`SAIL_NATIVE_SCALAR_V1` descriptor containing the extension identity and
+function name. A worker session imports the same `pysail.extensions` wheels
+before decoding a task plan and retains the FFI owners in a process-local
+registry. A descriptor with a missing package, mismatched function, unknown
+version, or oversized payload fails closed. Cluster sessions may therefore run
+Sedona scalar expressions on workers when the exact wheel and DataFusion/Arrow
+build tuple are present.
+
+Nutmeg relation plans remain refused in cluster mode. Completing them requires
+graph residency, owner-discriminated relation codecs, worker placement, retry
+attempt identity, and commit/acknowledgement semantics; silently executing a
+driver-local graph on a worker would violate the graph consistency contract.
+
 Plan recorded: 2026-09-26T00:09:26+00:00

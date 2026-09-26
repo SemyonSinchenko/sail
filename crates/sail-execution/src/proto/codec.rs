@@ -95,6 +95,7 @@ use sail_common_datafusion::catalog::{
     CatalogPartitionField, LakehouseExecutionContext, PartitionTransform,
 };
 use sail_common_datafusion::datasource::PhysicalSinkMode;
+use sail_common_datafusion::native_scalar::{decode_scalar, encode_scalar};
 use sail_common_datafusion::schema_evolution::{
     SchemaEvolutionCastColumnExpr, SchemaEvolutionDefaultExpr,
     SchemaEvolutionPhysicalExprAdapterFactoryWithMatching, SchemaEvolutionTimezoneMode,
@@ -3000,6 +3001,9 @@ impl PhysicalExtensionCodec for RemoteExecutionCodec {
     }
 
     fn try_decode_udf(&self, name: &str, buf: &[u8]) -> Result<Arc<ScalarUDF>> {
+        if buf.starts_with(sail_common_datafusion::native_scalar::SCALAR_CODEC_PREFIX) {
+            return decode_scalar(name, buf);
+        }
         // TODO: Implement custom registry to avoid codec for built-in functions.
         // The `match name` below has no session-registry fallback, so every
         // scalar UDF needs an explicit arm or distributed decode fails with
@@ -3472,6 +3476,9 @@ impl PhysicalExtensionCodec for RemoteExecutionCodec {
     }
 
     fn try_encode_udf(&self, node: &ScalarUDF, buf: &mut Vec<u8>) -> Result<()> {
+        if encode_scalar(node, buf)? {
+            return Ok(());
+        }
         // TODO: Implement custom registry to avoid codec for built-in functions
         let node_inner = node.inner();
         let udf_kind: UdfKind = if node_inner.is::<ArrayElement>()

@@ -13,6 +13,7 @@ use sail_execution::worker_manager::{
 use sail_telemetry::events::SystemEventReporter;
 
 use crate::error::{SessionError, SessionResult};
+use crate::runtime::MemoryResourceDomain;
 use crate::session_factory::{SessionFactory, WorkerSessionFactory};
 
 pub struct SessionJobRunner {
@@ -42,6 +43,7 @@ impl SessionJobRunner {
 }
 
 pub struct SessionJobRunnerInfo {
+    pub resource_domain: Option<MemoryResourceDomain>,
     pub session_id: String,
     pub driver_id: DriverId,
     pub driver_server_port: Option<u16>,
@@ -112,6 +114,7 @@ impl SessionJobRunnerFactory for ServerSessionJobRunnerFactory {
                 }
                 let worker_session =
                     WorkerSessionFactory::new(self.config.clone(), self.runtime.clone())
+                        .with_resource_domain(info.resource_domain.clone())
                         .create(())?;
                 self.create_cluster_runner(
                     system,

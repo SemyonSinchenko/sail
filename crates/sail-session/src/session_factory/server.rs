@@ -26,11 +26,12 @@ use crate::catalog::create_catalog_manager;
 use crate::formats::create_data_source_registry;
 use crate::optimizer::{default_analyzer_rules, default_optimizer_rules};
 use crate::planner::new_query_planner;
-use crate::runtime::RuntimeEnvFactory;
+use crate::runtime::{MemoryResourceDomain, RuntimeEnvFactory};
 use crate::session_factory::SessionFactory;
 use crate::session_manager::SessionManagerActor;
 
 pub struct ServerSessionInfo {
+    pub resource_domain: Option<MemoryResourceDomain>,
     pub session_id: String,
     pub user_id: String,
     pub session_manager: ActorHandle<SessionManagerActor>,
@@ -137,7 +138,9 @@ impl ServerSessionFactory {
         let config = self.create_session_config(info)?;
         let runtime = self
             .runtime_env
-            .create(|builder| self.mutator.mutate_runtime_env(builder, info))?;
+            .create(info.resource_domain.as_ref(), |builder| {
+                self.mutator.mutate_runtime_env(builder, info)
+            })?;
         let config = crate::extensions::register_extensions(config, &self.config.mode, &runtime)?;
         // We do not add default features to the session state,
         // since we manage data sources and functions ourselves.

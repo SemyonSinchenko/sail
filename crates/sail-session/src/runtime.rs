@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 mod memory;
-
 use datafusion::execution::DiskManager;
 use datafusion::execution::cache::cache_manager::{
     CacheManagerConfig, FileMetadataCache, FileStatisticsCache, ListFilesCache,
@@ -10,6 +9,7 @@ use datafusion::execution::disk_manager::{DiskManagerBuilder, DiskManagerMode};
 use datafusion::execution::runtime_env::{RuntimeEnv, RuntimeEnvBuilder};
 use datafusion_common::Result;
 use log::debug;
+pub use memory::MemoryResourceDomain;
 use sail_cache::file_listing_cache::MokaFileListingCache;
 use sail_cache::file_metadata_cache::MokaFileMetadataCache;
 use sail_cache::file_statistics_cache::MokaFileStatisticsCache;
@@ -36,7 +36,11 @@ impl RuntimeEnvFactory {
         }
     }
 
-    pub fn create<M>(&mut self, mutator: M) -> Result<Arc<RuntimeEnv>>
+    pub fn create<M>(
+        &mut self,
+        domain: Option<&MemoryResourceDomain>,
+        mutator: M,
+    ) -> Result<Arc<RuntimeEnv>>
     where
         M: FnOnce(RuntimeEnvBuilder) -> Result<RuntimeEnvBuilder>,
     {
@@ -60,10 +64,10 @@ impl RuntimeEnvFactory {
         let builder = RuntimeEnvBuilder::default()
             .with_object_store_registry(Arc::new(registry))
             .with_cache_manager(cache_config)
-            .with_memory_pool(memory::create_memory_pool(
-                &self.config.runtime.memory_pool,
-                std::env::var("SAIL_EXPERIMENTAL_EXTENSIONS").as_deref() == Ok("1"),
-            )?)
+            .with_memory_pool(domain.map_or_else(
+                || memory::new_pool(&self.config.runtime.memory_pool),
+                MemoryResourceDomain::pool,
+            ))
             .with_disk_manager_builder(self.create_disk_manager_builder());
         let builder = mutator(builder)?;
         Ok(Arc::new(builder.build()?))

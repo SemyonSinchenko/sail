@@ -7,6 +7,8 @@ from importlib import metadata
 import json
 from pathlib import Path
 import platform
+import re
+import runpy
 import subprocess
 import sys
 
@@ -35,6 +37,23 @@ def native_files(distribution):
             for path in package.files or [] if str(path).endswith((".so", ".dylib", ".pyd"))}
 
 
+identity = runpy.run_path(str(repo / "crates/sail-session/src/extensions/package_identity.py"))["identity"]
+identities = {}
+for entry in metadata.entry_points(group="pysail.extensions"):
+    factory = entry.load()
+    if callable(factory):
+        factory = factory()
+    manifest = factory.manifest()
+    identities[manifest["name"]] = identity(entry, manifest)
+process_logs = list((args.target / "pytest-process-cluster").rglob("server.log"))
+processes = []
+for path in process_logs:
+    content = path.read_text()
+    for worker, driver in re.findall(r"extension process worker \d+: pid=Some\((\d+)\), driver_pid=(\d+)", content):
+        processes.append({"log": str(path.relative_to(args.target)), "worker_pid": int(worker), "driver_pid": int(driver)})
+if not processes or not all(row["worker_pid"] != row["driver_pid"] for row in processes):
+    raise RuntimeError("missing separate-process worker evidence")
+
 receipt = {
     "timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     "host": platform.node(),
@@ -42,9 +61,10 @@ receipt = {
     "sail_commit": command("git", "rev-parse", "HEAD"),
     "rust": command("rustc", "--version"),
     "python": sys.version,
-    "mode": "local",
-    "server_processes": 1,
-    "native_plugins": "separate installed wheels, same server process",
+    "modes": ["local", "local-cluster", "process-cluster"],
+    "native_plugins": "separate installed wheels; driver-resident Nutmeg, independently loaded worker Sedona",
+    "package_identities": identities,
+    "worker_processes": processes,
     "extension_sources": {
         "sedonadb_commit": command("git", "-C", "examples/extensions/sedona/.deps/sedona-db", "rev-parse", "HEAD"),
         "sedonadb_patch_sha256": sha256(repo / "examples/extensions/sedona/patches/datafusion-55.patch"),
@@ -64,13 +84,13 @@ receipt = {
     "installed_native_files": {name: native_files(name) for name in
                                ["sail-sedona-extension", "sail-nutmeg"]},
     "cancellation_stress": json.loads((args.target / "cancellation-stress.json").read_text()),
-    "outcome": "passed local native extension gates",
+    "outcome": "passed local and distributed native extension gates",
     "boundaries": {
-        "distributed_extensions": "unsupported; deliberate rejection tested",
+        "distributed_extensions": "local-cluster actors and separate Sail worker processes on one host; multi-host/Kubernetes deployment not qualified",
         "sedona_indexed_join": "not implemented; baseline spatial SQL correctness tested",
         "geometry_client_udt": "not qualified; results collected as scalars/text",
         "kernel_cancellation": "blocked-output native FFI lifetime tested; fresh projection build not interruptible",
-        "mutation_replay": "one physical attempt only; new request is new operation",
+        "mutation_replay": "driver-native regions have one attempt; acknowledgement loss is indeterminate; a new request is a new operation",
     },
 }
 args.output.parent.mkdir(parents=True, exist_ok=True)

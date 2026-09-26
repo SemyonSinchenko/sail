@@ -137,6 +137,10 @@ pub struct HostInputExec {
 }
 
 impl HostInputExec {
+    pub fn gathered_input(&self) -> Arc<dyn ExecutionPlan> {
+        self.input.clone()
+    }
+
     pub fn new(input: Arc<dyn ExecutionPlan>, context: Arc<TaskContext>, runtime: Handle) -> Self {
         Self {
             input: Arc::new(CoalescePartitionsExec::new(input)),

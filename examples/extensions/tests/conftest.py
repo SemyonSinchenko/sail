@@ -21,6 +21,7 @@ from pyspark.sql.connect.client.retries import DefaultPolicy
 
 def pytest_addoption(parser):
     parser.addoption("--sail-binary", required=True)
+    parser.addoption("--execution-mode", default="local", choices=["local", "local-cluster", "process-cluster"])
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -67,7 +68,7 @@ def bounded_connect_retries(monkeypatch):
 
 
 @contextlib.contextmanager
-def start_server(binary, directory, mode="local", extra_pythonpath=None):
+def start_server(binary, directory, mode="local", extra_pythonpath=None, extra_env=None):
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
         port = listener.getsockname()[1]
@@ -75,8 +76,13 @@ def start_server(binary, directory, mode="local", extra_pythonpath=None):
     paths = [sysconfig.get_paths()["purelib"]]
     if extra_pythonpath:
         paths.insert(0, str(extra_pythonpath))
-    env.update(PYTHONHOME=sys.base_prefix, DYLD_LIBRARY_PATH=sysconfig.get_config_var("LIBDIR") or "", PYTHONPATH=os.pathsep.join(paths), SAIL_EXPERIMENTAL_EXTENSIONS="1", SAIL_MODE=mode,
+    env.update(PYTHONHOME=sys.base_prefix, DYLD_LIBRARY_PATH=sysconfig.get_config_var("LIBDIR") or "", PYTHONPATH=os.pathsep.join(paths), SAIL_EXPERIMENTAL_EXTENSIONS="1", SAIL_MODE="local-cluster" if mode == "process-cluster" else mode,
                SAIL_EXECUTION__DEFAULT_PARALLELISM="4")
+    env.update(SAIL_EXPERIMENTAL_PROCESS_WORKERS="1" if mode == "process-cluster" else "0",
+               SAIL_CLUSTER__WORKER_INITIAL_COUNT="2", SAIL_CLUSTER__WORKER_MAX_COUNT="2",
+               SAIL_CLUSTER__TASK_MAX_ATTEMPTS="3")
+    if extra_env:
+        env.update(extra_env)
     env.pop("SAIL_INTERNAL__RUN_PYTHON", None)
     directory.mkdir(parents=True, exist_ok=True)
     with (directory / "server.log").open("w") as log:
@@ -107,7 +113,7 @@ def start_server(binary, directory, mode="local", extra_pythonpath=None):
 @pytest.fixture(scope="session")
 def endpoint(request, tmp_path_factory):
     binary = str(Path(request.config.getoption("--sail-binary")).resolve())
-    with start_server(binary, tmp_path_factory.mktemp("sail-native-extensions")) as uri:
+    with start_server(binary, tmp_path_factory.mktemp("sail-native-extensions"), mode=request.config.getoption("--execution-mode")) as uri:
         yield uri
 
 

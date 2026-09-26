@@ -2,6 +2,7 @@
 //!
 //! Python metadata is the bootstrap protocol; native objects use DataFusion's
 //! named capsules. This is deliberately not a promise of a stable Sail C ABI.
+mod driver;
 mod manifest;
 mod plan;
 
@@ -23,12 +24,32 @@ use sail_common::config::ExecutionMode;
 use sail_common_datafusion::connect_extension::{ConnectExtensionRegistry, ConnectRelationHandler};
 use sail_plan::function::is_built_in_function_name;
 
+use self::driver::{DriverTableProvider, InputPlaceholder};
 use self::manifest::Manifest;
 use self::plan::NativeTableProvider;
+use sail_common_datafusion::connect_extension::HostInputExec;
+use sail_common_datafusion::driver_extension::DriverExtensionRegistry;
 use sail_common_datafusion::native_scalar::{OwnedScalar, retain_scalar};
 
 fn py_error(error: impl std::fmt::Display) -> DataFusionError {
     DataFusionError::Plan(format!("native extension: {error}"))
+}
+
+fn package_identity(
+    py: Python<'_>,
+    entry: &Bound<'_, PyAny>,
+    metadata: &Bound<'_, PyAny>,
+) -> Result<String> {
+    let source = std::ffi::CString::new(include_str!("package_identity.py")).map_err(py_error)?;
+    pyo3::types::PyModule::from_code(
+        py,
+        &source,
+        c"sail_extension_identity.py",
+        c"sail_extension_identity",
+    )
+    .and_then(|module| module.call_method1("identity", (entry, metadata)))
+    .and_then(|value| value.extract())
+    .map_err(py_error)
 }
 
 /// Loaded native code is process-lifetime; session state is never stored here.
@@ -50,6 +71,7 @@ struct PythonRelationHandler {
     owner: Arc<Py<PyAny>>,
     type_url: String,
     identity: String,
+    driver_registry: Option<Arc<DriverExtensionRegistry>>,
 }
 
 impl ConnectRelationHandler for PythonRelationHandler {
@@ -60,7 +82,25 @@ impl ConnectRelationHandler for PythonRelationHandler {
     ) -> Result<Arc<dyn TableProvider>> {
         Python::attach(|py| {
             let capsules = PyList::empty(py);
+            let mut driver_inputs = Vec::new();
+            let mut names = Vec::new();
             for input in inputs {
+                let input = if self.driver_registry.is_some() {
+                    let host = input
+                        .downcast_ref::<HostInputExec>()
+                        .ok_or_else(|| py_error("native driver input is missing host adapter"))?;
+                    let input = host.gathered_input();
+                    let name = format!("SailNativeInput_{}", uuid::Uuid::new_v4());
+                    let placeholder = Arc::new(InputPlaceholder {
+                        name: name.clone(),
+                        properties: input.properties().clone(),
+                    });
+                    driver_inputs.push(input);
+                    names.push(name);
+                    placeholder as Arc<dyn ExecutionPlan>
+                } else {
+                    input
+                };
                 let ffi = FFI_ExecutionPlan::new(input, tokio::runtime::Handle::try_current().ok());
                 capsules
                     .append(
@@ -85,6 +125,15 @@ impl ConnectRelationHandler for PythonRelationHandler {
             // the trusted package promises the named DataFusion capsule layout. No
             // Python code runs between obtaining the pointer and cloning its owner.
             let provider = unsafe { pointer.cast::<FFI_TableProvider>().as_ref().clone() };
+            if let Some(registry) = &self.driver_registry {
+                return Ok(Arc::new(DriverTableProvider {
+                    inner: Arc::<dyn TableProvider>::from(&provider),
+                    inputs: driver_inputs,
+                    names,
+                    owner: self.identity.clone(),
+                    registry: registry.clone(),
+                }) as Arc<dyn TableProvider>);
+            }
             Ok(
                 Arc::new(NativeTableProvider::new(Arc::<dyn TableProvider>::from(
                     &provider,
@@ -107,6 +156,8 @@ pub(crate) fn register_extensions(
         return Ok(config);
     }
     let distributed = !matches!(mode, ExecutionMode::Local);
+    let driver_registry = Arc::new(DriverExtensionRegistry::default());
+    config.set_extension(driver_registry.clone());
     let catalog = config
         .get_extension::<CatalogManager>()
         .ok_or_else(|| py_error("session catalog is missing"))?;
@@ -146,14 +197,15 @@ pub(crate) fn register_extensions(
             let metadata = factory.call_method0("manifest").map_err(py_error)?;
             let json = py
                 .import("json")
-                .and_then(|m| m.call_method1("dumps", (metadata,)))
+                .and_then(|m| m.call_method1("dumps", (&metadata,)))
                 .and_then(|s| s.extract::<String>())
                 .map_err(py_error)?;
             let manifest: Manifest = serde_json::from_str(&json).map_err(py_error)?;
             manifest.validate()?;
-            if distributed && !manifest.relation_types.is_empty() {
+            if distributed && manifest.placement != "driver" && !manifest.relation_types.is_empty()
+            {
                 return plan_err!(
-                    "extension {} exports relation handlers, which require distributed placement support",
+                    "extension {} requires a worker relation codec; only driver-resident relations are supported",
                     manifest.name
                 );
             }
@@ -163,7 +215,7 @@ pub(crate) fn register_extensions(
                     manifest.name
                 );
             }
-            let identity = format!("{}@{}", manifest.name, manifest.version);
+            let identity = package_identity(py, &entry, &metadata)?;
             retain_package(py, identity.clone(), &factory)?;
             let owner = Arc::new(
                 factory
@@ -235,6 +287,7 @@ pub(crate) fn register_extensions(
                         owner: Arc::clone(&owner),
                         type_url: relation.type_url,
                         identity: identity.clone(),
+                        driver_registry: distributed.then(|| driver_registry.clone()),
                     }),
                 )?;
             }
@@ -275,7 +328,7 @@ pub(crate) fn load_worker_extensions() -> Result<()> {
             let metadata = factory.call_method0("manifest").map_err(py_error)?;
             let json = py
                 .import("json")
-                .and_then(|m| m.call_method1("dumps", (metadata,)))
+                .and_then(|m| m.call_method1("dumps", (&metadata,)))
                 .and_then(|s| s.extract::<String>())
                 .map_err(py_error)?;
             let manifest: Manifest = serde_json::from_str(&json).map_err(py_error)?;
@@ -283,8 +336,12 @@ pub(crate) fn load_worker_extensions() -> Result<()> {
             if manifest.placement == "driver" {
                 continue;
             }
-            let identity = format!("{}@{}", manifest.name, manifest.version);
+            let identity = package_identity(py, &entry, &metadata)?;
             retain_package(py, identity.clone(), &factory)?;
+            log::info!(
+                "worker loaded native extension {identity}, pid={}",
+                std::process::id()
+            );
             let owner = factory
                 .call_method1("bind", (format!("worker-{identity}"),))
                 .map_err(py_error)?;
@@ -302,6 +359,8 @@ pub(crate) fn load_worker_extensions() -> Result<()> {
                 let pointer = capsule
                     .pointer_checked(Some(c"datafusion_scalar_udf"))
                     .map_err(py_error)?;
+                // SAFETY: the validated capsule owns an FFI_ScalarUDF, and the
+                // Python owner/function are retained below for its full lifetime.
                 let ffi = unsafe { pointer.cast::<FFI_ScalarUDF>().as_ref().clone() };
                 let udf = ScalarUDF::new_from_shared_impl((&ffi).into());
                 let owner: Arc<dyn std::any::Any + Send + Sync> = Arc::new(
@@ -311,8 +370,8 @@ pub(crate) fn load_worker_extensions() -> Result<()> {
                         .into_any()
                         .unbind(),
                 );
-                let mut names = vec![udf.name().to_string()];
-                names.extend(udf.aliases().iter().cloned());
+                let mut names = vec![udf.name().to_ascii_lowercase()];
+                names.extend(udf.aliases().iter().map(|name| name.to_ascii_lowercase()));
                 names.sort_unstable();
                 names.dedup();
                 for name in names {

@@ -9,9 +9,10 @@ algorithms through Spark Connect `Relation.extension`. A joint example must
 stage a graph derived from spatial SQL and return composable algorithm results.
 All claimed successes require a runnable test and a receipt at an exact commit.
 
-The initial delivery is local-mode. It includes ordinary Sail spatial joins
+The initial delivery was local-mode; the resumed goal adds distributed execution
+under the contract at the end of this plan. Both include ordinary Sail spatial joins
 using imported predicates. It does not claim the optimized Sedona SpatialJoinExec
-hook, distributed execution, geometry UDT interchange, or a stable native ABI.
+hook, geometry UDT interchange, or a stable native ABI.
 Those are distinct milestones below, not properties inferred from local success.
 
 ## Review baseline
@@ -52,8 +53,10 @@ explicit port to the Sail build tuple, DataFusion 55.1.0 / Arrow 59.3.0.
    memory budget distinct from Sail's budget.
 7. **Column names are a host contract.** Restore visible names on inputs before
    handing them to a handler; use resolve_table_provider_with_rename for results.
-8. **Local execution is not cluster evidence.** Reject extension enablement in
-   cluster modes with an explicit diagnostic before planning/codec failures.
+8. **Local execution is not cluster evidence.** The initial implementation
+   rejected cluster modes. The distributed milestone replaces that rejection
+   with worker package identity checks, scalar codecs and driver-stage placement,
+   and requires separate-process execution evidence.
 
 ## Implementation sequence and ownership
 
@@ -147,19 +150,36 @@ This is a branch proof of concept, not a Grust crate release or benchmark.
 
 ## Distributed execution milestone
 
-The distributed slice now covers scalar-only extensions. Native scalar UDFs are
-encoded in Sail's existing `PhysicalExtensionCodec` as a bounded
-`SAIL_NATIVE_SCALAR_V1` descriptor containing the extension identity and
-function name. A worker session imports the same `pysail.extensions` wheels
-before decoding a task plan and retains the FFI owners in a process-local
-registry. A descriptor with a missing package, mismatched function, unknown
-version, or oversized payload fails closed. Cluster sessions may therefore run
-Sedona scalar expressions on workers when the exact wheel and DataFusion/Arrow
-build tuple are present.
+The user resumed the goal for both extensions in distributed execution. The
+completion contract includes `local-cluster` and independently launched Sail
+worker processes, with both native wheels installed. A scalar-only code path or
+cluster admission without actual execution is insufficient evidence.
 
-Nutmeg relation plans remain refused in cluster mode. Completing them requires
-graph residency, owner-discriminated relation codecs, worker placement, retry
-attempt identity, and commit/acknowledgement semantics; silently executing a
-driver-local graph on a worker would violate the graph consistency contract.
+1. Sedona scalars use an owner/version-discriminated descriptor in Sail's physical
+   codec. Identity hashes installed package files and canonical immutable metadata,
+   in addition to validating the DataFusion/Arrow/API tuple. Workers discover their
+   own wheels before decoding; aliases use the same case normalization as the
+   driver. Missing packages and same-version different code must fail explicitly.
+2. Nutmeg remains **driver-resident**, as proposal §§10 and 15 require. The host
+   exposes gathered input children to the distributed stage planner and wraps the
+   native region with a driver-placement adapter. Workers execute input queries;
+   driver native kernels consume the prepared shuffle streams. Results pass through
+   worker stages and can participate in further distributed queries.
+3. Driver plan descriptors resolve only within the originating session and live
+   query. They reference the original native plan, preserving the bound graph
+   revision and mutation attempt through encode, decode and child replacement.
+   Weak registry entries must not retain abandoned snapshots indefinitely.
+4. Regions containing driver-native operations disable automatic retries. A lost
+   acknowledgement is explicitly indeterminate. Fault injection must demonstrate
+   one mutation and no replay, while an invalid overwrite preserves prior state.
+5. Verify multi-partition and empty inputs, session isolation, ordinary spatial
+   joins, spatial-to-graph composition, snapshot lifetime, early stop/cancellation,
+   package mismatch and placement/codec invariants. Qualify worker-process evidence
+   independently of the in-process local-cluster run. Preserve local regressions.
+
+The process launcher is enabled with `SAIL_EXPERIMENTAL_PROCESS_WORKERS=1` in
+`local-cluster` mode. This uses the same Sail worker CLI and RPC/task protocol as
+external workers. Kubernetes orchestration requires a deployment environment and
+is not inferred from a same-host multi-process test.
 
 Plan recorded: 2026-09-26T00:09:26+00:00

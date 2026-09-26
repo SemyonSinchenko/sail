@@ -79,6 +79,7 @@ class Extension:
     (directory / "fixture_extensions.py").write_text(source)
     distribution = directory / "sail_loader_fixture-1.dist-info"
     distribution.mkdir()
+    (distribution / "RECORD").write_text("fixture_extensions.py,,\n")
     (distribution / "METADATA").write_text(
         "Metadata-Version: 2.1\nName: sail-loader-fixture\nVersion: 1\n")
     (distribution / "entry_points.txt").write_text(
@@ -133,13 +134,14 @@ def test_unknown_url_and_envelope_errors(spark):
         DataFrame(RawRelation(TYPE_URL, b"x" * (1024 * 1024 + 1)), spark).collect()
 
 
-def test_cluster_mode_refuses_before_execution(request, tmp_path):
+def test_cluster_mode_runs_installed_native_scalar(request, tmp_path):
     binary = str(Path(request.config.getoption("--sail-binary")).resolve())
     with start_server(binary, tmp_path / "cluster", mode="local-cluster") as endpoint:
         session = SparkSession.builder.remote(endpoint).create()
         try:
-            with pytest.raises(Exception, match="local mode only"):
-                session.sql("SELECT 1").collect()
+            rows = session.sql("SELECT ST_AsText(ST_Point(CAST(id AS DOUBLE), 2.0)) AS wkt FROM range(4) ORDER BY id").collect()
+            from shapely import from_wkt
+            assert [tuple(from_wkt(row.wkt).coords)[0] for row in rows] == [(float(i), 2.0) for i in range(4)]
         finally:
             try:
                 session.stop()

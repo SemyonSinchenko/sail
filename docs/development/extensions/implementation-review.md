@@ -1,6 +1,9 @@
-# Independent implementation review
+# Implementation review and verification history
 
 Reviewed at: 2026-09-26T00:52:49+00:00
+
+The opening review and initial gate history describe the local delivery.
+The distributed continuation is recorded separately below.
 
 This is a source review of the current proof-of-concept working tree. It does
 not identify an uncommitted tree as a tested commit. The implementation baseline
@@ -231,13 +234,79 @@ controls until the new detached gate finishes.
 
 ## Distributed scalar milestone
 
-The first distributed implementation is intentionally scalar-only. Native
-Sedona UDFs now use the existing Sail physical-plan codec with a bounded,
-versioned descriptor (`SAIL_NATIVE_SCALAR_V1`, extension identity, function
-name). Worker session construction preloads exact-build extension wheels before
-task decoding, and the process-local registry retains the Python/FFI owners.
-Missing or mismatched worker packages fail during decode with an explicit
-diagnostic. Cluster sessions reject relation-exporting packages, so Nutmeg graph
-relations remain local until residency, placement, retries, and atomic commit
-acknowledgements are implemented. This avoids claiming distributed graph
-semantics from a driver-local state object.
+Commit `c3766a47b` added scalar descriptors and worker loading, but had no actual
+worker-execution test. A test invocation filtering on `native_scalar` ran zero
+tests. The existing 16 extension tests did not exercise that codec. Its package
+identity contained only name/version despite a comment claiming content and
+configuration hashes; worker aliases also lacked the driver's normalization.
+It continued rejecting Nutmeg in cluster mode, so it did not complete the resumed
+goal. The commit was pushed without a detached-commit gate and is retained as
+incomplete development history, not a distributed qualification verdict.
+
+The proposal explicitly places Nutmeg on the driver. Distributed execution needs
+worker-produced input stages and driver-resident graph operations, not migration
+of graph state to workers. The current implementation follows that contract:
+declared inputs are visible to Sail's stage planner while the native region stays
+opaque to outer physical optimization. Session-scoped descriptors retain the same
+native snapshot/attempt through task decoding; task-local shuffle children replace
+typed placeholders only at execution. Regions containing native driver operations
+do not retry. Actual in-process cluster and separate-process worker evidence is
+required before this continuation can be considered complete.
+
+## Distributed implementation and development checks
+
+Recorded at: 2026-09-26T02:42:21.705Z
+
+The distributed path now loads immutable scalar packages independently on workers.
+Descriptors include a SHA-256 of installed package files and canonical manifest
+metadata. Same-version different content is incompatible. Aliases are normalized
+identically on the driver and workers. Native geometry expressions use a focused
+physical-expression codec that preserves the complete Arrow return field.
+Metadata-bearing literals have their own codec, because constant folding can
+turn a geometry function into a literal before stage serialization.
+
+Nutmeg providers are planned once. A session-owned driver binding freezes the
+native plan and its read snapshot or mutation state. Task decoding resolves that
+binding rather than planning a new request. Unique typed placeholders are replaced
+with prepared host shuffle inputs at execution, under the real task/runtime
+context. Placement is classified centrally for both stage barriers and preserved
+roots. Native regions permit one attempt even when ordinary tasks allow three.
+Query cleanup releases native plans/providers retained by archived job graphs;
+already materialized streams retain their own ownership until dropped.
+
+Development checks passed 52 common-DataFusion, 121 execution and 28 session
+tests, including a commit-then-error fixture which exhausts the native region
+after one attempt while its ordinary-task control remains retryable. This is
+scheduler fault injection, not a claim of a real network partition after a
+Nutmeg commit. The separate-process integration suite passed 29 tests, including
+two distinct worker PIDs, independently loaded Sedona content identities, absent
+and same-version changed worker packages, driver placement with eight worker input
+partitions, joint spatial-to-graph execution, isolation and early result limits.
+These development runs do not certify a final commit.
+
+Retained development failures: the first cluster Sedona query lost geometry
+metadata in the standard scalar-expression codec; the first process shuffle
+fixture then exposed metadata loss for constant-folded literals. Both required
+the codecs above. Rust test compilation also exposed incorrect fixture helper
+names and readonly options construction; corrected fixtures compile and pass.
+The first complete Rust run passed common-DataFusion then failed to locate
+libpython; the control with the verification script's library path passed.
+System-table counters required explicit signed casts for PySpark, and the WKT
+fixture now compares exact coordinates rather than an assumed spacing style.
+Logs are retained with the delivery artifacts.
+
+The final gate must rerun the local, in-process cluster and separate-process
+matrix at an immutable candidate. Separate processes run on this macOS host;
+multi-host networking and Kubernetes deployment remain unqualified. Nutmeg graph
+residency stays on the driver, and optimized Sedona joins remain a separate goal.
+
+### First distributed candidate
+
+Recorded at: 2026-09-26T02:46:10.267Z
+
+Candidate `691e721521aeb5f9000e97febc38f69bf1b63626` failed detached
+clippy because the new metadata round-trip test used `unwrap()`, forbidden by
+the repository lint. The test now returns an explicit error if the decoded
+expression is not a literal; its value and metadata assertions are unchanged.
+The failed candidate is not promoted. Log:
+`/tmp/sail-distributed-gate-clippy-691e72152.log`.

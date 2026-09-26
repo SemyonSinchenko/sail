@@ -4,6 +4,19 @@ from pyspark.sql import functions as F
 from shapely import from_wkt
 
 
+def test_geometry_metadata_survives_worker_expressions_and_shuffle(spark):
+    source = spark.range(0, 17, numPartitions=4)
+    geometry = source.select("id", F.call_function("st_point", F.col("id").cast("double"), F.lit(2.0)).alias("geom"))
+    shuffled = geometry.repartition(4, "id")
+    rows = shuffled.select("id", F.call_function("st_astext", "geom").alias("wkt"),
+                           F.call_function("st_distance", "geom", F.call_function("st_point", F.lit(0.0), F.lit(2.0))).alias("distance")).orderBy("id").collect()
+    assert len(rows) == 17
+    for i, row in enumerate(rows):
+        assert row.id == i
+        assert from_wkt(row.wkt).equals(from_wkt(f"POINT({i} 2)"))
+        assert row.distance == float(i)
+
+
 def test_scalar_sql_uses_native_sedona(spark):
     row = spark.sql("""SELECT ST_AsText(ST_Point(1.0, 2.0)) AS text,
       ST_Distance(ST_Point(0.0, 0.0), ST_Point(3.0, 4.0)) AS distance,

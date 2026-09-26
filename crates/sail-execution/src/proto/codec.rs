@@ -95,6 +95,7 @@ use sail_common_datafusion::catalog::{
     CatalogPartitionField, LakehouseExecutionContext, PartitionTransform,
 };
 use sail_common_datafusion::datasource::PhysicalSinkMode;
+use sail_common_datafusion::driver_extension::{DRIVER_CODEC_PREFIX, DriverExtensionExec};
 use sail_common_datafusion::native_scalar::{decode_scalar, encode_scalar};
 use sail_common_datafusion::schema_evolution::{
     SchemaEvolutionCastColumnExpr, SchemaEvolutionDefaultExpr,
@@ -353,6 +354,9 @@ impl PhysicalExtensionCodec for RemoteExecutionCodec {
         ctx: &TaskContext,
         proto_converter: &dyn PhysicalProtoConverterExtension,
     ) -> Result<Arc<dyn ExecutionPlan>> {
+        if buf.starts_with(DRIVER_CODEC_PREFIX) {
+            return DriverExtensionExec::decode(buf, inputs, ctx);
+        }
         let node = ExtendedPhysicalPlanNode::decode(buf)
             .map_err(|e| plan_datafusion_err!("failed to decode plan: {e}"))?;
         let ExtendedPhysicalPlanNode { node_kind } = node;
@@ -1905,6 +1909,9 @@ impl PhysicalExtensionCodec for RemoteExecutionCodec {
         buf: &mut Vec<u8>,
         proto_converter: &dyn PhysicalProtoConverterExtension,
     ) -> Result<()> {
+        if let Some(native) = node.downcast_ref::<DriverExtensionExec>() {
+            return native.encode(buf);
+        }
         let node_kind = if let Some(range) = node.downcast_ref::<RangeExec>() {
             let schema = try_encode_schema(range.original_schema().as_ref())?;
             let projection = self.try_encode_projection(range.projection())?;

@@ -23,3 +23,18 @@ impl From<&DriverOptions> for JobSchedulerOptions {
         }
     }
 }
+
+#[cfg(test)]
+impl JobSchedulerOptions {
+    pub(super) fn for_retry_test(
+        task_max_attempts: usize,
+        shuffle_backend: ShuffleBackendKind,
+    ) -> Self {
+        Self {
+            session_id: "fault-fixture".into(),
+            task_launch_timeout: Duration::from_secs(30),
+            task_max_attempts,
+            shuffle_backend,
+        }
+    }
+}

@@ -1,11 +1,10 @@
 # Two native extensions on Sail
 
-This branch implements a local-mode proof of concept for the fifth-revision
+This branch implements a local and distributed proof of concept for the fifth-revision
 [Sail extension proposal](https://github.com/querygraph/grust/blob/7fc0514/docs/proposals/sail-extension-api.md).
 The [implementation plan](../../docs/development/extensions/implementation-plan.md)
 and [independent review](../../docs/development/extensions/implementation-review.md)
-separate the implemented local path from the remaining distributed and indexed
-spatial-join work.
+describe the implementation, evidence and remaining indexed spatial-join work.
 
 - **Apache SedonaDB:** 128 actual native/GEOS scalar UDFs, imported from a separate
   Python wheel through DataFusion FFI. Spark SQL, DataFrame expressions and
@@ -51,8 +50,24 @@ SAIL_EXPERIMENTAL_EXTENSIONS=1 SAIL_MODE=local \
 
 The environment flag is an explicit opt-in. With it set, all installed
 `pysail.extensions` entry points are loaded in name order. Mismatched builds,
-function/type-URL collisions and cluster modes are refused before execution.
+function/type-URL collisions are refused before execution.
 Without it, ordinary Sail operation remains available.
+
+For distributed execution, set `SAIL_MODE=local-cluster`. Workers normally run
+as actors in the server process. Also set `SAIL_EXPERIMENTAL_PROCESS_WORKERS=1`
+to launch separate Sail worker executables on this host; they inherit the Python
+environment and independently load their installed native wheels. Each worker
+must have identical package content and manifest configuration. Missing or
+different content is rejected during task decoding, including changes under an
+unchanged package version. `SAIL_EXPERIMENTAL_WORKER_PYTHONPATH` can select a
+different installed worker environment for compatibility testing.
+
+Sedona scalar expressions run on workers. Their geometry field metadata survives
+expression serialization, constant folding and shuffles. Nutmeg retains graph
+state on the driver: distributed node/edge inputs are gathered into a driver-only
+native stage, and its output can feed worker stages. Regions containing a Nutmeg
+operation have one attempt, even when ordinary tasks allow retries. An error
+after a mutation might have committed is reported as indeterminate.
 
 ```python
 from pyspark.sql.connect.session import SparkSession
@@ -81,6 +96,7 @@ components, including an isolated vertex.
 ```bash
 .venv/bin/python -m pytest examples/extensions/tests \
   --sail-binary target/extensions-poc/host/debug/sail -q
+# Repeat with --execution-mode local-cluster and --execution-mode process-cluster.
 ```
 
 For a commit-specific PoC receipt, create a detached worktree at the candidate SHA,
@@ -89,14 +105,18 @@ this directory. It refuses a moving branch/dirty tracked tree and prints the
 exact verified SHA. Package native tests exercise real FFI calls as well as the
 wire/server tests. Evidence records build errors as well as final outcomes.
 
-Not implemented here: Sail cluster worker discovery/codecs, distributed graph
-residency or retries, Sedona's optimized `SpatialJoinExec`, Sedona aggregate/window
+Not implemented here: distributed graph residency, automatic retries of native
+driver operations, Sedona's optimized `SpatialJoinExec`, Sedona aggregate/window
 UDF registration, geometry-column collection through the Sedona client UDT,
 generic catalogs/formats or mutable per-query Sedona options. `ST_AsText`, counts
 and other server-side scalar results are supported. Five colliding Sail spatial
 function names are deliberately omitted from the Sedona package; see its README.
 
-Nutmeg's local staging is overwrite-only. A newly planned request is a new
+The process-worker fixture runs multiple processes on one host. It does not
+qualify multi-host networking or a Kubernetes deployment. Kubernetes workers
+receive the opt-in flag but require the wheels in their image.
+
+Nutmeg staging is overwrite-only. A newly planned request is a new
 operation; no exactly-once guarantee spans retries/reconnects. A single completed
 physical mutation returns its cached receipt on repeat execution; an in-flight or
 abandoned attempt is refused as indeterminate. The per-session default graph

@@ -119,3 +119,39 @@ pub fn decode_scalar(name: &str, bytes: &[u8]) -> Result<Arc<ScalarUDF>> {
         .get(&(identity.clone(), encoded_name)).cloned()
         .ok_or_else(|| plan_datafusion_err!("native extension unavailable or package/configuration mismatch on worker: {identity}, function {name}"))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn native_scalar_extension_codec_requires_the_exact_loaded_identity() -> Result<()> {
+        let native = |identity: &str| {
+            ScalarUDF::new_from_impl(OwnedScalar {
+                name: "fixture_native_abs".into(),
+                identity: identity.into(),
+                udf: (*datafusion::functions::math::abs()).clone(),
+                owner: Arc::new(()),
+            })
+        };
+        let original = native("fixture@1:code-and-configuration-A");
+        retain_scalar(original.clone())?;
+        let mut bytes = vec![];
+        assert!(encode_scalar(&original, &mut bytes)?);
+        assert_eq!(
+            decode_scalar("fixture_native_abs", &bytes)?.name(),
+            original.name()
+        );
+        assert!(decode_scalar("renamed", &bytes).is_err());
+        let mut incompatible = vec![];
+        assert!(encode_scalar(
+            &native("fixture@1:code-and-configuration-B"),
+            &mut incompatible
+        )?);
+        assert!(decode_scalar("fixture_native_abs", &incompatible).is_err());
+        assert!(decode_scalar("fixture_native_abs", &vec![0; 8193]).is_err());
+        assert!(decode_scalar("fixture_native_abs", b"SAIL_NATIVE_SCALAR_V2\0[]").is_err());
+        assert!(decode_scalar("fixture_native_abs", SCALAR_CODEC_PREFIX).is_err());
+        Ok(())
+    }
+}

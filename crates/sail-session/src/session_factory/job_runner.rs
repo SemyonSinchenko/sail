@@ -103,6 +103,13 @@ impl SessionJobRunnerFactory for ServerSessionJobRunnerFactory {
                 info.session_id,
             ))),
             ExecutionMode::LocalCluster => {
+                if std::env::var("SAIL_EXPERIMENTAL_PROCESS_WORKERS").as_deref() == Ok("1") {
+                    return self.create_cluster_runner(
+                        system,
+                        info,
+                        Box::new(sail_execution::worker_manager::ProcessWorkerManager::default()),
+                    );
+                }
                 let worker_session =
                     WorkerSessionFactory::new(self.config.clone(), self.runtime.clone())
                         .create(())?;

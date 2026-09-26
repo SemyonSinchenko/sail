@@ -1,5 +1,8 @@
 # Two native extensions on Sail
 
+Start with the [source-distribution tutorial](TUTORIAL.md) for a fresh install,
+local and distributed deployment, and executable review examples.
+
 This branch implements a local and distributed proof of concept for the fifth-revision
 [Sail extension proposal](https://github.com/querygraph/grust/blob/7fc0514/docs/proposals/sail-extension-api.md).
 The [implementation plan](../../docs/development/extensions/implementation-plan.md)
@@ -84,8 +87,9 @@ operation have one attempt, even when ordinary tasks allow retries. An error
 after a mutation might have committed is reported as indeterminate.
 
 Native graph sessions prepay their configured quota from Sail's process memory
-pool. With extensions enabled, matching pool configurations share admission
-across sessions/runtimes. A finite Greedy/Fair configuration enforces contention;
+pool. With extensions enabled, each server manager explicitly shares a resource domain
+with its sessions and actor workers. Independent managers remain isolated even
+with equal pool configurations; separate processes have separate pools. A finite Greedy/Fair configuration enforces contention;
 an unbounded pool remains unbounded. Native quotas cannot spill and stay charged
 until the last session, producer, plan or exported buffer owner releases them.
 The native budget subdivides that prepaid host quota; it accounts for graph

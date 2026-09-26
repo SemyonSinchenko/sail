@@ -1,5 +1,8 @@
 # Native Nutmeg Sail extension proof of concept
 
+Start with the [source-distribution tutorial](../TUTORIAL.md) for a fresh install,
+local and distributed deployment, and executable review examples.
+
 This package provides ordinary Sail graph-table plans and independently compiled
 Nutmeg/Grust native graph kernels. The native wheel has no Sail engine dependency;
 it shares only a dependency-free resource ABI definition with the host.
@@ -87,8 +90,9 @@ driver partition; downstream relational operators may redistribute their output.
 ## Memory admission
 
 `SAIL_NUTMEG_MEMORY_BYTES` selects the native per-session quota. With experimental
-extensions enabled, matching Sail memory-pool configurations share one pool per
-process. Configure `SAIL_RUNTIME__MEMORY_POOL__TYPE=greedy` and
+extensions enabled, a server manager explicitly shares one resource domain with
+its sessions and actor workers. Independent managers remain isolated even with
+equal configurations; separate processes have separate pools. Configure `SAIL_RUNTIME__MEMORY_POOL__TYPE=greedy` and
 `SAIL_RUNTIME__MEMORY_POOL__GREEDY__MAX_SIZE` for a finite bound; an unbounded
 configuration remains unbounded. Other sessions and participating DataFusion
 operators contend with the prepaid native quotas.

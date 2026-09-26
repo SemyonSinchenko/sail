@@ -1,5 +1,8 @@
 # Apache SedonaDB extension proof of concept
 
+Start with the [source-distribution tutorial](../TUTORIAL.md) for a fresh install,
+local and distributed deployment, and executable review examples.
+
 This independent Python wheel exposes **128 native Apache SedonaDB scalar
 functions**, plus their aliases, to Sail through DataFusion's scalar-UDF capsules.
 The functions combine SedonaDB's native Rust implementations with its GEOS

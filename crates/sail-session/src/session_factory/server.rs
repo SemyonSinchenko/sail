@@ -131,7 +131,7 @@ impl ServerSessionFactory {
         self.apply_execution_parquet_config(&mut config);
         self.apply_optimizer_config(&mut config)?;
         let config = self.mutator.mutate_config(config, info)?;
-        Ok(config)
+        crate::extensions::register_extensions(config, &self.config.mode)
     }
 
     fn create_session_state(&mut self, info: &mut ServerSessionInfo) -> Result<SessionState> {

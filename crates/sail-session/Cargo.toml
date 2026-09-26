@@ -41,6 +41,11 @@ datafusion = { workspace = true }
 datafusion-common = { workspace = true }
 datafusion-datasource = { workspace = true }
 datafusion-expr = { workspace = true }
+datafusion-ffi = { workspace = true }
+arrow-schema = { workspace = true }
+pyo3 = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 datafusion-physical-expr = { workspace = true }
 object_store = { workspace = true }
 secrecy = { workspace = true }

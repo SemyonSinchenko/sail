@@ -1,0 +1,103 @@
+# Two native extensions on Sail
+
+This branch implements a local-mode proof of concept for the fifth-revision
+[Sail extension proposal](https://github.com/querygraph/grust/blob/7fc0514/docs/proposals/sail-extension-api.md).
+The [implementation plan](../../docs/development/extensions/implementation-plan.md)
+and [independent review](../../docs/development/extensions/implementation-review.md)
+separate the implemented local path from the remaining distributed and indexed
+spatial-join work.
+
+- **Apache SedonaDB:** 128 actual native/GEOS scalar UDFs, imported from a separate
+  Python wheel through DataFusion FFI. Spark SQL, DataFrame expressions and
+  Apache Sedona's unmodified Connect helpers call them by name. Ordinary Sail
+  spatial joins evaluate those predicates.
+- **Nutmeg:** session-scoped graph staging, native Grust algorithms, and graph
+  drop through Spark Connect relation extensions. Staging consumes two DataFrame
+  inputs atomically, including every partition. Reads pin a graph revision and
+  stream results through DataFusion FFI.
+
+Both packages have independent Cargo workspaces and no Sail Rust dependency.
+The host and plugins use DataFusion 55.1.0 and Arrow 59.3.0. This is an experimental
+Python bootstrap API with exact-build checks, not a stable binary compatibility
+promise. Installed native packages are trusted code.
+
+## Build and run
+
+Prerequisites: Rust 1.97.1, Python 3.12 with a shared library, uv, Git, protoc,
+and GEOS development libraries (`brew install geos` on macOS). Use a normal
+Python installation or a uv-managed interpreter. Cargo and Python dependencies
+are locked. Sedona's preparation script fetches a pinned Apache checkout and
+applies the checked-in DataFusion port.
+
+```bash
+examples/extensions/scripts/build.sh
+```
+
+Set `SAIL_EXTENSION_PYTHON` to choose the interpreter, `SAIL_EXTENSION_VENV` for
+the environment, and `SAIL_EXTENSION_TARGET` for build artifacts. The build script
+prints the resulting executable, Python interpreter and wheel directory. On
+macOS, native Rust tests need the interpreter's library directory in
+`DYLD_LIBRARY_PATH`; the verification script sets it.
+
+Start a server with its Python library and environment visible:
+
+```bash
+export PYTHONHOME=$(.venv/bin/python -c 'import sys; print(sys.base_prefix)')
+export PYTHONPATH=$(.venv/bin/python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
+export DYLD_LIBRARY_PATH=$(.venv/bin/python -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR"))')
+SAIL_EXPERIMENTAL_EXTENSIONS=1 SAIL_MODE=local \
+  target/extensions-poc/host/debug/sail spark server --port 50051
+```
+
+The environment flag is an explicit opt-in. With it set, all installed
+`pysail.extensions` entry points are loaded in name order. Mismatched builds,
+function/type-URL collisions and cluster modes are refused before execution.
+Without it, ordinary Sail operation remains available.
+
+```python
+from pyspark.sql.connect.session import SparkSession
+from pyspark.sql import functions as F
+from sail_nutmeg import Nutmeg
+
+spark = SparkSession.builder.remote("sc://127.0.0.1:50051").create()
+spark.sql("SELECT ST_AsText(ST_Point(1.0, 2.0)) AS wkt").show()
+nodes = spark.range(3, numPartitions=4).selectExpr("CAST(id AS STRING) AS node_id")
+edges = spark.range(3, numPartitions=4).selectExpr(
+    "CAST(id AS STRING) AS source", "CAST((id + 1) % 3 AS STRING) AS target"
+)
+nm = Nutmeg(spark)
+print(nm.stage("cycle", nodes, edges))
+nm.run("cycle", "pagerank").select("nodeId", "score").show()
+print(nm.drop("cycle"))
+spark.stop()
+```
+
+`tests/test_joint.py` runs the combined example: Sedona distance predicates
+construct a spatial-neighbor graph inside Sail, and Nutmeg computes connected
+components, including an isolated vertex.
+
+## Verification and boundaries
+
+```bash
+.venv/bin/python -m pytest examples/extensions/tests \
+  --sail-binary target/extensions-poc/host/debug/sail -q
+```
+
+For a commit-specific PoC receipt, create a detached worktree at the candidate SHA,
+build there using its own target directory, then run `scripts/verify.sh` from
+this directory. It refuses a moving branch/dirty tracked tree and prints the
+exact verified SHA. Package native tests exercise real FFI calls as well as the
+wire/server tests. Evidence records build errors as well as final outcomes.
+
+Not implemented here: Sail cluster worker discovery/codecs, distributed graph
+residency or retries, Sedona's optimized `SpatialJoinExec`, Sedona aggregate/window
+UDF registration, geometry-column collection through the Sedona client UDT,
+generic catalogs/formats or mutable per-query Sedona options. `ST_AsText`, counts
+and other server-side scalar results are supported. Five colliding Sail spatial
+function names are deliberately omitted from the Sedona package; see its README.
+
+Nutmeg's local staging is overwrite-only. A newly planned request is a new
+operation; no exactly-once guarantee spans retries/reconnects. A single completed
+physical mutation returns its cached receipt on repeat execution; an in-flight or
+abandoned attempt is refused as indeterminate. The per-session default graph
+budget is 256 MiB. Kernel admission and host execution budgets remain distinct.

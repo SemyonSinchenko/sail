@@ -54,6 +54,11 @@ pub fn is_built_in_generator_function(name: &str) -> bool {
     BUILT_IN_GENERATOR_FUNCTIONS.contains_key(name)
 }
 
+/// Includes every built-in function kind for extension collision validation.
+pub fn is_built_in_function_name(name: &str) -> bool {
+    list_built_in_function_names().contains(&name)
+}
+
 fn list_built_in_function_names() -> Vec<&'static str> {
     let mut names = BUILT_IN_SCALAR_FUNCTIONS
         .keys()

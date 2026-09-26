@@ -251,6 +251,7 @@ fn is_streaming_query_plan(plan: &spec::QueryPlan) -> bool {
 fn is_streaming_query_node(node: &spec::QueryNode) -> bool {
     match node {
         spec::QueryNode::Read { is_streaming, .. } => *is_streaming,
+        spec::QueryNode::Extension { inputs, .. } => inputs.iter().any(is_streaming_query_plan),
         // leaf nodes with no query plan inputs
         spec::QueryNode::LocalRelation { .. }
         | spec::QueryNode::CachedLocalRelation { .. }

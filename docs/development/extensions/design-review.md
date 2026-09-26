@@ -212,11 +212,12 @@ The native boundary uses named DataFusion capsules for scalar UDFs, providers an
 plans. Rust host traits do not become a cross-library ABI. Version checks and content hashes
 reject known mismatches; they neither sandbox native code nor prove all possible ABI
 compatibility. The original qualification used pinned host/wheel builds. The manifest checks
-API/DataFusion/Arrow versions, not Sail commit or Rust compiler identity. The same
-platform-specific wheel bytes passed against both qualified Sail revisions. Loader acceptance,
-tested artifact combinations and a compatibility promise are distinct: the matrix establishes
-reuse for those combinations, while no general ABI range, cross-compiler reuse or
-mixed-version cluster is qualified.
+API/DataFusion/Arrow versions, not Sail commit or Rust compiler identity. Unchanged
+platform-specific wheel bytes passed the original host-revision matrix and the
+[expanded ABI experiments](abi-review.md). Loader acceptance, tested artifact combinations
+and a compatibility promise remain distinct. Cross-compiler reuse and mixed-compiler
+process workers are qualified only for the recorded artifact pairs; no general ABI range
+or mixed engine-version cluster is qualified.
 
 ### 3. Worker identity and complete expression fields
 
@@ -449,7 +450,15 @@ targeted follow-up gates do not repeat the original 651-test Rust suites or two-
 Failed gate attempts, corrections and an evidence transfer recovery are documented in the
 [follow-up record](review-follow-up.md).
 
-The [machine-readable matrix](compatibility-matrix.json) identifies host binary and
+A separate [ABI review](abi-review.md) extends the experiment to Rust 1.98.1, an
+upstream Sail merge and an isolated older FFI implementation, while retaining the
+original wheels. It also records strict refusal probes and a whole-engine downgrade
+that fails to compile. Its [expanded matrix](abi-compatibility-matrix.json) and
+[evidence bundle](evidence/extension-abi-evidence.tar.gz) preserve those distinct
+outcomes. These are targeted compatibility experiments, not new full-workspace
+or two-host qualification. Production dependency pins and manifest checks remain unchanged.
+
+The original [machine-readable matrix](compatibility-matrix.json) identifies host binary and
 platform-specific wheel hashes. The [evidence
 bundle](evidence/extension-review-evidence.tar.gz) contains redacted receipts, logs, retained
 failures and cleanup records from both qualification stages. It is available with the

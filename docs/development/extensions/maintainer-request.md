@@ -1,8 +1,9 @@
 # Proposed maintainer request: a bounded native extension contract
 
 Draft for review; not posted upstream. This is the single proposed discussion
-entry. The [design review](design-review.md) and [implemented follow-up](review-follow-up.md)
-provide detail; proposal v5 supplies prior constraint research, not a second ask.
+entry. The [design review](design-review.md), [implemented follow-up](review-follow-up.md)
+and [expanded ABI experiments](abi-review.md) provide detail. Proposal v5 supplies
+prior constraint research, not a second ask.
 
 We built two independently packaged native extensions on a Sail branch: SedonaDB
 scalars executing on workers, and Nutmeg stateful relations executing on the
@@ -44,6 +45,12 @@ scalar registration/distribution, then bounded relation dispatch, resource lease
 and driver placement. Parser depth/stack growth is a separately reviewed
 prerequisite. Domain packages, wheel repair and deployment harnesses stay outside
 the engine contract. Each extracted commit and combined head receives new gates.
+
+Field semantics remain an explicit, independent review decision: the metadata
+changes add geometry-specific compatibility/coercion rules to Sail core even
+though neither domain library is a core dependency. Agreement to the loader
+contract does not implicitly approve those rules. The remaining open choices
+are enumerated in the design review.
 
 The decisions we need are whether this experimental compatibility policy and
 bounded relation interface are acceptable, whether the session manager is the

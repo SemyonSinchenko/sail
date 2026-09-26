@@ -35,7 +35,9 @@ consolidates the delivered architecture, necessary host changes, evidence,
 limitations and proposed upstream PR sequence. The
 [implemented follow-up](../../docs/development/extensions/review-follow-up.md)
 records explicit resource-domain ownership, unchanged-wheel qualification and
-the downloadable review evidence bundle.
+the downloadable review evidence bundle. The [expanded ABI review](../../docs/development/extensions/abi-review.md)
+separates compiler changes, upstream movement, dependency diagnostics and
+refusal tests; the original `sail-extensions-1` tag remains a fixed snapshot.
 
 ## Build and run
 

@@ -1,7 +1,11 @@
 # Two native extensions on Sail
 
-Start with the [source-distribution tutorial](TUTORIAL.md) for a fresh install,
-local and distributed deployment, and executable review examples.
+To write your own extension, start with
+[Writing a Sail extension](WRITING-AN-EXTENSION.md): the protocol, a minimal
+client, a minimal handler, and how to build and run.
+
+For a fresh install, local and distributed deployment, and executable review
+examples, use the [source-distribution tutorial](TUTORIAL.md).
 
 This branch implements a local and distributed proof of concept for the fifth-revision
 [Sail extension proposal](https://github.com/querygraph/grust/blob/7fc0514/docs/proposals/sail-extension-api.md).

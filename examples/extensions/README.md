@@ -23,12 +23,16 @@ separates the original findings, implemented corrections and remaining acceptanc
 Both packages have independent Cargo workspaces and no Sail engine dependency.
 Nutmeg shares a small dependency-free memory-lease ABI definition with Sail.
 The host and plugins use DataFusion 55.1.0 and Arrow 59.3.0. This is an experimental
-Python bootstrap API with exact-build checks, not a stable binary compatibility
-promise. Installed native packages are trusted code.
+Python bootstrap API with API/DataFusion/Arrow version checks, not a stable binary
+compatibility promise. Sail source SHA and Rust compiler version are not manifest
+acceptance keys. Installed native packages are trusted code.
 
 The [maintainer design review](../../docs/development/extensions/design-review.md)
 consolidates the delivered architecture, necessary host changes, evidence,
-limitations and proposed upstream PR sequence.
+limitations and proposed upstream PR sequence. The
+[implemented follow-up](../../docs/development/extensions/review-follow-up.md)
+records explicit resource-domain ownership, unchanged-wheel qualification and
+the downloadable review evidence bundle.
 
 ## Build and run
 

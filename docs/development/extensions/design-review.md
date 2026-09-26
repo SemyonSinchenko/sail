@@ -1,5 +1,11 @@
 # Sail extensions: implementation and maintainer review
 
+The [single proposed maintainer request](maintainer-request.md) is a concise draft,
+not an upstream submission.
+The [implemented review follow-up](review-follow-up.md) records subsequent
+resource-domain changes and compatibility qualification. The implementation and
+gate counts below describe the original `de8e67098` baseline unless stated otherwise.
+
 ## Recommendation
 
 Adopt a small, experimental host contract for trusted native extensions, in
@@ -202,8 +208,11 @@ Hot unloading is not qualified.
 The native boundary uses named DataFusion capsules for scalar UDFs, providers
 and execution plans. Rust host traits do not become a cross-library ABI. Version
 checks and content hashes reject known mismatches; they neither sandbox native
-code nor prove all possible ABI compatibility. Exact wheel rebuilds per supported
-host build are the initial policy, not a permanent promise to freeze Sail's dependencies.
+code nor prove all possible ABI compatibility. The original qualification used
+pinned host/wheel builds. The manifest checks
+API/DataFusion/Arrow versions, not Sail commit or Rust compiler identity. That
+qualification is not proof that every Sail release requires rebuilding a wheel;
+see the follow-up for unchanged-wheel testing and the supported-matrix policy.
 
 ### 3. Worker identity and complete expression fields
 
@@ -276,10 +285,13 @@ CSR, scratch and output may coexist. This is not an RSS limit.
 The PoC [pool registry](../../../crates/sail-session/src/runtime/memory.rs) shares
 pools process-wide by matching pool kind and configured limit when extensions are
 enabled. Different configurations and separate worker processes have separate
-pools. **This policy needs explicit maintainer agreement before upstreaming.**
+pools. **This baseline policy has been replaced in the
+[review follow-up](review-follow-up.md) by explicitly injected manager-owned
+resource domains.**
 Equal configuration is not inherently equal tenant/resource-domain identity.
-Prefer an explicitly owned resource domain with pool injection, or a documented
-process-pool policy. That refinement is recommended, not already implemented.
+The follow-up injects one explicitly owned domain into a manager's sessions and
+in-process workers. Its separate receipts qualify that refinement; the baseline
+receipts do not certify it.
 
 Sem's concern is valid: in-process execution alone does not make native allocations
 visible to host admission. Running Nutmeg in Sail avoids an extra service boundary,
@@ -402,8 +414,8 @@ The full receipts, logs, artifact hashes and retained failures are local ignored
 artifacts under `target/extensions-datafusion-final/`, with `README.md`,
 `evidence-index.json`, platform receipts and the two-host receipt. They are **not
 included in a Git clone**. Before a maintainer review requiring independent audit,
-attach a redacted, checksummed evidence bundle to the review or reproduce the
-checked-in harness. Do not substitute this narrative for those primary receipts.
+use the redacted, checksummed bundle described in the
+[follow-up](review-follow-up.md), or reproduce the checked-in harness. Do not substitute this narrative for those primary receipts.
 
 Not established: network acknowledgement-loss fault tolerance, abrupt process
 recovery, arbitrary cancellation interleavings, Kubernetes operation, optimized
@@ -419,12 +431,12 @@ exercise the same boundary: pure worker scalars and stateful driver relations.
 
 Ask maintainers to agree on these concrete points before extracting the full series:
 
-1. Is an opt-in, exact-build Python bootstrap acceptable for the initial experiment,
+1. Is an opt-in Python bootstrap with a tested compatibility matrix acceptable for the initial experiment,
    with no stable ABI or hot-unload promise?
 2. Is a bounded Connect relation envelope with pure planning and ordinary child
    inputs the right integration point, without adding a generic optimizer API?
-3. What is the explicit host resource domain: process, server or tenant/session,
-   and who owns/injects the pool? Do not leave equal-configuration sharing implicit.
+3. Is the implemented session-manager admission domain the right default, with
+   explicitly shared clones for embedders and separate process-worker domains?
 4. Is driver-only placement with no automatic region replay an acceptable first
    contract for mutable native state, with indeterminate acknowledgement failures?
 5. What timeout/failure policy should graceful shutdown use for noncooperative

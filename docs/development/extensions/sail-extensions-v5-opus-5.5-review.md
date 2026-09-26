@@ -215,3 +215,85 @@ follow-up has sharpened it honestly — geometry semantics and the generic host
 extension machinery *do* modify core. That distinction is worth stating in the
 request itself, because it is the first thing a maintainer will test the claim
 against.
+
+---
+
+## The wheel question, stated in full
+
+Extensions ship as Python wheels containing natively compiled Rust — SedonaDB's
+`ST_*` functions, Nutmeg's kernels — that talk to Sail across DataFusion's FFI.
+The question is: **once you build that wheel, how long does it keep working as
+Sail releases?**
+
+It matters because it is the maintainers' own stated reason for wanting an FFI at
+all. From [discussion #2001](https://github.com/lakehq/sail/discussions/2001#discussioncomment-17083578):
+
+> since DataFusion has an FFI, we won't use Rust trait as the API… so that we
+> won't need to recompile the extension on every Sail version or Rust version
+> change. This allows Sail and the extension to release under different schedule.
+
+The proof of concept's initial policy was exact wheel rebuilds per supported host
+build — the opposite of that. And the underlying difficulty is real: Rust has no
+stable ABI, so two independently compiled libraries can only exchange `#[repr(C)]`
+layouts and Arrow's C data interface. DataFusion's FFI `version()` reports only
+the major, nothing enforces more, and a mismatch can misbehave rather than fail
+loudly. The pins are exact — API 1, DataFusion 55.1.0, Arrow 59.3.0, and in
+practice one compiler.
+
+### What the response did
+
+Three useful moves, and one of them is conceptually the best thing in it:
+
+1. **Split one muddled claim into three.** What the loader *accepts* (API,
+   DataFusion and Arrow versions — explicitly not Sail SHA, not compiler
+   identity), what artifacts are *qualified* (a named matrix of host binary hash,
+   wheel bytes, Python and platform), and what is *promised* (nothing
+   open-ended). Previously these ran together, which is how "we rebuild wheels"
+   and "we support reuse" could both sound true.
+2. **Measured it.** Unchanged installed wheels run against two host revisions on
+   both platforms, three execution modes each — 776 integration passes across
+   twelve cells, with wheel and binary hashes checked before and after, a
+   machine-readable [`compatibility-matrix.json`](compatibility-matrix.json) and
+   a reproducible runner.
+3. **Named the path**: expand the matrix with unchanged-wheel tests across
+   supported Sail revisions, then explicit compatibility-version negotiation,
+   rather than relaxing version checks speculatively. And a sharp observation —
+   *"Bootstrap through Python can remain while the compatibility policy evolves;
+   it is not itself what forces Sail-commit coupling."* The Python entry point was
+   never the problem; the ABI is.
+
+### Has it been solved? No — and mostly it is not ours to solve
+
+What changed is the epistemic status: an unstated liability became a bounded,
+measured, reproducible claim with a route forward. That is the right engineering
+move and it is what should be in front of a maintainer. But the demonstration
+does not yet support much weight:
+
+- **The interval is trivial.** `de8e67098` and `bf97367dd` differ by one commit
+  confined to `sail-session` that never touches the FFI boundary, changes no
+  dependency version and leaves the lease ABI untouched. A wheel could not
+  plausibly have broken across it. The test proves the harness works, not that
+  reuse holds.
+- **One compiler.** Rust 1.97.1 on both platforms, so the "or Rust version
+  change" half of the requirement is untested.
+- **No dependency movement.** No DataFusion or Arrow patch bump was crossed,
+  which is the churn that actually happens.
+
+Three cheap tests would move this from posture to evidence: an unchanged wheel
+against upstream `main` advanced by a real interval (there are already thirty-odd
+commits past the baseline); the same across a DataFusion patch bump; and the same
+across a rustc minor bump. Each is hours, not weeks, and the third answers the
+stated requirement's wording directly.
+
+And the honest limit underneath: durable reuse comes from *narrowing the surface*,
+not from testing it. Everything crossing must be C-layout or the Arrow C data
+interface — if any Rust type crosses, no matrix saves you. The lease ABI crate is
+the right shape for this (version, size, byte count, opaque owner, callbacks, no
+`Arc` or trait objects). Whether the rest holds depends on `datafusion-ffi`, whose
+own stabilisation is an open upstream issue. So the most Sail can promise now is a
+negotiated compatibility version plus a refusal on mismatch — which is precisely
+what the follow-up proposes as the next step.
+
+The framing for the maintainers is therefore: we cannot promise an ABI range yet,
+here is exactly what we tested, here is what would extend it, and here is the
+negotiation we would build instead of loosening checks.

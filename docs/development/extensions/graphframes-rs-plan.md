@@ -34,6 +34,29 @@ places native graph execution on the driver. Simply wrapping graphframes-rs in
 that interface would not distribute its iterations. The library also executes
 physical partitions directly in its specialized checkpoint writer.
 
+## Alternative: a client-controlled loop
+
+A Python client can issue each iteration as ordinary Spark Connect joins and
+aggregations, with materialization between iterations. Sail already distributes
+these relational operations. This avoids a new host adapter and provides an
+independent way to establish graph semantics and exercise worker execution.
+It still requires algorithm code, convergence checks, checkpoint ownership,
+cleanup and a consistent input snapshot. It is not an implementation of this
+library's Rust algorithms, and a complete client loop has not been verified here.
+In particular, a simple label-propagation WCC would differ from the library's
+randomized contraction implementation.
+
+| Choice | Benefit | Cost |
+| --- | --- | --- |
+| Client-controlled loop | No new Sail execution interface; each iteration is a separate observable request. | Client connectivity and round trips are part of execution; algorithm and checkpoint logic live in the client; results are materialized before composition. |
+| Server-controlled library | Reuses graphframes-rs; one lazy relation can compose inside a query; iteration control does not depend on client round trips. | Requires parent/child job observability, cancellation, checkpoint lifetime and host integration. SQL exposure would need separate syntax/registration work. |
+
+Build a small client-loop reference first, starting with PageRank and a simple
+WCC, using verified materialization support. Treat it as a useful deliverable if
+server integration is deferred. Continue with the server route when reusing the
+Rust library and composing a lazy algorithm result justify the additional host
+work; do not claim a performance advantage before measuring it.
+
 ## Proposed execution model
 
 ```text
@@ -63,6 +86,38 @@ execution interface is still being established. A separately installed wheel is
 a later packaging decision; do not pass Rust `SessionContext` objects through
 the existing FFI boundary.
 
+## Controller placement: prerequisite design
+
+Run the controller in the server's request/operation orchestration layer, outside
+any worker task and outside the scheduler actor's message handler. It submits
+child jobs asynchronously through `JobRunner`; it never waits while holding a
+worker-slot permit, scheduler lock or a parent execution admission permit that
+its children need.
+
+The proposed hook is an execution-preparation phase before the outer query is
+submitted to `JobRunner`. Keep algorithm relations as logical placeholders during
+analysis. During execution, prepare them in dependency order, run their child
+jobs, replace them with committed checkpoint scans, and then physically plan and
+submit the outer query. No controller node reaches worker-plan serialization.
+Deduplicate preparation by operation/node identity; do not reuse results across
+independent actions without an explicit cache contract.
+
+This hook does not exist yet. The current Connect
+[`handle_execute_plan`](../../../crates/sail-spark-connect/src/service/plan_executor.rs)
+resolves the plan and starts its job before registering the response executor.
+The new operation must be registered and cancellable *before* preparation starts;
+put the reusable preparation logic below the Connect transport. Ensure schema
+analysis never invokes it. Track child jobs under the parent operation with
+algorithm, iteration, job ID, progress and attributed failures. Reattachment
+must observe the same operation rather than launch another controller.
+
+Before integrating either algorithm, demonstrate a fake two-step controller with
+one available worker slot, concurrent ordinary work, cancellation during child
+execution, and cleanup. Audit any job-admission semaphore as well as task slots.
+This is a prerequisite design gate, not a claim that deadlock freedom is already
+implemented or proven. If this hook is unsuitable, retain the client-loop route
+while revising the host design.
+
 ## Library interface to extract
 
 Introduce a small execution interface in graphframes-rs, retaining a standalone
@@ -84,6 +139,28 @@ Route all execution sites used by PageRank, Pregel, WCC and checkpoint handling
 through the interface, including counts, final normalization, cache operations
 and output writes. Replacing only `collect()` would leave bypasses.
 
+At the pinned revision, the direct production execution calls are:
+
+| File | Calls to redirect |
+| --- | --- |
+| `algorithm/pregel.rs` | One `count`, one `write_parquet` |
+| `algorithm/centrality/pagerank.rs` | One `cache`, one `write_parquet` |
+| `algorithm/connectivity/connected_components.rs` | Two `count`, one `write_parquet` |
+| `memory/parquet_checkpointer.rs` | One `write_parquet` |
+| `memory/hash_partitioned.rs` | One physical `execute` call, inside a partition loop |
+
+These nine call sites exclude tests and Rust iterator `collect` calls. They are
+an audit starting point, not an estimate of patch size: checkpoint reads/deletes,
+metadata listing, session construction and indirect execution also need review.
+
+Extract this interface before integrating algorithms into Sail. Request upstream
+agreement, but do not make delivery depend on its timing: maintain the minimal
+patch in a pinned graphframes-rs fork if necessary, preserve the standalone API,
+and submit the patch for upstream review separately. If the interface itself is
+rejected, keep the client route available. A wrapper around unchanged file-writing
+`run` methods can demonstrate local execution, but does not meet the distributed
+host-execution contract.
+
 Preserve the host planner, function registry, object stores and session services.
 The library's current
 [`scoped_ctx`](https://github.com/SemyonSinchenko/graphframes-rs/blob/b4da56dabe20bba8e29563e06acc5179b2113ce3/src/utils/options.rs)
@@ -98,11 +175,8 @@ logical inputs, before the existing native path lowers and gathers them.
 Keep that handler separate from the physical-plan wheel interface.
 
 The adapter should provide a lazy result relation: analysis validates options and
-returns the schema without starting jobs or writing files. At execution, a
-controller prepares the final checkpoint, which becomes a normal scan usable by
-subsequent Sail operators. Determine the precise execution-preparation hook in
-the first implementation stage. The controller must not hold a worker task slot
-while waiting for jobs that require those workers.
+returns the schema without starting jobs or writing files. At execution, the
+preparation controller described above produces a committed checkpoint, which becomes a normal scan usable by subsequent Sail operators.
 
 Initial contract:
 
@@ -135,8 +209,10 @@ all its writes succeed; failed attempts must not appear as committed input to th
 next iteration. Cancellation must stop child jobs and clean abandoned files.
 Final result files survive until their consumers release them.
 
-For multiple hosts, use storage accessible to all workers. Initially read plain
-Parquet checkpoints and let Sail repartition as necessary. Defer the library's
+Before the distributed stage, provision a shared object store accessible from
+the driver and every worker, with consistent credentials and isolated execution
+prefixes. One-host development can use local paths; independent host-local paths
+do not satisfy this contract. Initially read plain Parquet checkpoints and let Sail repartition as necessary. Defer the library's
 specialized hash-partitioned/sorted checkpoint optimization until its physical
 properties, serialization and file ownership are proven across workers. Bound
 checkpoint storage separately from operator spill storage.
@@ -145,16 +221,21 @@ checkpoint storage separately from operator spill storage.
 
 | Stage | Changes | Completion condition |
 | --- | --- | --- |
-| 1. Local integration | Pin dependencies; add the optional adapter and lazy request/result contract; connect PageRank and WCC to host-owned execution and storage. | Both algorithms run over Sail input tables, compose with a subsequent query, and perform no work during analysis. |
-| 2. Execution interface | Extract execution and checkpoint operations into the library interface; preserve standalone behavior. This can be developed together with stage 1. | All execution sites for the two algorithms use the interface, including final output and cleanup. |
-| 3. Distributed stages | Implement Sail job submission, checkpoint commit/lifetime, cancellation and required worker function registration/codecs. | Iteration joins, aggregations and writes run on workers without gathering the graph to the driver. |
-| 4. Qualification and examples | Verify semantics, constrained resources and failure handling; add small local and distributed examples. | Linux and two-host runs demonstrate correct results and actual algorithm-stage execution on both hosts. |
+| 0. Prerequisites and reference | Implement a small client-loop reference; settle controller placement with the fake-controller gate; agree the library interface or pin its fork. | Materialization and semantics are explicit; controller children can progress with one worker slot and cancellation reaches them. |
+| 1. Library execution interface | Extract execution and checkpoint operations; preserve standalone behavior and host session state. | The audited execution paths use the interface, including output and cleanup. |
+| 2. Local integration | Pin dependencies; add the optional adapter and lazy request/result contract. | PageRank and WCC run over Sail input tables, compose with a subsequent query, and perform no work during analysis. |
+| 3. Distributed stages | Submit algorithm jobs through Sail; implement shared-store checkpoint commit/lifetime and parent/child cancellation. | Iteration joins, aggregations and writes run on workers without gathering the graph to the driver. WCC scalar expressions round-trip through the plan codec and resolve in fresh worker sessions. |
+| 4. Qualification and examples | Verify semantics, constrained resources and failure handling; add local and distributed examples. | Linux and two-host runs demonstrate correct results and actual algorithm-stage execution on both hosts. |
 
 Keep changes reviewable in separate PRs: the library execution interface, Sail's
 optional graph adapter, distributed orchestration/checkpoints, and client examples.
 Prefer reusing existing Sail job and checkpoint services; identify missing
-capabilities before proposing new generic infrastructure. WCC's custom scalar
-functions must be available and serializable on every worker.
+capabilities before proposing new generic infrastructure. WCC's `finite_axpb`
+scalar expression must be registered in fresh worker sessions and survive the
+plan codec; having its code in the binary is insufficient. PageRank and WCC use
+builtin `sum` and `min` aggregates, so custom aggregate registration is not a
+prerequisite. A later wheel API for other algorithms may need AggregateUDF
+registration, serialization and compatibility work; that is outside this scope.
 
 Validation should cover empty graphs, sinks, isolates, disconnected components,
 loops, duplicate edges and invalid endpoints. Check PageRank numerical semantics
@@ -163,6 +244,23 @@ component-label convention. Include spill pressure, concurrent sessions,
 cancellation, worker failure and partial checkpoint writes. Record non-convergence
 and failures explicitly. Distributed floating-point reductions need justified
 tolerances; do not assume bitwise equality across partition counts.
+
+## Choosing a graph path and its semantics
+
+Use relational helpers for degrees, triplets and bounded walks. Use relational
+algorithms for iterative PageRank/WCC over tables, including distributed stages
+and out-of-core state. Use native Nutmeg kernels when explicitly choosing a
+staged graph and that backend's supported algorithms and resource constraints.
+The client must identify the backend; there is no automatic fallback.
+
+Shared algorithm names must document their semantics. Establish a common test
+contract where parameters describe the same mathematics, including dangling
+vertices, normalization, duplicates and component labels. Do not silently modify
+one implementation to make unlike defaults appear equivalent. Initially expose
+backend-specific behavior explicitly; claim API compatibility only for verified
+option combinations. WCC's initial labeling policy is the minimum original
+integer ID in each component. Distributed PageRank permits justified numerical
+tolerances across partition counts. No cross-backend bitwise guarantee is made.
 
 ## Decisions requested in review
 
@@ -174,10 +272,19 @@ tolerances; do not assume bitwise equality across partition counts.
    guarantee? Should the first API be library-native or a GraphFrames subset?
 4. Can the first distributed implementation use ordinary Parquet checkpoints,
    deferring partition-preserving checkpoint optimization?
-5. Which existing Sail preparation and checkpoint hooks can support a lazy
-   algorithm result without executing during planning or blocking worker slots?
+5. Is the proposed pre-submission preparation phase acceptable, including early
+   operation registration, child-job tracking and checkpoint scan replacement?
 
 The first deliverable is two executable examples over Sail tables—PageRank and
 WCC—with the same request shape in local and distributed mode, accompanied by
 short build/run instructions. Other algorithms remain explicitly unsupported
 until their execution paths and semantics are reviewed.
+
+## Review disposition
+
+The [Opus review](graphframes-rs-plan-review.md) motivated the client-loop
+comparison, prerequisite sequencing, named fork fallback and explicit controller
+placement above. Its execution-site count is corrected by the source inventory
+in this revision. A client loop is an alternative requiring validation, not a
+zero-cost implementation of graphframes-rs. The review's original text is retained
+unchanged; this amendment does not constitute implementation or runtime evidence.

@@ -131,3 +131,87 @@ bootstrap is acceptable for an initial experiment — is really the wheel-rebuil
 question above, and deserves the strongest answer the evidence can support,
 because a maintainer who declines it declines the packaging model that everything
 else assumes.
+
+---
+
+## Amendment, 2026-09-26: what the response addressed
+
+Three commits answered this review: `bf97367dd` (explicit admission domains),
+`d9a29bda3` (compatibility qualification and published evidence) and `fc4c32b21`
+(the design review restructured as a standalone technical document). The
+[follow-up record](review-follow-up.md) states what was accepted and what was
+declined. Each claim below was checked against the repository rather than taken
+from that record.
+
+**Resolved, verified.**
+
+- *Concern 2, the pool registry.* `MemoryResourceDomain`
+  (`crates/sail-session/src/runtime/memory.rs`) replaces the process-global map
+  keyed by pool kind and configured limit. Constructing a domain creates a pool;
+  cloning shares that pool; two domains with identical configuration do not share
+  admission, and there is a test for exactly that. The session manager owns one
+  domain and injects it into sessions and in-process workers, with
+  `SessionManagerOptions::with_resource_domain` for embedders who want sharing to
+  be deliberate. This was the concern most likely to produce a quiet
+  multi-tenant defect, and configuration equality is no longer identity.
+- *Concern 4, the evidence.* `evidence/extension-review-evidence.tar.gz` is in
+  the tree with a sidecar checksum that verifies (`shasum -a 256 -c`: OK), 1,049
+  members, `original/` and `follow-up/` trees, a `manifest.json` carrying original
+  and redacted hashes, and `SHA256SUMS` for the extracted contents. Binary and
+  wheel bytes are excluded with their hashes retained; home paths, review
+  hostnames and private addresses are redacted, and the exporter fails on
+  recognizable keys. A maintainer can now audit rather than trust a narrative.
+- *The two-documents problem.* [`maintainer-request.md`](maintainer-request.md)
+  is a single ask of about fifty lines, and it demotes proposal v5 explicitly to
+  "prior constraint research, not a second ask". It leads with the maintainers'
+  own independence requirement rather than burying it.
+- *Concerns 3 and 5, extraction order.* Lifecycle and field-metadata corrections
+  remain the first review slices, and the conversion-depth guard with its
+  `stacker` change is called out as a separately reviewed prerequisite rather
+  than hidden inside the loader patch.
+
+**Improved, with the limit named rather than removed.**
+
+- *Concern 1, the wheel-rebuild collision with the release-independence
+  requirement.* The response separates three statements that were previously one:
+  what the loader accepts (API 1, DataFusion 55.1.0, Arrow 59.3.0 — not Sail SHA
+  or compiler identity), what artifacts are qualified, and what is promised
+  (nothing open-ended). Unchanged installed wheels were then run against two host
+  revisions on both platforms — 776 integration passes across twelve cells — and
+  the result is recorded in a machine-readable
+  [matrix](compatibility-matrix.json). The posture is right: reuse demonstrated
+  within a measured matrix, with compatibility-version negotiation named as the
+  path to more.
+
+  Two things keep this from closing. The interval is narrow: `de8e67098` and
+  `bf97367dd` differ by one commit confined to `sail-session`, which does not
+  touch the FFI boundary, so the test could not plausibly have failed. It would
+  be worth far more against a revision that moves the FFI-adjacent surface — an
+  upstream `main` advance, or a DataFusion patch bump. And both platforms used
+  Rust 1.97.1, so compiler coupling — the other half of "every Sail version or
+  Rust version change" — is disclosed and unqualified.
+
+**Newly observed.**
+
+- The maintainer request asks three decisions; the design review lists six open
+  design choices. The one that falls outside the ask and still modifies Sail core
+  is **field semantics**: slice 2 changes geometry metadata handling in the host.
+  A maintainer answering three questions may not notice they have implicitly
+  accepted a core change. Either raise it to the ask or say in the request that
+  the other choices are documented and deferred.
+- The follow-up **refuses to inherit the earlier verdict**: the resource-domain
+  change was gated at its own narrower scope (35 session tests, strict clippy,
+  workspace formatting, executable build) and the 651-test platform gates and the
+  two-host run remain scoped to `de8e67098`. That is the discipline that makes
+  the rest of the evidence worth reading, and it should survive editing.
+- Failed candidates continue to be retained rather than deleted: a missing
+  `PYTHONHOME` in the gate wrapper, `8cf7e2b60` failing strict clippy on an
+  `expect` in a new test, an interrupted Linux transfer replaced by a verified
+  re-export. Assertions were not weakened to pass.
+
+**Still unverified here.** The architectural claim that no domain payload type
+enters a Sail engine crate was not independently checked in either round, and the
+follow-up has sharpened it honestly — geometry semantics and the generic host
+extension machinery *do* modify core. That distinction is worth stating in the
+request itself, because it is the first thing a maintainer will test the claim
+against.

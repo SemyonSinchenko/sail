@@ -3,6 +3,8 @@
 The [completed benchmark report](../../../docs/development/extensions/pecan-nutmeg-benchmark.md)
 links every result, time/memory table, source identity and retained failure.
 For installation and executable examples, use the [step-by-step tutorial](TUTORIAL.md).
+For the exact 2.1M- and 4.2M-vertex Graph Kernels inputs from adversari.al,
+use the [large-graph reproduction guide](LARGE-GRAPHS.md).
 
 This harness measures complete algorithm calls through Spark Connect against
 the same Sail executable, input Parquet files, and resource envelope. It retains

@@ -17,19 +17,29 @@ WCC checks every vertex's component against independent union-find.
 
 ## Prepare the exact inputs
 
+Start from the branch that includes the importer and large matrix:
+
+```sh
+git clone --branch work/extensions-large-graphs https://github.com/querygraph/sail.git
+cd sail
+```
+
 Build and install the Sail runtime and extension wheels using [the tutorial](TUTORIAL.md).
+Use this checkout in place of the tutorial's original benchmark branch.
 Keep the runtime, native wheel and harness source identities separate.
 Obtain the upstream generator at its pinned commit:
 
 ```sh
-git clone https://github.com/querygraph/adversarial-graph-algorithms
-git -C adversarial-graph-algorithms checkout fe50ea8f112a5970214c619ed244eb38917250f1
-python3 adversarial-graph-algorithms/docker/simple-rust-algo-bench/fixtures.py \
-  --output large-inputs --families hub uniform --sizes 65536 2097152 4194304
+git clone https://github.com/querygraph/adversarial-graph-algorithms ../adversarial-graph-algorithms
+git -C ../adversarial-graph-algorithms checkout fe50ea8f112a5970214c619ed244eb38917250f1
+python3 ../adversarial-graph-algorithms/docker/simple-rust-algo-bench/fixtures.py \
+  --output ../large-inputs --families hub uniform --sizes 65536 2097152 4194304
 ```
 
 Run generation outside timed trials. Place these inputs in the benchmark's
 Docker volume, or mount them at the absolute `edge_file` paths in the config.
+Keep generated inputs and operator configurations outside the Sail checkout;
+the runner requires a clean, pinned source tree.
 The importer refuses a hash mismatch, incorrect header, invalid endpoint,
 missing edge or extra column. It preserves edge order, duplicates, loops and
 isolated vertices, and records the source hash in each dataset manifest.
@@ -47,6 +57,8 @@ capacity probe retained the earlier 8 GiB native allowance and was refused:
 staging the 33,554,395-edge uniform fixture requested 23,511,075,308 bytes
 of sort workspace. Its cgroup recorded no OOM kill. That admission failure
 remains a separate trial; the larger allowance must be qualified before use.
+The per-process pools and native allowance are accounting limits, not allocated
+RSS; Docker's 56 GiB limit applies to the whole driver/worker container.
 
 First qualify each method on the hash-pinned 65,536-vertex inputs, then on the
 largest inputs. Give pilots separate run IDs and evidence directories. Retain

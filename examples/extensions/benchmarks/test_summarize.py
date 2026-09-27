@@ -85,6 +85,21 @@ def test_valid_records_allow_distinct_host_and_native_sources_and_missing_pss():
     assert group['metrics']['execution_pss_bytes'] is None
 
 
+def test_imported_dataset_requires_the_configured_input_hash():
+    config, entries = records()
+    config['datasets']['sparse-10000'] = dict(family='edge-list', vertices=10000,
+                                           edge_file='/inputs/uniform.edges', edge_sha256='1' * 64)
+    for cell, summary, receipt in entries:
+        summary['configuration_sha256'] = configuration_fingerprint(config)
+        receipt['dataset'].update(family='edge-list', seed=None, parameters={},
+                                  input={'source_path': '/inputs/uniform.edges', 'sha256': '1' * 64})
+    assert all(row['outcome'] == 'passed' for row in audited_rows(entries, config))
+    entries[0][2]['dataset']['input']['sha256'] = '2' * 64
+    row = audited_rows(entries, config)[0]
+    assert row['outcome'] == 'integrity_error'
+    assert 'dataset configuration differs: edge_sha256' in row['integrity_errors']
+
+
 @pytest.mark.parametrize('target,key,value,reason', [
     ('summary', 'configuration_sha256', 'wrong', 'configuration fingerprint'),
     ('summary', 'engine', 'pecan', 'summary cell field differs: engine'),

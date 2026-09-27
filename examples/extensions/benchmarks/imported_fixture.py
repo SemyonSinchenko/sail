@@ -35,5 +35,5 @@ def read_edges(path, expected_sha256, vertices):
     _check_edges(vertices, source, target)
     if _file_details(path) != before:
         raise ValueError("input edge file changed during import")
-    return source, target, dict(name=path.name, **before, format="ASCII V E; source target",
+    return source, target, dict(name=path.name, source_path=str(path), **before, format="ASCII V E; source target",
                                 row_order="preserved", declared_vertices=count, declared_edges=edges)

@@ -141,6 +141,9 @@ def integrity_errors(cell, summary, receipt, config):
     observed = dict(manifest.get('parameters') or {}, family=manifest.get('family'),
                     vertices=(manifest.get('counts') or {}).get('vertices'), seed=manifest.get('seed'),
                     **{k: (manifest.get('pagerank') or {}).get(k) for k in ('damping', 'tolerance')})
+    if options['family'] == 'edge-list':
+        imported = manifest.get('input') or {}
+        observed.update(edge_file=imported.get('source_path'), edge_sha256=imported.get('sha256'))
     for key, value in dict(options, **{k: config['defaults'][k] for k in ('damping', 'tolerance')}).items():
         if observed.get(key) != value:
             errors.append(f'dataset configuration differs: {key}')

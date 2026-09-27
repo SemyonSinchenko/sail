@@ -12,9 +12,11 @@ use grust_procedures::{
 mod pagerank;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod tests_wcc_fused;
 mod wcc;
 
-pub(super) const NAMES: [&str; 2] = ["pagerankDelta", "wccRandomized"];
+pub(super) const NAMES: [&str; 3] = ["pagerankDelta", "wccRandomized", "wccRandomizedFused"];
 
 fn field(name: &str, kind: ValueType) -> grust_procedures::Field {
     grust_procedures::Field {
@@ -111,7 +113,9 @@ pub(super) fn schema(algorithm: &str) -> Option<SchemaRef> {
             Field::new("converged", DataType::Boolean, false),
             Field::new("residual", DataType::Float64, false),
         ]),
-        "wccRandomized" => fields.push(Field::new("componentId", DataType::Utf8, false)),
+        "wccRandomized" | "wccRandomizedFused" => {
+            fields.push(Field::new("componentId", DataType::Utf8, false))
+        }
         _ => return None,
     }
     Some(Arc::new(Schema::new(fields)))
@@ -142,7 +146,8 @@ pub(super) fn normalize_seed(
     algorithm: &str,
     options: &mut serde_json::Map<String, serde_json::Value>,
 ) {
-    if algorithm.eq_ignore_ascii_case("wccRandomized")
+    if (algorithm.eq_ignore_ascii_case("wccRandomized")
+        || algorithm.eq_ignore_ascii_case("wccRandomizedFused"))
         && let Some(seed) = options.get("seed").and_then(serde_json::Value::as_u64)
         && seed > i64::MAX as u64
     {
@@ -227,7 +232,7 @@ pub(super) fn run(
     }
     match algorithm {
         "pagerankDelta" => pagerank::run(graph, args, query, emit),
-        "wccRandomized" => wcc::run(graph, args, query, emit),
+        "wccRandomized" | "wccRandomizedFused" => wcc::run(algorithm, graph, args, query, emit),
         _ => internal_err!("unknown optimized kernel"),
     }
 }

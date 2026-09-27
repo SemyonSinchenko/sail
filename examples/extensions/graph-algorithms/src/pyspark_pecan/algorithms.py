@@ -206,20 +206,24 @@ class GraphAlgorithms:
         starts each vertex with its own ID and repeatedly takes the minimum of each
         vertex's own and its neighbors' labels, stopping at a fixed point.
         method="randomized" contracts using GF64 affine priorities and expands
-        representative maps in reverse; it requires axpb and an unsigned 64-bit
-        seed (default 42). max_iterations limits propagation or contraction
-        rounds, respectively. Both methods label a component by its minimum ID;
+        representative maps in reverse. method="randomized_fused" uses the same
+        contraction choices with fused edge projections and min_by, omitting
+        the initial canonical edge write and per-round priority tables/joins.
+        Both contraction plans require axpb and an unsigned 64-bit seed
+        (default 42). max_iterations limits propagation or contraction rounds,
+        respectively. All methods label a component by its minimum ID;
         isolates label themselves. Reaching the cap raises ConvergenceError.
         Output: id BIGINT, component BIGINT.
         """
         _positive_integer(max_iterations, "max_iterations")
 
-        if method == "randomized":
+        if method in ("randomized", "randomized_fused"):
             from .wcc_randomized import execute as execute_randomized
             return execute_randomized(self, vertices, edges, max_iterations=max_iterations,
-                                      partitions=partitions, cancellation=cancellation, seed=seed)
+                                      partitions=partitions, cancellation=cancellation, seed=seed,
+                                      fused=method == "randomized_fused")
         if method != "min_label":
-            raise ValueError("WCC method must be min_label or randomized")
+            raise ValueError("WCC method must be min_label, randomized or randomized_fused")
 
         def execute(run, vertices, edges, size):
             _, adjacency = run.materialize(edges.unionByName(

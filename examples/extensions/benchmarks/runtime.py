@@ -36,6 +36,23 @@ def package_versions():
     return result
 
 
+def algorithm_method(engine, algorithm, variant):
+    """Resolve explicit methods; a fused PageRank is not an available algorithm."""
+    if engine not in ('pecan', 'nutmeg-native', 'nutmeg-datafusion'):
+        raise ValueError(f'unknown graph engine: {engine}')
+    methods = {
+        'pagerank': {'reference': ('power', 'pagerank'),
+                     'optimized': ('delta', 'pagerankDelta')},
+        'wcc': {'reference': ('min_label', 'wcc'),
+                'optimized': ('randomized', 'wccRandomized'),
+                'fused': ('randomized_fused', 'wccRandomizedFused')},
+    }
+    try:
+        return methods[algorithm][variant][engine == 'nutmeg-native']
+    except KeyError as error:
+        raise ValueError(f'unsupported graph method: {algorithm}/{variant}') from error
+
+
 def native_package_identity():
     """Installed Python/native bytes, independent of unchanged version labels."""
     spec = importlib.util.find_spec('sail_nutmeg')

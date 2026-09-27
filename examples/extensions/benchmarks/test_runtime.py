@@ -8,6 +8,17 @@ import pytest
 import runtime
 
 
+def test_explicit_fused_wcc_is_distinct_and_never_a_pagerank_alias():
+    assert runtime.algorithm_method('pecan', 'wcc', 'fused') == 'randomized_fused'
+    assert runtime.algorithm_method('nutmeg-datafusion', 'wcc', 'fused') == 'randomized_fused'
+    assert runtime.algorithm_method('nutmeg-native', 'wcc', 'fused') == 'wccRandomizedFused'
+    assert runtime.algorithm_method('nutmeg-native', 'wcc', 'optimized') == 'wccRandomized'
+    assert runtime.algorithm_method('pecan', 'wcc', 'optimized') == 'randomized'
+    for engine in ('pecan', 'nutmeg-native', 'nutmeg-datafusion'):
+        with pytest.raises(ValueError, match='unsupported graph method: pagerank/fused'):
+            runtime.algorithm_method(engine, 'pagerank', 'fused')
+
+
 def test_permission_denied_with_member_keeps_waiting(monkeypatch):
     def denied(*_):
         raise PermissionError(1, 'Operation not permitted')

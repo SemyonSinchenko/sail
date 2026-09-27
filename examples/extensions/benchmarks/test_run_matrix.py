@@ -22,6 +22,24 @@ def test_example_retains_every_algorithm_and_entry_path():
                c['max_iterations'] == 100 and c['dataset'] == 'chain-512' for c in capped)
 
 
+def test_fusion_matrix_has_contemporaneous_unfused_controls_for_every_path():
+    config = json.loads(Path(__file__).with_name('fusion-matrix.example.json').read_text())
+    cells = plan_cells(config)
+    assert len(cells) == 78 and cells == plan_cells(config)
+    assert {c['algorithm'] for c in cells} == {'wcc'}
+    assert {c['variant'] for c in cells} == {'optimized', 'fused'}
+    grouped = {}
+    for cell in cells:
+        key = tuple(cell[k] for k in ('suite', 'repeat', 'dataset', 'engine'))
+        grouped.setdefault(key, set()).add(cell['variant'])
+    assert len(grouped) == 39
+    assert all(variants == {'optimized', 'fused'} for variants in grouped.values())
+    assert {c['expected_outcome'] for c in cells} == {'passed'}
+    config['suites'][0]['algorithms'].append('pagerank')
+    with pytest.raises(ValueError, match='unsupported graph method: pagerank/fused'):
+        plan_cells(config)
+
+
 def record(**kwargs):
     return dict(transport_errors=[], attach_returncode=0,
                 inspect={'state': {'OOMKilled': False}}, **kwargs)

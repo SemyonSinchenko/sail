@@ -541,7 +541,7 @@ fn every_algorithm_reports_the_columns_its_scan_returns_under_either_naming() {
     for definition in definitions() {
         let name = short(definition);
         output_schema(name).unwrap_or_else(|e| panic!("{name}: {e}"));
-        let (args, store, graph) = if name == "wccRandomized" {
+        let (args, store, graph) = if matches!(name, "wccRandomized" | "wccRandomizedFused") {
             (
                 validate(name, &Default::default()).unwrap(),
                 numeric_store.clone(),

@@ -18,7 +18,7 @@ from graph_fixtures import prepare
 
 ENGINES = ("pecan", "nutmeg-native", "nutmeg-datafusion")
 ALGORITHMS = ("pagerank", "wcc")
-VARIANTS = ("reference", "optimized")
+VARIANTS = ("reference", "optimized", "fused")
 
 
 def utc():
@@ -100,10 +100,15 @@ def main():
     parser.add_argument("--engine", choices=("all", *ENGINES), default="all")
     parser.add_argument("--algorithm", choices=("all", *ALGORITHMS), default="all")
     parser.add_argument("--variant", choices=("all", *VARIANTS), default="all",
-                        help="optimized is the retained CLI name for advanced methods")
+                        help="optimized is advanced; fused selects the fused advanced WCC plan")
     parser.add_argument("--allow-dirty", action="store_true",
                         help="development smoke only; records the dirty source in each receipt")
     args = parser.parse_args()
+    if args.algorithm == "pagerank" and args.variant == "fused":
+        parser.error("fused is a WCC plan; PageRank offers reference and optimized")
+    pairs = [(algorithm, variant) for algorithm in selection(args.algorithm, ALGORITHMS)
+             for variant in selection(args.variant, VARIANTS)
+             if not (algorithm == "pagerank" and variant == "fused")]
     args.sail_binary = args.sail_binary.resolve()
     if not args.sail_binary.is_file():
         parser.error("--sail-binary must name an existing executable")
@@ -125,9 +130,7 @@ def main():
         ),
         "cells": [],
     }
-    summary['planned_cells'] = (len(selection(args.engine, ENGINES)) *
-                                len(selection(args.algorithm, ALGORITHMS)) *
-                                len(selection(args.variant, VARIANTS)))
+    summary['planned_cells'] = len(selection(args.engine, ENGINES)) * len(pairs)
     summary_path = args.output / 'tutorial-summary.json'
     write_summary(summary_path, summary)
     print(json.dumps({"fixture": summary["dataset_counts"], "purpose": summary["purpose"]}), flush=True)
@@ -135,48 +138,47 @@ def main():
     failed = False
     script = Path(__file__).with_name("graph_cell.py")
     for engine in selection(args.engine, ENGINES):
-        for algorithm in selection(args.algorithm, ALGORITHMS):
-            for variant in selection(args.variant, VARIANTS):
-                name = f"{engine}-{algorithm}-{variant}"
-                output = args.output / name
-                command = [
-                    sys.executable, str(script), "--sail-binary", str(args.sail_binary),
-                    "--runtime-source-sha", args.runtime_source_sha,
-                    "--native-source-sha", args.native_source_sha,
-                    "--dataset", str(dataset), "--output", str(output),
-                    "--engine", engine, "--algorithm", algorithm, "--variant", variant,
-                    "--mode", args.mode, "--partitions", "4", "--threads", "4",
-                    "--worker-task-slots", "32", "--sail-pool-bytes", str(16 * 1024**3),
-                    "--native-quota", str(8 * 1024**3),
-                    "--max-iterations", "1000", "--tolerance", "1e-8", "--seed", "42",
-                    "--allow-unisolated",
-                ]
-                if args.allow_dirty:
-                    command.append("--allow-dirty")
-                receipt_path = output / "receipt.json"
-                row = {
-                    "engine": engine, "algorithm": algorithm, "variant": variant,
-                    "outcome": 'incomplete_record', "returncode": None, "original_receipt_outcome": None,
-                    "receipt": str(receipt_path.relative_to(args.output)),
-                    "log": f"{name}.log", "command": command,
-                }
-                try:
-                    row.update(run_case(command, args.output / f'{name}.log', receipt_path, private_container))
-                except (KeyboardInterrupt, SystemExit) as error:
-                    row.update(outcome='interrupted', error=repr(error))
-                    summary.update(finished_utc=utc(), outcome='interrupted')
-                    raise
-                finally:
-                    summary['cells'].append(row)
-                    summary['updated_utc'] = utc()
-                    write_summary(summary_path, summary)
-                outcome = row['outcome']
-                failed |= outcome != 'passed'
-                rss, pss = row['sampled_execution_rss_bytes'], row['sampled_execution_pss_bytes']
-                flavor = "advanced" if variant == "optimized" else "reference"
-                print(f"{engine} | {algorithm} | {flavor} | {outcome} | "
-                      f"{display(row['end_to_end_seconds'])} | {display(rss, mib=True)} | {display(pss, mib=True)}",
-                      flush=True)
+        for algorithm, variant in pairs:
+            name = f"{engine}-{algorithm}-{variant}"
+            output = args.output / name
+            command = [
+                sys.executable, str(script), "--sail-binary", str(args.sail_binary),
+                "--runtime-source-sha", args.runtime_source_sha,
+                "--native-source-sha", args.native_source_sha,
+                "--dataset", str(dataset), "--output", str(output),
+                "--engine", engine, "--algorithm", algorithm, "--variant", variant,
+                "--mode", args.mode, "--partitions", "4", "--threads", "4",
+                "--worker-task-slots", "32", "--sail-pool-bytes", str(16 * 1024**3),
+                "--native-quota", str(8 * 1024**3),
+                "--max-iterations", "1000", "--tolerance", "1e-8", "--seed", "42",
+                "--allow-unisolated",
+            ]
+            if args.allow_dirty:
+                command.append("--allow-dirty")
+            receipt_path = output / "receipt.json"
+            row = {
+                "engine": engine, "algorithm": algorithm, "variant": variant,
+                "outcome": 'incomplete_record', "returncode": None, "original_receipt_outcome": None,
+                "receipt": str(receipt_path.relative_to(args.output)),
+                "log": f"{name}.log", "command": command,
+            }
+            try:
+                row.update(run_case(command, args.output / f'{name}.log', receipt_path, private_container))
+            except (KeyboardInterrupt, SystemExit) as error:
+                row.update(outcome='interrupted', error=repr(error))
+                summary.update(finished_utc=utc(), outcome='interrupted')
+                raise
+            finally:
+                summary['cells'].append(row)
+                summary['updated_utc'] = utc()
+                write_summary(summary_path, summary)
+            outcome = row['outcome']
+            failed |= outcome != 'passed'
+            rss, pss = row['sampled_execution_rss_bytes'], row['sampled_execution_pss_bytes']
+            flavor = {"reference": "reference", "optimized": "advanced", "fused": "advanced fused"}[variant]
+            print(f"{engine} | {algorithm} | {flavor} | {outcome} | "
+                  f"{display(row['end_to_end_seconds'])} | {display(rss, mib=True)} | {display(pss, mib=True)}",
+                  flush=True)
     summary.update(finished_utc=utc(), outcome="failed" if failed else "passed")
     write_summary(summary_path, summary)
     print(f"Receipts, result Parquet, server logs and summary: {args.output}", flush=True)

@@ -55,7 +55,8 @@ def cell_row(cell, summary, receipt):
         true_residual=correctness.get('true_fixed_point_residual'),
         whole_vm_steal_fraction=receipt.get('guest_steal_fraction'),
         frontier_messages=diagnostics.get('frontier_edges'),
-        contraction_rounds=len(diagnostics.get('rounds', [])) if receipt.get('kernel') == 'wccRandomized' else None,
+        contraction_rounds=(len(diagnostics.get('rounds', [])) if receipt.get('kernel') in
+                            ('wccRandomized', 'wccRandomizedFused') else None),
         native_source_sha=receipt.get('native_source_sha'),
         runtime_source_sha=receipt.get('runtime_source_sha'),
         harness_source_sha=receipt.get('harness_source_sha'),

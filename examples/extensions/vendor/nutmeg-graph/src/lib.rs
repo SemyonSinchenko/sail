@@ -10,7 +10,8 @@
 //! An algorithm registered in Grust appears here by name; serving it needs
 //! one dispatch arm, and a test fails until that arm exists.
 //! Nutmeg additionally exposes explicitly named experimental `pagerankDelta`
-//! and `wccRandomized` kernels; the Grust reference names remain unchanged.
+//! and `wccRandomized` / `wccRandomizedFused` kernels; the Grust reference names
+//! remain unchanged.
 //!
 //! A graph is staged once under a name as node and edge record batches in
 //! the grust-arrow layout (`node_id`, `label` / `source`, `target`, `label`,

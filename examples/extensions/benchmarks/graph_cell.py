@@ -13,7 +13,7 @@ import time
 import traceback
 
 from measurement import Sampler, cgroup_snapshot, cpu_ticks, read_text, steal_fraction
-from runtime import (git, native_package_identity, package_versions, record_result_evidence,
+from runtime import (algorithm_method, git, native_package_identity, package_versions, record_result_evidence,
                      server, sha256, validate_admission_settings)
 
 
@@ -122,7 +122,8 @@ def execute(spark, args, manifest, receipt, sampler):
     started = time.perf_counter()
     receipt['execution_started_utc'] = utc()
     try:
-        optimized = args.variant == 'optimized'
+        optimized = args.variant != 'reference'
+        method = algorithm_method(args.engine, args.algorithm, args.variant)
         if args.engine == 'nutmeg-native':
             nm = Nutmeg(spark)
             nodes = vertices.select(F.col('id').cast('string').alias('node_id'))
@@ -137,7 +138,7 @@ def execute(spark, args, manifest, receipt, sampler):
                                maxIterations=args.max_iterations, precision='f64', orientation='outgoing')
             elif optimized:
                 options.update(maxIterations=args.max_iterations, seed=args.seed)
-            kernel = {'pagerank': 'pagerankDelta', 'wcc': 'wccRandomized'}[args.algorithm] if optimized else args.algorithm
+            kernel = method
             receipt['kernel'] = kernel
             frame = nm.run('benchmark', kernel, **options)
             if args.algorithm == 'pagerank':
@@ -157,9 +158,9 @@ def execute(spark, args, manifest, receipt, sampler):
             options = dict(max_iterations=args.max_iterations, partitions=args.partitions)
             if args.algorithm == 'pagerank':
                 options.update(reset_probability=1 - args.damping, tolerance=args.tolerance,
-                               method='delta' if optimized else 'power')
+                               method=method)
             else:
-                options.update(method='randomized' if optimized else 'min_label', seed=args.seed)
+                options.update(method=method, seed=args.seed)
             receipt['kernel'] = options['method']
             handle = getattr(graph, args.algorithm)(vertices, edges, **options)
             receipt['algorithm_ready_seconds'] = time.perf_counter() - started
@@ -205,7 +206,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--engine', choices=['pecan', 'nutmeg-native', 'nutmeg-datafusion'], required=True)
     parser.add_argument('--algorithm', choices=['pagerank', 'wcc'], required=True)
-    parser.add_argument('--variant', choices=['reference', 'optimized'], default='reference')
+    parser.add_argument('--variant', choices=['reference', 'optimized', 'fused'], default='reference')
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--mode', choices=['local', 'process-cluster'], default='process-cluster')
     parser.add_argument('--partitions', type=int, default=8)
@@ -225,6 +226,7 @@ def main():
     args = parser.parse_args()
     try:
         validate_admission_settings(args.worker_task_slots, args.sail_pool_bytes, args.native_quota)
+        algorithm_method(args.engine, args.algorithm, args.variant)
     except ValueError as error:
         parser.error(str(error))
     args.dataset = args.dataset.resolve()
@@ -286,7 +288,7 @@ def main():
                     record_result_evidence(result, nm, receipt['kernel'], manifest['counts']['vertices'], receipt)
                     receipt['correctness'] = validate(spark, result, args.dataset, args.algorithm,
                         manifest['counts']['vertices'], args.tolerance, args.damping,
-                        args.max_iterations, args.engine == 'nutmeg-native', args.variant == 'optimized')
+                        args.max_iterations, args.engine == 'nutmeg-native', args.variant != 'reference')
                     receipt['outcome'] = 'passed'
                 finally:
                     active_error = sys.exc_info()[1]
@@ -316,8 +318,9 @@ def main():
             assert not git(REPO, 'status', '--porcelain'), 'source became dirty during the trial'
     except BaseException as error:
         native_wcc_cap = (args.engine == 'nutmeg-native' and args.algorithm == 'wcc' and
-                          args.variant == 'optimized' and
-                          'wccRandomized did not converge within maxIterations=' in str(error))
+                          args.variant in ('optimized', 'fused') and
+                          any(f'{kernel} did not converge within maxIterations=' in str(error)
+                              for kernel in ('wccRandomized', 'wccRandomizedFused')))
         receipt['outcome'] = ('timeout' if isinstance(error, TimeoutError) else
             'nonconverged' if isinstance(error, (ConvergenceError, NonConvergedError)) or native_wcc_cap else
             'mismatch' if isinstance(error, AssertionError) else 'error')

@@ -193,7 +193,7 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--exercise", choices=["extensions", "portable-graphs"], default="extensions")
     parser.add_argument("--pagerank-method", choices=["power", "delta"], default="power")
-    parser.add_argument("--wcc-method", choices=["min_label", "randomized"], default="min_label")
+    parser.add_argument("--wcc-method", choices=["min_label", "randomized", "randomized_fused"], default="min_label")
     parser.add_argument("--pagerank-iterations", type=int, help="portable graphs: power default 3, delta default 1000")
     parser.add_argument("--tolerance", type=float, help="portable graphs: power default fixed steps, delta default 1e-8")
     parser.add_argument("--wcc-iterations", type=int, help="portable graphs: min_label default 10, randomized default 100")

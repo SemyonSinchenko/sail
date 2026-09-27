@@ -1,10 +1,11 @@
 # Experimental Nutmeg kernels
 
-These local additions are `pagerankDelta` and `wccRandomized`. The unchanged
+These local additions are `pagerankDelta`, `wccRandomized`, and
+`wccRandomizedFused`. The unchanged
 Grust 0.23.0 `pagerank` and `wcc` kernels remain available as reference variants.
 No Grust registry source or published crate has been modified.
 
-Both kernels use the existing Nutmeg projection, read lifecycle, work limits,
+These kernels use the existing Nutmeg projection, read lifecycle, work limits,
 cancellation checks, buffer reservations, bounded output channel, and host
 memory lease. The public Grust projection exposes dense edge endpoints but not
 its CSR adjacency, so delta PageRank builds an additional, query-owned outgoing
@@ -81,7 +82,35 @@ This is a separate randomized contraction implementation, not the reference
 union-find kernel under a new name. GF64 priorities and edge relabeling use the
 per-read worker pool. Neighborhood choices, sorting, and back-propagation are
 serial. Exhaustion raises an explicit nonconvergence error. Supported iteration
-limits are 1..10000 for both new algorithms.
+limits are 1..10000 for these algorithms.
+
+## `wccRandomizedFused`
+
+This optional variant shares the same contraction implementation, options,
+static schema, BIGINT identity contract, seed sequence, labels, admission and
+cancellation behavior as `wccRandomized`. The original method and reference
+`wcc` remain available.
+
+The motivation is [graphframes-rs PR 56](https://github.com/SemyonSinchenko/graphframes-rs/pull/56),
+pinned at [`10715e28`](https://github.com/SemyonSinchenko/graphframes-rs/blob/10715e28d9f7c450e74881bcd4acce8dc99a250f/src/algorithm/connectivity/connected_components.rs).
+That relational change combines symmetric neighbor contributions with the
+representative aggregation and removes upfront edge preparation. Native Nutmeg
+already considers both endpoints in one choice pass, without making a reverse
+edge copy. Its corresponding change therefore omits only the kernel's initial
+undirected canonicalization, sort and deduplication. It filters self-loops and
+visits raw directed edges during the first round. Repeated and reverse edges
+cannot change a neighborhood minimum. After relabeling, the existing canonical
+sort/deduplication produces the same contracted graph as `wccRandomized`, so all
+later rounds match for the same seed.
+
+Diagnostics mark `initial_edge_policy="raw-non-loop"`; the first `edges_before`
+counts raw non-loop edges and may exceed the original variant's count. Every
+other contraction trace field agrees. Omitting an initial sort can reduce
+preprocessing, while duplicate-heavy inputs can increase first-round visits.
+No elapsed-time or peak-memory improvement is assumed. The conservative scratch
+reservation remains based on the full input edge count. Native graph staging
+and projection construction are unchanged; this variant does not bypass their
+sorting, allocations, or driver-local execution boundary.
 
 `Nutmeg.status().reads[].diagnostics` reports actual/requested worker counts,
 frontier or contraction sizes per round, seed bits, iteration count, and final

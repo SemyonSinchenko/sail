@@ -78,7 +78,7 @@ def exercise(endpoint, worker_hosts, evidence, *, pagerank_method="power", wcc_m
         if tolerance is None and pagerank_method == "delta":
             tolerance = 1e-8
         if wcc_iterations is None:
-            wcc_iterations = 100 if wcc_method == "randomized" else 10
+            wcc_iterations = 100 if wcc_method in ("randomized", "randomized_fused") else 10
         evidence["methods"] = dict(pagerank=pagerank_method, wcc=wcc_method,
                                    pagerank_iterations=pagerank_iterations, tolerance=tolerance,
                                    wcc_iterations=wcc_iterations, seed=seed)
@@ -111,7 +111,7 @@ def exercise(endpoint, worker_hosts, evidence, *, pagerank_method="power", wcc_m
             evidence["wcc"] = dict(labels=labels, iterations=result.iterations,
                                    converged=result.converged, algorithm=result.algorithm,
                                    method=wcc_method)
-            if wcc_method == "randomized":
+            if wcc_method in ("randomized", "randomized_fused"):
                 evidence["wcc"].update(seed=result.seed, contractions=result.contractions)
         # Each selected method must contribute iteration work. Otherwise the
         # launcher's per-method worker-placement check could pass vacuously.

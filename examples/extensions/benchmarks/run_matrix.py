@@ -17,12 +17,13 @@ import subprocess
 import sys
 import time
 
-from runtime import validate_admission_settings
+from runtime import algorithm_method, validate_admission_settings
 
 
 ENGINES = ('pecan', 'nutmeg-native', 'nutmeg-datafusion')
 ALGORITHMS = ('pagerank', 'wcc')
-VARIANTS = ('reference', 'optimized')
+VARIANTS = ('reference', 'optimized', 'fused')
+DEFAULT_VARIANTS = ('reference', 'optimized')
 
 
 def utc():
@@ -84,8 +85,13 @@ def validate_config(config):
             raise ValueError('suite names an unknown engine')
         if set(suite['algorithms']) - set(ALGORITHMS):
             raise ValueError('suite names an unknown algorithm')
-        if set(suite.get('variants', config.get('variants', VARIANTS))) - set(VARIANTS):
+        variants = suite.get('variants', config.get('variants', DEFAULT_VARIANTS))
+        if set(variants) - set(VARIANTS):
             raise ValueError('suite names an unknown variant')
+        for engine in suite.get('engines', ENGINES):
+            for algorithm in suite['algorithms']:
+                for variant in variants:
+                    algorithm_method(engine, algorithm, variant)
 
 
 def plan_cells(config):
@@ -98,7 +104,7 @@ def plan_cells(config):
             for dataset in suite['datasets']:
                 for engine in suite.get('engines', ENGINES):
                     for algorithm in suite['algorithms']:
-                        for variant in suite.get('variants', config.get('variants', VARIANTS)):
+                        for variant in suite.get('variants', config.get('variants', DEFAULT_VARIANTS)):
                             name = f"{suite['name']}-r{repeat}-{dataset}-{engine}-{algorithm}-{variant}"
                             expected = suite.get('expected_outcomes', {}).get(variant, {}).get(engine, 'passed')
                             group.append(dict(cell_id=name, suite=suite['name'], repeat=repeat,

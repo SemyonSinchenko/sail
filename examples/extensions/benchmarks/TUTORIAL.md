@@ -21,9 +21,13 @@ the common server deployment and two-host checks discover Sedona and Nutmeg.
 | PageRank | Advanced | `delta` | `pagerankDelta` |
 | WCC | Reference | `min_label` | `wcc` (union-find) |
 | WCC | Advanced | `randomized` | `wccRandomized` |
+| WCC | Advanced, fused plan | `randomized_fused` | `wccRandomizedFused` |
 
-There are twelve combinations: three paths × two algorithms × two flavors.
-The CLI retains `--variant optimized` for the advanced flavor. This name makes
+There are fifteen executable combinations: each path has two PageRank methods
+and three WCC plans. Reference and advanced flavors remain available; advanced
+WCC offers both the original and fused plans.
+The CLI retains `--variant optimized` for the original advanced flavor and
+`--variant fused` for fused WCC. This name makes
 no promise of lower elapsed time or memory. Original methods remain available;
 Pecan defaults to `power` and `min_label`.
 
@@ -132,7 +136,7 @@ are built into this Sail branch; there is no third native utils wheel.
 Pecan's distribution is `pyspark-pecan`, import `pyspark_pecan`.
 Embedded Python requires installed packages; editable `.pth` paths are not enough.
 
-## 3. Run all twelve combinations locally
+## 3. Run all fifteen combinations locally
 
 The helper starts a fresh Sail server/session for **each** case, supplies its
 embedded-Python and staging configuration, validates results, and stops it.
@@ -149,7 +153,7 @@ review_output=$(mktemp -d "$PWD/target/pecan-method-review.XXXXXX")
   --mode local --output "$review_output/local"
 ```
 
-Require twelve `passed` rows and exit code zero. The fixture has 128 vertices,
+Require fifteen `passed` rows and exit code zero. The fixture has 128 vertices,
 512 directed edges, 6 isolates, 16 dangling vertices, 16 self-loops and 10 weak
 components. Every WCC partition is checked against independent union-find.
 PageRank uses damping 0.85, tolerance `1e-8`, and cap 1,000; every output gets
@@ -174,12 +178,12 @@ To focus on a reviewer’s path, add one of these selectors to the same command:
 
 ```text
 --engine pecan
---engine nutmeg-native       # Banda: four native calls
---engine nutmeg-datafusion   # Grenada: four relational calls
+--engine nutmeg-native       # Banda: five native calls
+--engine nutmeg-datafusion   # Grenada: five relational calls
 ```
 
-`--algorithm pagerank|wcc` and `--variant reference|optimized` select a single
-flavor. The existing [graph_cell implementation](graph_cell.py) contains the API
+`--algorithm pagerank|wcc` and `--variant reference|optimized|fused` select a
+method. Fused is available only for WCC; PageRank/fused is rejected. The existing [graph_cell implementation](graph_cell.py) contains the API
 calls used by the helper, so the tutorial does not maintain a second validator.
 
 ## 4. Repeat with separate worker processes
@@ -192,7 +196,7 @@ calls used by the helper, so the tutorial does not maintain a second validator.
   --mode process-cluster --output "$review_output/process-cluster"
 ```
 
-Again require twelve passed rows. Pecan/Grenada relational work can execute on
+Again require fifteen passed rows. Pecan/Grenada relational work can execute on
 the two workers. Banda gathers input to the driver and runs its kernels there;
 worker input/output does not make native PageRank or union-find distributed.
 
@@ -248,7 +252,7 @@ Inside Docker use `--ip 0.0.0.0` only when a client must reach the published por
 clients inside the same container use loopback. The staging root must preexist
 and remain exclusively managed by Sail.
 
-In terminal B, this complete example makes all twelve API calls on a tiny graph:
+In terminal B, this complete example makes all fifteen API calls on a tiny graph:
 
 ```bash
 .venv/bin/python - <<'PY'
@@ -271,7 +275,7 @@ try:
                                 max_iterations=1000, partitions=4) as result:
                 print(name, 'PageRank', method, result.iterations)
                 result.frame.orderBy('id').show()
-        for method in ('min_label', 'randomized'):
+        for method in ('min_label', 'randomized', 'randomized_fused'):
             with graph.wcc(nodes, links, method=method, seed=42,
                            max_iterations=100, partitions=4) as result:
                 print(name, 'WCC', method, result.iterations)
@@ -292,8 +296,8 @@ try:
             nm.run('tutorial', kernel, damping=0.85, tolerance=1e-8,
                    maxIterations=1000, precision='f64', orientation='outgoing',
                    concurrency=4).orderBy('nodeId').show()
-        for kernel in ('wcc', 'wccRandomized'):
-            options = dict(maxIterations=100, seed=42) if kernel == 'wccRandomized' else {}
+        for kernel in ('wcc', 'wccRandomized', 'wccRandomizedFused'):
+            options = dict(maxIterations=100, seed=42) if kernel != 'wcc' else {}
             print('Banda', kernel)
             nm.run('tutorial', kernel, concurrency=4, **options).orderBy('nodeId').show()
     finally:
@@ -368,9 +372,10 @@ starts/stops all processes; no manual server should occupy those ports.
 
 Require `outcome: passed`, supervisor return code zero, both workers' completed
 tasks inside each algorithm's iteration windows, and all cleanup PIDs absent.
-This checks Pecan's four distributed methods. `--exercise extensions` separately
+This checks the four original Pecan methods. Repeat the advanced command with
+`--wcc-method randomized_fused` to qualify the fused relational plan on both hosts. `--exercise extensions` separately
 checks Nutmeg graph-table operations and driver-native integration; it is not an
-all-twelve physical-host algorithm test. Grenada shares the relational controller;
+all-fifteen physical-host algorithm test. Grenada shares the relational controller;
 Banda remains driver-local. The launcher does not leave an interactive cluster
 running and does not configure TLS/authentication: use a trusted private network.
 
@@ -429,7 +434,8 @@ python3 examples/extensions/benchmarks/summarize.py \
   --evidence ../pecan-review-evidence --output ../pecan-review-summary
 ```
 
-The template covers 150 cells: all twelve combinations on sparse 10k/100k/1m
+The base template covers 150 cells: the twelve reference/advanced-unfused
+combinations on sparse 10k/100k/1m
 graphs with process workers, 100k locally, three repetitions, and a separate
 chain-512 WCC diagnostic. It uses 8 CPUs/32 GiB/no swap per fresh container.
 Check capacity with a separate pilot configuration before starting large cases;
@@ -452,3 +458,17 @@ activity; the pre-verification peak still includes startup. Native admission
 statistics are not RSS/PSS. Checksum reads warm the filesystem cache, and VM-wide
 steal/background load must accompany timings. See the [benchmark protocol](README.md)
 for exact validation/error bounds and evidence interpretation.
+
+The [fusion supplement](README.md#run-all-methods) adds 78 WCC cells with fused
+and contemporaneous unfused controls on all three paths. It uses its own output
+root and the same CPU, memory, input and validation settings. Build the current
+Nutmeg wheel before running it; an earlier wheel lacks `wccRandomizedFused`.
+
+Fusion removes a priority table and two joins per relational contraction round,
+but recomputes priorities per edge row; it also defers initial edge deduplication.
+Banda already handles both endpoints in
+one loop; its fused option skips only the initial kernel sort, retaining native
+staging/CSR. Round-one edge counts can differ because duplicates are retained
+until the first contraction. Later contracted graphs and final labels must
+agree for the same seed. Read the measured supplement before concluding that
+fusion improves a particular workload.

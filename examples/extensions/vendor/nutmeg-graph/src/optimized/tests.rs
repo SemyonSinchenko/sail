@@ -1,7 +1,7 @@
 use super::*;
 use grust_algorithms::{Orientation, PageRankOptions, ProjectionEdge};
 
-fn graph(ids: &[i64], edges: &[(usize, usize)], width: usize) -> GraphProjection {
+pub(super) fn graph(ids: &[i64], edges: &[(usize, usize)], width: usize) -> GraphProjection {
     let context = ExecutionContext::new(ExecutionLimits {
         memory_bytes: 256 << 20,
         work_units: usize::MAX,
@@ -31,7 +31,7 @@ fn graph(ids: &[i64], edges: &[(usize, usize)], width: usize) -> GraphProjection
     .unwrap()
 }
 
-fn execute(
+pub(super) fn execute(
     graph: &GraphProjection,
     name: &str,
     options: serde_json::Value,

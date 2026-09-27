@@ -6,7 +6,8 @@ client advances iterations and receives only scalar reductions and filesystem
 receipts. It does not build a local graph representation.
 
 PageRank offers reference power iteration and an active-frontier delta method.
-WCC offers reference minimum-label propagation and seeded randomized contraction.
+WCC offers reference minimum-label propagation and seeded randomized contraction,
+including an optional fused representative plan.
 The reference methods remain the defaults. This is a new API, not a GraphFrames
 wire or behavioral compatibility layer.
 
@@ -107,6 +108,10 @@ with graph.pagerank(vertices, edges, method="delta", tolerance=1e-8,
 with graph.wcc(vertices, edges, method="randomized", seed=42,
                max_iterations=100) as result:
     result.frame.show()
+# Same contraction choices, with fewer intermediate writes and joins:
+with graph.wcc(vertices, edges, method="randomized_fused", seed=42,
+               max_iterations=100) as result:
+    result.frame.show()
 spark.stop()
 ```
 
@@ -123,6 +128,7 @@ not an atomic snapshot across mutable input sources.
 | `pagerank(method="delta")` | Normalize output and certify full fixed-point L1 residual <= tolerance | Requires a positive tolerance; set `max_iterations=1000` for strict convergence runs |
 | `wcc(method="min_label")` | No label changes | Default method; at most 100 propagation rounds |
 | `wcc(method="randomized")` | No edges remain after contraction, then reverse expansion | Seed 42; at most 100 contraction rounds |
+| `wcc(method="randomized_fused")` | Same seeded contraction and reverse expansion | Opt-in fused representative plan; seed 42, at most 100 rounds |
 
 Each PageRank step is
 `reset / N + (1 - reset) * (incoming_probability + dangling_probability / N)`.
@@ -150,7 +156,7 @@ scan the full Parquet edge table; fewer propagated messages do not establish
 fewer physical edge reads or faster execution. Fewer rounds can also involve more
 propagated edge messages; the benchmark records both work counts and elapsed time.
 
-Both WCC methods treat edges as undirected and return `id: bigint` and
+All WCC methods treat edges as undirected and return `id: bigint` and
 `component: bigint`, the minimum vertex ID in each component. Isolates retain
 their own IDs; duplicate edges and self-loops do not alter membership. Minimum-label
 propagation can take component diameter + 1 rounds, including the no-change check.
@@ -160,7 +166,27 @@ an unsigned 64-bit integer; changing it can change the contraction work, not the
 required component answer. It requires the `axpb` capability and `gf_axpb` scalar
 function; missing capability fails explicitly, with no hash fallback.
 
-Empty graphs return empty results with zero iterations. Both WCC methods and
+`randomized_fused` follows the fused edge-projection approach in
+[Sem's graphframes-rs change](https://github.com/SemyonSinchenko/graphframes-rs/commit/10715e28d9f7c450e74881bcd4acce8dc99a250f).
+Forward and reverse edge projections carry each neighbor's GF64 priority into
+one grouped `min_by`/`min` aggregation; comparing with the vertex's own priority
+selects the closed-neighborhood representative. `min_by` keeps the original
+neighbor ID, so the existing coefficient stream, representative maps and labels
+are unchanged. Priorities are unique for distinct IDs when the multiplier is
+nonzero; duplicate edges therefore give equal-priority ties only for the same ID.
+
+The fused plan skips the initial canonical edge write and per-round priority
+table/write and its two representative-selection joins. It starts with already
+snapshotted non-loop edge rows, including duplicates and both orientations, then
+canonicalizes/deduplicates after each contraction. Its first `edges_before`
+metric counts those raw rows; later contraction traces match `randomized` for
+the same graph and seed. Endpoint relabeling joins and reverse mapping remain.
+This is a separate opt-in plan, not a replacement or a measured speedup claim;
+the edge projections can still scan their full inputs and recompute neighbor
+priorities per edge row instead of once per active vertex. Grenada shares this
+Pecan method through its graph-table adapter.
+
+Empty graphs return empty results with zero iterations. All WCC methods and
 tolerance-controlled PageRank raise `ConvergenceError` when their cap is exhausted.
 
 ## Staging, cancellation and ownership
@@ -242,6 +268,8 @@ is prohibited. Retrying allocation is idempotent; retrying removal is safe.
 Power/delta PageRank and minimum-label WCC require no native function capability.
 Randomized WCC additionally requires `axpb` and executes the host's `gf_axpb`
 scalar on every worker that evaluates its priority expression.
+The fused plan also uses the engine's ordinary `min_by` aggregate; Sail provides
+it on this branch.
 Other graph algorithms are not exposed by this initial API.
 The host accepts at most 8 KiB per request, lists at most 1,000 entries plus its
 summary row, and retains at most 1,024 run identities per session (including

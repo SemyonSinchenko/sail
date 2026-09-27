@@ -67,3 +67,13 @@ accounting boundaries. These kernels were written locally; no Grust repository,
 published crate, or registry-cache source was modified. The upstream README
 fixture stays unchanged and its catalog test covers the reference catalog;
 separate tests cover the documented local additions.
+
+The `wccRandomizedFused` follow-up applies the initial-edge preparation idea
+from graphframes-rs PR 56, pinned at
+`10715e28d9f7c450e74881bcd4acce8dc99a250f`, to the local native contraction
+implementation. Nutmeg already handles both endpoints in one pass; this
+variant omits the kernel's initial sort/deduplication and keeps the original
+`wccRandomized` and Grust `wcc` methods available. It shares subsequent rounds,
+admission and output ownership with the existing kernel. No upstream source
+was copied or modified; the precise scope and tradeoffs are documented in
+[OPTIMIZED_ALGORITHMS.md](OPTIMIZED_ALGORITHMS.md).

@@ -40,14 +40,20 @@ def _canonical_edges(edges):
         F.least('src', 'dst').alias('src'), F.greatest('src', 'dst').alias('dst')).distinct()
 
 
-def execute(graph, vertices, edges, *, max_iterations, partitions, cancellation, seed):
+def execute(graph, vertices, edges, *, max_iterations, partitions, cancellation, seed, fused=False):
     from .algorithms import ConvergenceError
     random = SplitMix64(seed)
     if 'axpb' not in graph.utils.capabilities:
         raise ValueError('randomized WCC requires the axpb capability')
+    algorithm = 'wcc-randomized-fused-contraction' if fused else 'wcc-randomized-contraction'
 
     def contract(run, vertices, edges, size):
-        edge_path, current = run.materialize(_canonical_edges(edges))
+        if fused:
+            # _run already snapshotted these edges. Keep duplicate/oriented
+            # rows for the first round; canonicalize only after contraction.
+            edge_path, current = None, edges.where(F.col('src') != F.col('dst'))
+        else:
+            edge_path, current = run.materialize(_canonical_edges(edges))
         run.cancellation.check()
         remaining = current.count()
         history = []
@@ -57,22 +63,29 @@ def execute(graph, vertices, edges, *, max_iterations, partitions, cancellation,
                 raise ConvergenceError(f'WCC contraction did not finish in {max_iterations} iterations')
             step = len(history) + 1
             run.cancellation.check()
-            graph._observe(run, 'wcc-randomized-contraction', step, 'iteration_start')
+            graph._observe(run, algorithm, step, 'iteration_start')
             a, b = random.coefficients()
-            active = current.select(F.col('src').alias('id')).unionByName(
-                current.select(F.col('dst').alias('id'))).distinct()
-            priority_path, priorities = run.materialize(active.select('id', F.call_function(
-                'gf_axpb', F.lit(a).cast('long'), F.col('id'), F.lit(b).cast('long')).alias('priority')))
-            run.cancellation.check()
-            active_count = priorities.count()
-            neighbors = current.select(F.col('src').alias('vertex'), F.col('dst').alias('neighbor')).unionByName(
-                current.select(F.col('dst').alias('vertex'), F.col('src').alias('neighbor'))).unionByName(
-                priorities.select(F.col('id').alias('vertex'), F.col('id').alias('neighbor')))
-            ranked = neighbors.join(priorities, neighbors.neighbor == priorities.id).select('vertex', 'priority')
-            minima = ranked.groupBy('vertex').agg(F.min('priority').alias('chosen_priority'))
-            representatives = minima.join(priorities, minima.chosen_priority == priorities.priority).select(
-                minima.vertex.alias('id'), priorities.id.alias('representative'))
-            rep_path, reps = run.materialize(representatives, expected_rows=active_count)
+            priority_path = None
+            if fused:
+                from .wcc_fused import representatives
+                rep_path, reps = run.materialize(representatives(current, a, b))
+                run.cancellation.check()
+                active_count = reps.count()
+            else:
+                active = current.select(F.col('src').alias('id')).unionByName(
+                    current.select(F.col('dst').alias('id'))).distinct()
+                priority_path, priorities = run.materialize(active.select('id', F.call_function(
+                    'gf_axpb', F.lit(a).cast('long'), F.col('id'), F.lit(b).cast('long')).alias('priority')))
+                run.cancellation.check()
+                active_count = priorities.count()
+                neighbors = current.select(F.col('src').alias('vertex'), F.col('dst').alias('neighbor')).unionByName(
+                    current.select(F.col('dst').alias('vertex'), F.col('src').alias('neighbor'))).unionByName(
+                    priorities.select(F.col('id').alias('vertex'), F.col('id').alias('neighbor')))
+                ranked = neighbors.join(priorities, neighbors.neighbor == priorities.id).select('vertex', 'priority')
+                minima = ranked.groupBy('vertex').agg(F.min('priority').alias('chosen_priority'))
+                original_representatives = minima.join(priorities, minima.chosen_priority == priorities.priority).select(
+                    minima.vertex.alias('id'), priorities.id.alias('representative'))
+                rep_path, reps = run.materialize(original_representatives, expected_rows=active_count)
             history.append((rep_path, reps))
             # Materialize only after both endpoint joins, then release the old
             # edge and priority generations. Retain reps for the reverse pass.
@@ -84,15 +97,18 @@ def execute(graph, vertices, edges, *, max_iterations, partitions, cancellation,
             next_path, next_edges = run.materialize(_canonical_edges(relabeled))
             run.cancellation.check()
             next_count = next_edges.count()
-            run.remove(edge_path)
-            run.remove(priority_path)
+            if edge_path is not None:
+                run.remove(edge_path)
+            if priority_path is not None:
+                run.remove(priority_path)
             edge_path, current = next_path, next_edges
             metrics = dict(active_vertices=active_count, edges_before=remaining,
                            edges_after=next_count, coefficient_a=a, coefficient_b=b)
             steps.append(metrics)
-            graph._observe(run, 'wcc-randomized-contraction', step, 'iteration_end', **metrics)
+            graph._observe(run, algorithm, step, 'iteration_end', **metrics)
             remaining = next_count
-        run.remove(edge_path)
+        if edge_path is not None:
+            run.remove(edge_path)
         frontier_path = None
         if history:
             last_path, last = history[-1]
@@ -114,9 +130,9 @@ def execute(graph, vertices, edges, *, max_iterations, partitions, cancellation,
         minima = raw.groupBy('component').agg(F.min('id').alias('minimum_id'))
         normalized = raw.join(minima, 'component').select('id', F.col('minimum_id').alias('component'))
         path, result = run.materialize(normalized, expected_rows=size)
-        handle = run.finish(path, result, algorithm='wcc-randomized-contraction',
+        handle = run.finish(path, result, algorithm=algorithm,
                             iterations=len(history), converged=True)
-        handle.method = 'randomized'
+        handle.method = 'randomized_fused' if fused else 'randomized'
         handle.seed = seed
         handle.contractions = steps
         return handle

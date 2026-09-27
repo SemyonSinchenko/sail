@@ -25,6 +25,7 @@ Every existing method remains available. `--variant` chooses the implementation:
 | PageRank | `optimized` | `delta` | `pagerankDelta` (local addition) |
 | WCC | `reference` | `min_label` | `wcc` (Grust 0.23.0 union-find) |
 | WCC | `optimized` | `randomized` | `wccRandomized` (local addition) |
+| WCC | `fused` | `randomized_fused` | `wccRandomizedFused` (local addition) |
 
 "Optimized" identifies the new implementation, not a claim that it is faster
 on a particular workload. The two original WCC methods are different algorithms.
@@ -57,6 +58,20 @@ labels. Its expected query-round bound is logarithmic; each run still has an
 explicit cap. See [Bögeholz et al.](https://arxiv.org/abs/1802.09478).
 Both new paths share the coefficient stream and seed, with original vertex IDs
 kept as representatives. The benchmark records every contraction's graph size.
+
+The advanced WCC algorithm has a second, explicit fused plan, adapted from
+[graphframes-rs PR 56](https://github.com/SemyonSinchenko/graphframes-rs/pull/56/files).
+Pecan/Grenada aggregate forward/reverse edge projections with `min_by` to retain
+original representative IDs, removing a priority table and two joins per round.
+They compute neighbor priorities per edge row instead of looking up one stored
+priority per active vertex, trading repeated GF64 work for fewer joins/writes.
+Both the relational and native fused plans defer initial edge deduplication until
+after the first contraction. Banda already examines both endpoints in one edge
+loop; its change removes only that initial sort. Native staging and projection
+are unchanged. Duplicate-heavy input can increase first-round work. Original
+randomized methods remain available; fusion is a measured alternative, not an
+assumed speedup. The first fused `edges_before` includes duplicate non-loop rows;
+the contracted graph and subsequent round traces match the unfused method.
 
 Native reference WCC labels reflect lexicographic staging order of string IDs; Pecan labels
 use numeric IDs. Outside the timed interval, normalize each output partition to
@@ -208,6 +223,36 @@ reference min-label chain cells are expected to be nonconverged; they remain
 failures to finish within that envelope. Native reference WCC has no round cap.
 Randomization order, graph seed and algorithm seed are independent recorded
 parameters. Run pilots in a separate output root; do not replace measured failures.
+
+The [fusion matrix](fusion-matrix.example.json) is a separate 78-cell WCC
+comparison: all three paths, `optimized` and `fused`, the same sizes/modes and
+three repetitions, plus six chain diagnostics. It shuffles fused and unfused
+controls together. Use a new native wheel containing `wccRandomizedFused` and
+its recorded source revision. Keep the original 150-cell matrix intact.
+To configure the supplement after filling the main configuration:
+
+```bash
+python3 - <<'PY'
+import json
+from pathlib import Path
+config = json.loads(Path('../pecan-matrix.json').read_text())
+fusion = json.loads(Path('examples/extensions/benchmarks/fusion-matrix.example.json').read_text())
+config.update(run_id='pecan-fusion-review', variants=fusion['variants'], suites=fusion['suites'],
+              container_root='/targets/pecan-fusion-review-measurements',
+              host_output=str(Path('../pecan-fusion-review-evidence').resolve()))
+Path('../pecan-fusion-matrix.json').write_text(json.dumps(config, indent=2) + '\n')
+PY
+python3 examples/extensions/benchmarks/run_matrix.py --config ../pecan-fusion-matrix.json --dry-run
+python3 examples/extensions/benchmarks/run_matrix.py --config ../pecan-fusion-matrix.json --prepare-only
+python3 examples/extensions/benchmarks/run_matrix.py --config ../pecan-fusion-matrix.json --skip-prepare
+python3 examples/extensions/benchmarks/summarize.py \
+  --evidence ../pecan-fusion-review-evidence --output ../pecan-fusion-review-summary
+```
+
+These commands assume both configurations use the same freshly built branch
+revision and wheel. If artifacts differ between runs, record each actual source
+and artifact identity. Comparisons of fusion use the supplement's own unfused
+controls, with identical installed wheels, limits, inputs and timing boundaries.
 
 Export every cell plus tables of median/range statistics for passed cells:
 

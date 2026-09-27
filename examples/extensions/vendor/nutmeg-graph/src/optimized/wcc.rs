@@ -23,11 +23,23 @@ fn multiply(mut a: u64, mut x: u64) -> u64 {
 }
 
 pub(super) fn run(
+    algorithm: &str,
     graph: &GraphProjection,
     args: &ValidatedArguments,
     query: &Query,
     emit: &mut dyn FnMut(RecordBatch) -> Result<bool>,
 ) -> Result<bool> {
+    let fused = algorithm == "wccRandomizedFused";
+    let variant = if fused {
+        "randomized-contraction-fused-v1"
+    } else {
+        "randomized-contraction-v1"
+    };
+    let initial_edge_policy = if fused {
+        "raw-non-loop"
+    } else {
+        "canonical-undirected-deduplicated"
+    };
     let context = graph.execution();
     let n = graph.node_count();
     let limit = integer(args, "maxIterations")? as usize;
@@ -42,13 +54,13 @@ pub(super) fn run(
         numeric.push(
             id.as_str()
                 .parse::<i64>()
-                .map_err(|_| err("wccRandomized requires numeric BIGINT IDs"))?,
+                .map_err(|_| err(format!("{algorithm} requires numeric BIGINT IDs")))?,
         );
     }
     let mut unique = numeric.clone();
     unique.sort_unstable();
     if unique.windows(2).any(|pair| pair[0] == pair[1]) {
-        return exec_err!("nutmeg: wccRandomized IDs must remain unique when parsed as BIGINT");
+        return exec_err!("nutmeg: {algorithm} IDs must remain unique when parsed as BIGINT");
     }
     drop(unique);
     let mut edges = Vec::new();
@@ -56,11 +68,20 @@ pub(super) fn run(
     for edge in graph.edges() {
         work.charge(1).map_err(err)?;
         if edge.source != edge.target {
-            edges.push((edge.source.min(edge.target), edge.source.max(edge.target)));
+            edges.push(if fused {
+                (edge.source, edge.target)
+            } else {
+                (edge.source.min(edge.target), edge.source.max(edge.target))
+            });
         }
     }
-    edges.sort_unstable();
-    edges.dedup();
+    // Choices already inspect both endpoints. Repeated or reversed input edges
+    // cannot change a minimum, so the fused variant defers canonicalization
+    // until after its first contraction. Subsequent edge sets are identical.
+    if !fused {
+        edges.sort_unstable();
+        edges.dedup();
+    }
     let mut choice = allocated(n, 0usize)?;
     let mut priority = allocated(n, 0i64)?;
     let mut present = allocated(n, false)?;
@@ -77,13 +98,11 @@ pub(super) fn run(
         if history.len() == limit {
             save_diagnostics(
                 query,
-                serde_json::json!({"variant": "randomized-contraction-v1",
+                serde_json::json!({"variant": variant, "initial_edge_policy": initial_edge_policy,
                 "kernel_threads": threads, "requested_concurrency": context.concurrency(),
                 "seed_bits": seed.to_string(), "rounds": rounds, "converged": false}),
             )?;
-            return exec_err!(
-                "nutmeg: wccRandomized did not converge within maxIterations={limit}"
-            );
+            return exec_err!("nutmeg: {algorithm} did not converge within maxIterations={limit}");
         }
         present.fill(false);
         for &(a, b) in &edges {
@@ -192,13 +211,13 @@ pub(super) fn run(
     }
     save_diagnostics(
         query,
-        serde_json::json!({"variant": "randomized-contraction-v1",
+        serde_json::json!({"variant": variant, "initial_edge_policy": initial_edge_policy,
         "kernel_threads": threads, "requested_concurrency": context.concurrency(),
         "seed_bits": seed.to_string(), "iterations": iterations, "rounds": rounds,
         "converged": true, "labels": "minimum numeric vertex ID",
         "serial_phases": ["closed-neighborhood choices", "deduplication", "back-propagation"]}),
     )?;
-    emit_result(graph, "wccRandomized", None, Some(&numeric), emit)
+    emit_result(graph, algorithm, None, Some(&numeric), emit)
 }
 
 #[cfg(test)]

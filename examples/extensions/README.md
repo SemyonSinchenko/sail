@@ -9,6 +9,8 @@ examples, use the [source-distribution tutorial](TUTORIAL.md).
 
 The [portable graph algorithm plan](../../docs/development/extensions/portable-graph-plan.md)
 adds client-controlled PageRank and WCC through ordinary distributed Sail queries.
+Use its [testing tutorial](graph-algorithms/TESTING.md) to build this branch and
+check the algorithms locally, with worker processes, or across two hosts.
 The [server-side graphframes-rs integration](../../docs/development/extensions/graphframes-rs-plan.md)
 remains a later option.
 

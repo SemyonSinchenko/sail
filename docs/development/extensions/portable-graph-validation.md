@@ -5,6 +5,10 @@ The implementation is on `work/extensions-datafusion-graphs` in
 `70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822`. The earlier
 `sail-extensions-1` tag is unchanged and does not contain this addition.
 
+The [step-by-step testing tutorial](../../../examples/extensions/graph-algorithms/TESTING.md)
+covers a fresh source build, local and distributed tests, an interactive example
+with expected answers, and a two-host run using shared storage.
+
 ## What runs where
 
 The pure Python `pyspark_graph_algorithms` client implements PageRank and weakly

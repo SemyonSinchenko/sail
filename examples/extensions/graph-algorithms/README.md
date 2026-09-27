@@ -10,6 +10,10 @@ minimum-label WCC. WCC is **not** the randomized contraction algorithm from
 graphframes-rs. It requires no affine hash, and has no prime-field fallback.
 This is a new API, not a GraphFrames wire or behavioral compatibility layer.
 
+For a fresh build and executable review, follow the [testing tutorial](TESTING.md).
+It covers local execution, separate worker processes, two hosts, expected
+algorithm answers and cleanup checks.
+
 ## Install and run
 
 Clone the implementation branch:

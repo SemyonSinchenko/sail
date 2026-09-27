@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 import run_matrix
 from run_matrix import classify, plan_cells
 
@@ -64,3 +66,29 @@ def test_failed_required_copy_cannot_publish_apparent_pass(tmp_path, monkeypatch
     observation['inspect']['state']['OOMKilled'] = False
     observation['outer_timeout'] = True
     assert classify(observation, receipt, 'a' * 40) == 'outer_timeout'
+
+
+def test_explicit_admission_propagates_without_changing_container_cpu_envelope():
+    config = json.loads(Path(__file__).with_name('matrix.example.json').read_text())
+    original_limits = dict(config['limits'])
+    config['defaults'].update(worker_task_slots=24, sail_pool_bytes=12 * 1024**3, native_quota=5 * 1024**3)
+    cell = plan_cells(config)[0]
+    command = run_matrix.cell_command(config, cell)
+    args = dict(zip(command[1::2], command[2::2]))
+    assert args['--worker-task-slots'] == '24'
+    assert args['--sail-pool-bytes'] == str(12 * 1024**3)
+    assert args['--native-quota'] == str(5 * 1024**3)
+    assert args['--threads'] == str(config['defaults']['threads'])
+    assert config['limits'] == original_limits
+    container = run_matrix.container_options(config, 'test')
+    assert container[container.index('--cpus') + 1] == str(original_limits['cpus'])
+    assert container[container.index('--memory') + 1] == f"{original_limits['memory_gib']}g"
+
+
+@pytest.mark.parametrize('key,value', [('worker_task_slots', 0), ('sail_pool_bytes', 0),
+                                     ('native_quota', 16 * 1024**3)])
+def test_invalid_admission_configuration_cannot_plan_a_matrix(key, value):
+    config = json.loads(Path(__file__).with_name('matrix.example.json').read_text())
+    config['defaults'][key] = value
+    with pytest.raises(ValueError):
+        plan_cells(config)

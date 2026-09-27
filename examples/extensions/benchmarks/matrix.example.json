@@ -25,7 +25,9 @@
   "defaults": {
     "partitions": 8,
     "threads": 8,
-    "native_quota": 4294967296,
+    "worker_task_slots": 32,
+    "sail_pool_bytes": 17179869184,
+    "native_quota": 8589934592,
     "tolerance": 1e-08,
     "damping": 0.85,
     "max_iterations": 1000,

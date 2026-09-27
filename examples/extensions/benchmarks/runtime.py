@@ -45,6 +45,17 @@ def native_package_identity():
     return {'root': str(root), 'files_sha256': files}
 
 
+def record_result_evidence(result, native, kernel, expected_rows, receipt):
+    """Retain delivered output and the one native read before convergence checks."""
+    receipt['result_files'] = [{'name': path.name, 'bytes': path.stat().st_size, 'sha256': sha256(path)}
+                               for path in sorted(result.rglob('*.parquet'))]
+    if native is not None:
+        receipt['native_status_after'] = native.status()
+        reads = [read for read in receipt['native_status_after']['reads']
+                 if read['algorithm'] == kernel and read['graph'] == 'benchmark']
+        assert len(reads) == 1 and reads[0]['state'] == 'finished' and reads[0]['rows'] == expected_rows, reads
+
+
 def group_exists(pgid):
     try:
         os.killpg(pgid, 0)
@@ -89,8 +100,19 @@ def stop_group(process):
     raise RuntimeError('Sail process group remains after SIGKILL; use a container init to reap descendants')
 
 
+def validate_admission_settings(worker_task_slots, sail_pool_bytes, native_quota):
+    for name, value in (('worker_task_slots', worker_task_slots),
+                        ('sail_pool_bytes', sail_pool_bytes), ('native_quota', native_quota)):
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            raise ValueError(f'{name} must be a positive integer')
+    if native_quota >= sail_pool_bytes:
+        raise ValueError('native_quota must leave positive participating memory in sail_pool_bytes')
+
+
 @contextlib.contextmanager
-def server(binary, output, mode, partitions, threads, native_quota, cleanup_errors):
+def server(binary, output, mode, partitions, threads, native_quota, cleanup_errors,
+           *, worker_task_slots, sail_pool_bytes):
+    validate_admission_settings(worker_task_slots, sail_pool_bytes, native_quota)
     staging = output / 'staging'
     staging.mkdir()
     with socket.socket() as listener:
@@ -108,10 +130,11 @@ def server(binary, output, mode, partitions, threads, native_quota, cleanup_erro
         SAIL_MODE='local-cluster' if mode == 'process-cluster' else 'local',
         SAIL_EXPERIMENTAL_PROCESS_WORKERS='1' if mode == 'process-cluster' else '0',
         SAIL_CLUSTER__WORKER_INITIAL_COUNT='2', SAIL_CLUSTER__WORKER_MAX_COUNT='2',
+        SAIL_CLUSTER__WORKER_TASK_SLOTS=str(worker_task_slots),
         SAIL_CLUSTER__TASK_MAX_ATTEMPTS='1',
         SAIL_EXECUTION__DEFAULT_PARALLELISM=str(partitions),
         SAIL_RUNTIME__MEMORY_POOL__TYPE='greedy',
-        SAIL_RUNTIME__MEMORY_POOL__GREEDY__MAX_SIZE=str(10 * 1024**3),
+        SAIL_RUNTIME__MEMORY_POOL__GREEDY__MAX_SIZE=str(sail_pool_bytes),
         SAIL_NUTMEG_MEMORY_BYTES=str(native_quota),
         SAIL_GRAPH_UTILS_ROOT=staging.as_uri(),
         TOKIO_WORKER_THREADS=str(threads), RAYON_NUM_THREADS=str(threads),

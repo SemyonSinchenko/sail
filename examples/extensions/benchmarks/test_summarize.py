@@ -59,6 +59,11 @@ def records():
         receipt = dict(outcome='passed', end_to_end_seconds=5, arguments=arguments,
                        **{key: config[key] for key in ('harness_source_sha', 'runtime_source_sha', 'native_source_sha')},
                        source_dirty='', memory={'error': None, 'execution_sampled': False},
+                       worker_task_slots_per_worker=config['defaults']['worker_task_slots'],
+                       worker_task_slots_total=2 * config['defaults']['worker_task_slots'],
+                       sail_pool_per_process_bytes=config['defaults']['sail_pool_bytes'],
+                       prepaid_native_quota_bytes=config['defaults']['native_quota'],
+                       remaining_participating_df_budget_bytes=config['defaults']['sail_pool_bytes'] - config['defaults']['native_quota'],
                        binary_sha256='d' * 64,
                        native_package_identity={'files_sha256': {'extension.so': 'e' * 64}},
                        dataset={'family': 'sparse', 'seed': 20260927, 'counts': {'vertices': 10000},
@@ -89,6 +94,10 @@ def test_valid_records_allow_distinct_host_and_native_sources_and_missing_pss():
     ('arguments', 'engine', 'pecan', 'receipt argument differs: engine'),
     ('arguments', 'max_iterations', 5, 'receipt argument differs: max_iterations'),
     ('arguments', 'allow_dirty', True, 'receipt argument differs: allow_dirty'),
+    ('arguments', 'worker_task_slots', 1, 'receipt argument differs: worker_task_slots'),
+    ('arguments', 'sail_pool_bytes', 1, 'receipt argument differs: sail_pool_bytes'),
+    ('receipt', 'worker_task_slots_total', 1, 'admission receipt differs: worker_task_slots_total'),
+    ('receipt', 'remaining_participating_df_budget_bytes', 1, 'admission receipt differs: remaining_participating_df_budget_bytes'),
 ])
 def test_inconsistent_pass_is_retained_with_original_outcome(target, key, value, reason):
     config, entries = records()

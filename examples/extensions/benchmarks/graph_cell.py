@@ -13,7 +13,8 @@ import time
 import traceback
 
 from measurement import Sampler, cgroup_snapshot, cpu_ticks, read_text, steal_fraction
-from runtime import git, native_package_identity, package_versions, server, sha256
+from runtime import (git, native_package_identity, package_versions, record_result_evidence,
+                     server, sha256, validate_admission_settings)
 
 
 REPO = Path(__file__).resolve().parents[3]
@@ -209,7 +210,11 @@ def main():
     parser.add_argument('--mode', choices=['local', 'process-cluster'], default='process-cluster')
     parser.add_argument('--partitions', type=int, default=8)
     parser.add_argument('--threads', type=int, default=8)
-    parser.add_argument('--native-quota', type=int, default=4 * 1024**3)
+    parser.add_argument('--worker-task-slots', type=int, default=32,
+                        help='concurrent asynchronous task capacity per worker, independent of CPU threads')
+    parser.add_argument('--sail-pool-bytes', type=int, default=16 * 1024**3,
+                        help='participating Sail memory pool per driver/worker process')
+    parser.add_argument('--native-quota', type=int, default=8 * 1024**3)
     parser.add_argument('--tolerance', type=float, default=1e-8)
     parser.add_argument('--damping', type=float, default=0.85)
     parser.add_argument('--max-iterations', type=int, default=1000)
@@ -218,6 +223,10 @@ def main():
     parser.add_argument('--allow-unisolated', action='store_true', help='functional smoke only, no publishable measurements')
     parser.add_argument('--allow-dirty', action='store_true', help='development smoke only')
     args = parser.parse_args()
+    try:
+        validate_admission_settings(args.worker_task_slots, args.sail_pool_bytes, args.native_quota)
+    except ValueError as error:
+        parser.error(str(error))
     args.dataset = args.dataset.resolve()
     args.output = args.output.resolve()
     args.sail_binary = args.sail_binary.resolve()
@@ -242,8 +251,10 @@ def main():
                    host_load_before=read_text('/proc/loadavg'),
                    installed_extension_boundary='Sedona and Nutmeg loaded for every path; same shared-extension deployment',
                    prepaid_native_quota_bytes=args.native_quota,
-                   sail_pool_per_process_bytes=10 * 1024**3,
-                   remaining_participating_df_budget_bytes=10 * 1024**3 - args.native_quota,
+                   sail_pool_per_process_bytes=args.sail_pool_bytes,
+                   remaining_participating_df_budget_bytes=args.sail_pool_bytes - args.native_quota,
+                   worker_task_slots_per_worker=args.worker_task_slots,
+                   worker_task_slots_total=args.worker_task_slots * (2 if args.mode == 'process-cluster' else 0),
                    boundary='input DataFrame handles to completed full result Parquet write; server startup and correctness verification excluded',
                    cache_boundary='fresh Sail state; dataset checksum reads before timing warm OS page cache; no cache flushing',
                    outcome='started', cleanup_errors=[])
@@ -254,7 +265,9 @@ def main():
     try:
         with sampler:
             with server(args.sail_binary, args.output, args.mode, args.partitions, args.threads,
-                        args.native_quota, receipt['cleanup_errors']) as (endpoint, pid):
+                        args.native_quota, receipt['cleanup_errors'],
+                        worker_task_slots=args.worker_task_slots,
+                        sail_pool_bytes=args.sail_pool_bytes) as (endpoint, pid):
                 receipt['driver_pid'] = pid
                 spark = SparkSession.builder.remote(endpoint).create()
                 spark.client.set_retry_policies([DefaultPolicy(max_retries=1, initial_backoff=100, max_backoff=100, jitter=0)])
@@ -270,16 +283,10 @@ def main():
                     sampler.mark('verification')
                     signal.alarm(args.timeout)
                     receipt['cgroup_execution_after'] = cgroup_snapshot()
+                    record_result_evidence(result, nm, receipt['kernel'], manifest['counts']['vertices'], receipt)
                     receipt['correctness'] = validate(spark, result, args.dataset, args.algorithm,
                         manifest['counts']['vertices'], args.tolerance, args.damping,
                         args.max_iterations, args.engine == 'nutmeg-native', args.variant == 'optimized')
-                    if nm is not None:
-                        receipt['native_status_after'] = nm.status()
-                        reads = [r for r in receipt['native_status_after']['reads']
-                                 if r['algorithm'] == receipt['kernel'] and r['graph'] == 'benchmark']
-                        assert len(reads) == 1 and reads[0]['state'] == 'finished' and reads[0]['rows'] == manifest['counts']['vertices'], reads
-                    receipt['result_files'] = [{'name': p.name, 'bytes': p.stat().st_size, 'sha256': sha256(p)}
-                                               for p in sorted(result.rglob('*.parquet'))]
                     receipt['outcome'] = 'passed'
                 finally:
                     active_error = sys.exc_info()[1]

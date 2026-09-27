@@ -98,7 +98,8 @@ def integrity_errors(cell, summary, receipt, config):
     arguments = receipt.get('arguments') or {}
     expected = {key: cell[key] for key in ('engine', 'algorithm', 'variant', 'mode', 'repeat', 'max_iterations')}
     expected.update({key: config['defaults'][key] for key in
-                     ('partitions', 'threads', 'native_quota', 'tolerance', 'damping', 'timeout', 'seed')})
+                     ('partitions', 'threads', 'worker_task_slots', 'sail_pool_bytes',
+                      'native_quota', 'tolerance', 'damping', 'timeout', 'seed')})
     root = PurePosixPath(config['container_root'])
     expected.update(dataset=str(root / 'datasets' / cell['dataset']),
                     output=str(root / 'cells' / cell['cell_id']),
@@ -109,6 +110,15 @@ def integrity_errors(cell, summary, receipt, config):
     for key, value in expected.items():
         if arguments.get(key) != value:
             errors.append(f'receipt argument differs: {key}')
+    worker_count = 2 if cell['mode'] == 'process-cluster' else 0
+    slots, pool, quota = (config['defaults'][key] for key in
+                          ('worker_task_slots', 'sail_pool_bytes', 'native_quota'))
+    admission = dict(worker_task_slots_per_worker=slots, worker_task_slots_total=worker_count * slots,
+                     sail_pool_per_process_bytes=pool, prepaid_native_quota_bytes=quota,
+                     remaining_participating_df_budget_bytes=pool - quota)
+    for key, value in admission.items():
+        if receipt.get(key) != value:
+            errors.append(f'admission receipt differs: {key}')
     memory = receipt.get('memory') or {}
     if 'error' not in memory or memory['error'] is not None:
         errors.append('memory sampler failed or has no completion record')

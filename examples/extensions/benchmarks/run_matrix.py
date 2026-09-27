@@ -17,6 +17,8 @@ import subprocess
 import sys
 import time
 
+from runtime import validate_admission_settings
+
 
 ENGINES = ('pecan', 'nutmeg-native', 'nutmeg-datafusion')
 ALGORITHMS = ('pagerank', 'wcc')
@@ -61,6 +63,11 @@ def validate_config(config):
         raise ValueError('resource limits must be positive')
     if not re.fullmatch(r'[0-9,-]+', limits['cpuset_cpus']):
         raise ValueError('cpuset_cpus must be an explicit CPU list/range')
+    for key in ('worker_task_slots', 'sail_pool_bytes', 'native_quota'):
+        if key not in config['defaults']:
+            raise ValueError(f'missing configuration key: defaults.{key}')
+    validate_admission_settings(**{key: config['defaults'][key] for key in
+                                  ('worker_task_slots', 'sail_pool_bytes', 'native_quota')})
     for name, dataset in config['datasets'].items():
         if not re.fullmatch(r'[a-z0-9][a-z0-9-]*', name):
             raise ValueError(f'invalid dataset name: {name}')
@@ -134,7 +141,8 @@ def cell_command(config, cell):
                '--engine', cell['engine'], '--algorithm', cell['algorithm'], '--variant', cell['variant'],
                '--mode', cell['mode'],
                '--repeat', str(cell['repeat']), '--max-iterations', str(cell['max_iterations'])]
-    for name in ('partitions', 'threads', 'native_quota', 'tolerance', 'damping', 'timeout', 'seed'):
+    for name in ('partitions', 'threads', 'worker_task_slots', 'sail_pool_bytes',
+                 'native_quota', 'tolerance', 'damping', 'timeout', 'seed'):
         command.extend(['--' + name.replace('_', '-'), str(defaults[name])])
     return command + config.get('extra_cell_args', [])
 

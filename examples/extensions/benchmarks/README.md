@@ -110,11 +110,27 @@ controller, driver, workers, sampler, and container init:
   assigned CPUs. Record physical-host background load and the VM configuration.
 
 All three paths load the same installed Sedona and Nutmeg extensions. Every Sail
-session prepays Nutmeg's 4 GiB allowance from its 10 GiB participating memory pool,
-even in Pecan/Grenada trials. This reservation is not 4 GiB of allocated RSS.
-It leaves a nominal 6 GiB for other participating operators in each such process.
-Separate processes have separate Sail pools; the container's 32 GiB limit is the
-aggregate hard bound. Native diagnostics are recorded separately from RSS/PSS.
+session prepays Nutmeg's 8 GiB allowance (`--native-quota 8589934592`) from its
+16 GiB participating memory pool (`--sail-pool-bytes 17179869184`), even in
+Pecan/Grenada trials. This reservation is not 8 GiB of allocated RSS. It leaves a
+nominal 8 GiB for other participating operators in each such process. Separate
+processes have separate Sail pools; their nominal limits can sum above the
+container's unchanged 32 GiB aggregate hard bound. Native diagnostics are
+recorded separately from RSS/PSS.
+
+`--worker-task-slots 32` provides concurrent asynchronous task capacity per
+worker: two workers admit up to 64 task slots. These slots are not CPU cores or
+OS worker threads. A relational stage may need more live tasks than CPU threads
+while tasks exchange data or wait. `--threads 8` and the container's aggregate
+eight-CPU quota remain separate limits. Worker task slots, Sail pool size and
+native allowance are explicit configuration/receipt fields and export integrity
+checks verify them. Invalid quotas that consume the whole participating pool
+are rejected before launching a server.
+
+Changing an admission setting requires a new configuration and output root;
+preserve previous refusal/error outcomes under their original envelope. Extra
+capacity is not evidence that every graph will fit: qualify representative large
+cases before starting the full comparison matrix.
 
 ## Generate inputs
 
@@ -161,7 +177,8 @@ a writable results directory. For example:
   --dataset /absolute/path/data/sparse-100000 \
   --output /absolute/path/results/pecan-pr-repeat-0 \
   --engine pecan --algorithm pagerank --variant optimized --mode process-cluster \
-  --threads 8 --partitions 8 --repeat 0
+  --threads 8 --partitions 8 --worker-task-slots 32 \
+  --sail-pool-bytes 17179869184 --native-quota 8589934592 --repeat 0
 ```
 
 Use `nutmeg-native` or `nutmeg-datafusion` for the other entry paths, and `wcc`

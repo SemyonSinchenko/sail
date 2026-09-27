@@ -1,5 +1,8 @@
 # Pecan: relational PageRank and weakly connected components
 
+The [benchmark report](../../../docs/development/extensions/pecan-nutmeg-benchmark.md)
+compares reference, advanced and fused methods through Pecan, Banda and Grenada.
+
 Pecan is a pure Python client that runs graph algorithms through ordinary Spark Connect
 queries. Joins, aggregations and Parquet writes run in Sail/DataFusion; the
 client advances iterations and receives only scalar reductions and filesystem

@@ -12,6 +12,10 @@ adds client-controlled PageRank and WCC through ordinary distributed Sail querie
 The Python distribution is `pyspark-pecan`, imported as `pyspark_pecan`.
 Use its [testing tutorial](graph-algorithms/TESTING.md) to build this branch and
 check the algorithms locally, with worker processes, or across two hosts.
+The [all-method tutorial](benchmarks/TUTORIAL.md) runs Pecan, Banda and Grenada
+with reference, advanced and fused WCC methods. Their
+[benchmark report](../../docs/development/extensions/pecan-nutmeg-benchmark.md)
+records elapsed time, process memory, resource limits and every outcome.
 The [server-side graphframes-rs integration](../../docs/development/extensions/graphframes-rs-plan.md)
 remains a later option.
 

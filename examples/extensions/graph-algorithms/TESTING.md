@@ -4,8 +4,11 @@ This tutorial builds the extension branch and tests Pecan's PageRank and weakly 
 components (WCC) locally, with worker processes, and across two hosts. The Python
 client controls iterations; Sail/DataFusion executes the joins, aggregates and
 Parquet writes. PageRank retains power iteration and adds delta/frontier execution;
-WCC retains minimum-label propagation and adds seeded randomized contraction.
-The existing methods remain the defaults.
+WCC retains minimum-label propagation and adds seeded randomized contraction
+with explicit unfused and fused plans.
+The existing methods remain the defaults. The
+[all-path tutorial](../benchmarks/TUTORIAL.md) also runs Nutmeg Banda and Grenada,
+including all fifteen valid method combinations and the isolated benchmark.
 
 Commands use Bash and run from the checkout root unless stated otherwise. Steps
 1–5 are the automated review path. Steps 6–7 provide an interactive example;
@@ -143,7 +146,7 @@ when repeating the run.
 | `local-cluster` | Driver and worker actors in one process |
 | `process-cluster` | Driver plus two separate worker executables on one host |
 
-The suite checks both methods of each algorithm: exact WCC labels and independently
+The suite checks both PageRank methods and all three WCC methods: exact WCC labels and independently
 calculated PageRank scores,
 including sinks, isolates, duplicates, self-loops, empty graphs, invalid inputs,
 convergence limits, cancellation and result ownership. Delta tests also require

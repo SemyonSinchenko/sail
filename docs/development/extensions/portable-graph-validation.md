@@ -1,5 +1,9 @@
 # Portable graph algorithms: implementation and validation
 
+This is the historical qualification of the original two methods. Later
+delta/frontier PageRank, randomized WCC and fused WCC are documented and
+qualified separately in the [current benchmark report](pecan-nutmeg-benchmark.md).
+
 The implementation is on `work/extensions-datafusion-graphs` in
 `querygraph/sail`. The executable code reviewed here is commit
 `70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822`. The earlier

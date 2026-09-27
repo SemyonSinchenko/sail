@@ -1,5 +1,9 @@
 # Pecan and Nutmeg: PageRank/WCC benchmark
 
+The [completed benchmark report](../../../docs/development/extensions/pecan-nutmeg-benchmark.md)
+links every result, time/memory table, source identity and retained failure.
+For installation and executable examples, use the [step-by-step tutorial](TUTORIAL.md).
+
 This harness measures complete algorithm calls through Spark Connect against
 the same Sail executable, input Parquet files, and resource envelope. It retains
 successes, mismatches, errors, nonconvergence, timeouts, and memory-limit failures.
@@ -7,7 +11,7 @@ successes, mismatches, errors, nonconvergence, timeouts, and memory-limit failur
 | CLI engine | Name | Execution |
 | --- | --- | --- |
 | `pecan` | Pecan | Python controller; Sail/DataFusion relational iterations |
-| `nutmeg-native` | Nutmeg Banda | Native Grust kernels over a driver-resident staged graph/CSR |
+| `nutmeg-native` | Nutmeg Banda | Native kernels over a driver-resident staged graph/CSR |
 | `nutmeg-datafusion` | Nutmeg Grenada | Nutmeg `GraphTables`, adapted to Pecan's relational controller |
 
 Grenada currently shares Pecan's PageRank/WCC implementation. It measures the
@@ -39,7 +43,7 @@ retain signed residuals at inactive vertices, push an active frontier, and allow
 reactivation. They normalize the output and certify its true fixed-point L1
 residual before reporting convergence. The benchmark independently recomputes
 that same final residual for **every** method and requires it to be at most the
-tolerance. Native `converged=false` and client convergence exceptions are retained
+tolerance plus `1e-12` numerical roundoff slack. Native `converged=false` and client convergence exceptions are retained
 as nonconverged outcomes. Native parallelism is explicitly requested.
 
 Delta PageRank follows the frontier motivation of
@@ -124,12 +128,14 @@ controller, driver, workers, sampler, and container init:
 - `/proc/stat` steal is measured across the whole Linux VM, not just the trial's
   assigned CPUs. Record physical-host background load and the VM configuration.
 
-All three paths load the same installed Sedona and Nutmeg extensions. Every Sail
-session prepays Nutmeg's 8 GiB allowance (`--native-quota 8589934592`) from its
+All three paths use the same installed Sedona and Nutmeg extensions. The Sail session
+on the driver/local server prepays Nutmeg's 8 GiB allowance (`--native-quota 8589934592`) from its
 16 GiB participating memory pool (`--sail-pool-bytes 17179869184`), even in
 Pecan/Grenada trials. This reservation is not 8 GiB of allocated RSS. It leaves a
-nominal 8 GiB for other participating operators in each such process. Separate
-processes have separate Sail pools; their nominal limits can sum above the
+nominal 8 GiB for other participating operators on the driver/local server. The
+receipt `remaining_participating_df_budget_bytes` names this remainder. Process
+workers load scalars without binding driver-native Nutmeg sessions or prepaying
+their quota. Separate processes have separate Sail pools; their nominal limits can sum above the
 container's unchanged 32 GiB aggregate hard bound. Native diagnostics are
 recorded separately from RSS/PSS.
 

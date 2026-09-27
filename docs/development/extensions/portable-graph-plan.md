@@ -4,7 +4,11 @@ Status: implemented on `work/extensions-datafusion-graphs`. The
 [initial exact-revision validation record](portable-graph-validation.md) covers
 the original power PageRank and minimum-label WCC delivery. The
 [current API tutorial](../../../examples/extensions/graph-algorithms/README.md)
-also describes the subsequent delta/frontier and randomized-contraction methods.
+also describes the subsequent delta/frontier and randomized-contraction methods,
+including an explicit fused WCC plan. The
+[benchmark report](pecan-nutmeg-benchmark.md) records their time/memory measurements
+and exact-revision qualification; the
+[all-path tutorial](../../../examples/extensions/benchmarks/TUTORIAL.md) runs all fifteen combinations.
 
 Pecan, the first distributed graph algorithm implementation, is a pure PySpark client
 with a small Sail utilities service. This adopts Semyon Sinchenko's
@@ -35,7 +39,12 @@ minimum-label WCC remain the defaults. Explicit `method="delta"` PageRank adds
 signed residual pushes, inactive-residual retention, reactivation and a final
 global fixed-point certificate. Explicit `method="randomized"` WCC adds seeded
 closed-neighborhood contraction and reverse representative expansion using
-native `gf_axpb`, without a prime-field fallback. These are separate methods;
+native `gf_axpb`, without a prime-field fallback. `method="randomized_fused"`
+uses forward/reverse projections with `min_by`, removing the priority-table joins
+and deferring initial canonicalization. It preserves representative choices but
+computes priorities per edge row; the original plan remains a measured control.
+This adapts [graphframes-rs PR 56](https://github.com/SemyonSinchenko/graphframes-rs/pull/56/files)
+without adding Sail host APIs. These are separate methods;
 the earlier validation record does not qualify the later algorithms.
 
 PageRank defines reset probability, dangling-node redistribution, normalization,
@@ -58,7 +67,9 @@ The portable client is a new graph API implementation, not another CSR engine.
 The benchmark exposes it through Nutmeg's graph-table API as **Nutmeg Grenada**;
 this adapts tables into the same Pecan controller. **Nutmeg Banda** names the native
 path. Its existing Grust kernels remain available, alongside explicit local
-`pagerankDelta` and `wccRandomized` additions with corresponding algorithm contracts.
+`pagerankDelta`, `wccRandomized` and `wccRandomizedFused` additions with
+corresponding algorithm contracts. Banda already selects from both edge endpoints
+in one loop; its fused variant only defers the initial kernel sort/deduplication.
 No path silently falls back to another. Relational execution avoids a separate native topology but
 still creates shuffle buffers, spill files and successive Parquet generations.
 No single-copy or total-RSS guarantee is made.

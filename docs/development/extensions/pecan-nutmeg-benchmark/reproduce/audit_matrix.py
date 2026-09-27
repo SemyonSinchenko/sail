@@ -493,7 +493,8 @@ class Audit:
         summarizer = source_module(self.args.repo, sha, 'audit_summary', 'examples/extensions/benchmarks/summarize.py')
         plan = runner.plan_cells(config)
         if self.args.kind != 'control':
-            self.check(len(plan) == (150 if self.args.kind == 'main' else 78), 'unexpected planned-cell count')
+            self.check(len(plan) == {'main': 150, 'fusion': 78, 'large': 180}[self.args.kind],
+                       'unexpected planned-cell count')
         self.inventories()
         entries, sources, binary, native, datasets = [], set(), set(), set(), defaultdict(set)
         image = read(self.args.evidence / 'resolved-image.json')['image_sha256']
@@ -658,6 +659,8 @@ def splitmix_coefficients(seed):
 
 
 def raw_selected(cell, kind):
+    if kind == 'large':
+        return cell['repeat'] == 1
     if cell['suite'] != 'distributed' or cell['repeat'] != 1:
         return False
     return cell['dataset'] == 'sparse-100000' or (kind == 'main' and
@@ -705,7 +708,7 @@ def markdown(result):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo', type=Path, default=Path('/Users/alexy/src/sail-extensions-poc'))
-    parser.add_argument('--kind', choices=('main', 'fusion', 'control'), required=True)
+    parser.add_argument('--kind', choices=('main', 'fusion', 'control', 'large'), required=True)
     parser.add_argument('--evidence', type=Path, required=True)
     parser.add_argument('--summary', type=Path)
     parser.add_argument('--raw', type=Path, action='append', default=[])

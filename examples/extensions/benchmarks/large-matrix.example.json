@@ -19,15 +19,15 @@
   "limits": {
     "cpus": 16,
     "cpuset_cpus": "0-15",
-    "memory_gib": 32,
+    "memory_gib": 56,
     "outer_timeout_seconds": 2400
   },
   "defaults": {
     "partitions": 16,
     "threads": 16,
     "worker_task_slots": 64,
-    "sail_pool_bytes": 17179869184,
-    "native_quota": 8589934592,
+    "sail_pool_bytes": 51539607552,
+    "native_quota": 34359738368,
     "tolerance": 1e-08,
     "damping": 0.85,
     "max_iterations": 1000,

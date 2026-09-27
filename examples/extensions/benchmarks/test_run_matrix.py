@@ -22,6 +22,18 @@ def test_example_retains_every_algorithm_and_entry_path():
                c['max_iterations'] == 100 and c['dataset'] == 'chain-512' for c in capped)
 
 
+def test_large_matrix_pins_inputs_and_includes_all_fifteen_methods():
+    config = json.loads(Path(__file__).with_name('large-matrix.example.json').read_text())
+    cells = plan_cells(config)
+    assert len(cells) == 180
+    assert len({(c['engine'], c['algorithm'], c['variant']) for c in cells}) == 15
+    assert {d['vertices'] for d in config['datasets'].values()} == {2097152, 4194304}
+    dataset = next(iter(config['datasets'].values()))
+    dataset['edge_sha256'] = 'not-a-hash'
+    with pytest.raises(ValueError, match='edge_sha256'):
+        plan_cells(config)
+
+
 def test_fusion_matrix_has_contemporaneous_unfused_controls_for_every_path():
     config = json.loads(Path(__file__).with_name('fusion-matrix.example.json').read_text())
     cells = plan_cells(config)

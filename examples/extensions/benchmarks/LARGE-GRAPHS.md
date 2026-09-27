@@ -38,10 +38,15 @@ isolated vertices, and records the source hash in each dataset manifest.
 
 Copy `large-matrix.example.json` outside the checkout. Set the operator paths,
 Docker image and context, source SHAs and output directory as in tutorial
-section 7. The example requests 16 CPUs, 32 GiB with no swap, a driver and two
+section 7. The example requests 16 CPUs, 56 GiB with no swap, a driver and two
 workers on one host, 16 partitions and 64 task slots. Banda remains driver-local.
 The same limits apply to every path, including the driver-native accounting
-allowance. These are a new experiment's limits, not the historical kernel run.
+allowance (32 GiB, within a 48 GiB per-process Sail pool). These are a new
+experiment's limits, not the historical kernel run. The initial Morrobay
+capacity probe retained the earlier 8 GiB native allowance and was refused:
+staging the 33,554,395-edge uniform fixture requested 23,511,075,308 bytes
+of sort workspace. Its cgroup recorded no OOM kill. That admission failure
+remains a separate trial; the larger allowance must be qualified before use.
 
 First qualify each method on the hash-pinned 65,536-vertex inputs, then on the
 largest inputs. Give pilots separate run IDs and evidence directories. Retain

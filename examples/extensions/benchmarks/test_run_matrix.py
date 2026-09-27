@@ -1,7 +1,9 @@
 """Preserve the full comparison matrix and distinguish failure outcomes."""
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
+import run_matrix
 from run_matrix import classify, plan_cells
 
 
@@ -41,3 +43,24 @@ def test_nonzero_exit_cannot_be_overridden_by_success_receipt():
     observation['attach_returncode'] = 7
     receipt = dict(harness_source_sha='a' * 40, outcome='passed')
     assert classify(observation, receipt, 'a' * 40) == 'exit_receipt_mismatch'
+
+
+def test_failed_required_copy_cannot_publish_apparent_pass(tmp_path, monkeypatch):
+    config = json.loads(Path(__file__).with_name('matrix.example.json').read_text())
+    monkeypatch.setattr(run_matrix, 'capture', lambda argv, **kwargs:
+                        dict(returncode=1 if 'cp' in argv else 0, stdout='', stderr='copy failure'))
+    monkeypatch.setattr(run_matrix, 'inspect_state', lambda *args:
+                        {'state': {'OOMKilled': False, 'Running': False}})
+    monkeypatch.setattr(run_matrix.subprocess, 'run', lambda *args, **kwargs: SimpleNamespace(returncode=0))
+    observation = run_matrix.run_container(config, 'test', ['cell'], tmp_path / 'cell',
+                                          'image', 1, {'artifacts': '/output'})
+    assert observation['copied']['artifacts']['returncode'] == 1
+    assert observation['transport_errors'] == ['required artifact copy failed: artifacts']
+    assert json.loads((tmp_path / 'cell/orchestration.json').read_text()) == json.loads(json.dumps(observation))
+    receipt = dict(harness_source_sha='a' * 40, outcome='passed')
+    assert classify(observation, receipt, 'a' * 40) == 'orchestration_error'
+    observation['inspect']['state']['OOMKilled'] = True
+    assert classify(observation, receipt, 'a' * 40) == 'oom'
+    observation['inspect']['state']['OOMKilled'] = False
+    observation['outer_timeout'] = True
+    assert classify(observation, receipt, 'a' * 40) == 'outer_timeout'

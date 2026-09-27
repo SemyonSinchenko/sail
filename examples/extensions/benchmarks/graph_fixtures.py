@@ -102,7 +102,9 @@ def pagerank_reference(vertices: int, source: np.ndarray, target: np.ndarray, *,
     """Uniform PageRank, including dangling redistribution and all edge rows.
 
     The residual is the L1 difference between the final two iterates, matching
-    the stopping rule used by both benchmark APIs. Exhaustion is an error.
+    the reference power methods. Delta methods use a true fixed-point residual;
+    the trial validator recomputes that common certificate for every method.
+    Exhaustion is an error.
     This NumPy recurrence is independent of Sail, DataFusion, and Nutmeg.
     """
     _check_edges(vertices, source, target)

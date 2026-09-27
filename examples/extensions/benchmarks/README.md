@@ -58,7 +58,7 @@ explicit cap. See [Bögeholz et al.](https://arxiv.org/abs/1802.09478).
 Both new paths share the coefficient stream and seed, with original vertex IDs
 kept as representatives. The benchmark records every contraction's graph size.
 
-Native WCC labels reflect lexicographic staging order of string IDs; Pecan labels
+Native reference WCC labels reflect lexicographic staging order of string IDs; Pecan labels
 use numeric IDs. Outside the timed interval, normalize each output partition to
 its minimum numeric vertex ID and compare every vertex with independent
 union-find results. Casting the native label to BIGINT alone is insufficient.
@@ -129,9 +129,11 @@ must run outside the measured container. Choose a fresh directory:
 
 The sparse family has component-separated directed graphs, a random recursive
 tree in each component, skewed source selection, additional random edges,
-isolates, dangling vertices, self-loops, and duplicate edges. It is synthetic;
-it does not claim to represent every production graph. Changing `--block-size`
-changes component size, so preserve that parameter in comparisons.
+isolates, dangling vertices, self-loops, and duplicate edges. IDs follow generation
+order: early vertices have higher source-selection weights; IDs are not randomly
+permuted. Components are bounded by `--block-size`, which matters for WCC diameter
+and contraction work. Preserve these parameters in comparisons. This synthetic
+family does not characterize arbitrary ID assignments or giant connected graphs.
 
 For a separate diameter stress test:
 
@@ -201,7 +203,14 @@ python examples/extensions/benchmarks/summarize.py \
 `cells.csv` retains failures and missing cells, `summary.json` records all outcome
 counts and metric sample counts, and `tables.md` presents the comparisons. Missing
 memory values remain unavailable. Incorrect or unfinished results never enter
-successful time or memory statistics.
+successful time or memory statistics. An apparent pass whose receipt disagrees
+with its planned cell, source, or artifact identities becomes `integrity_error`;
+CSV and JSON retain its original outcome and explicit reasons. Conflicting Sail
+binary or installed native-file hashes invalidate every affected passed trial;
+dataset hashes must agree across trials of the same dataset. A receipt without
+its matrix summary is `incomplete_record`, not a successful or never-run cell.
+The exporter writes the complete report and exits nonzero when it finds an
+integrity error.
 
 Each cell emits `receipt.json`, `memory-samples.jsonl`, `server.log`, and complete
 result Parquet files on success. An outer container timeout/memory failure must

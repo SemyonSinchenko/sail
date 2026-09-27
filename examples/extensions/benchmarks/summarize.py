@@ -4,11 +4,14 @@ import argparse
 from collections import Counter, defaultdict
 import csv
 from datetime import datetime, timezone
+import hashlib
 import json
-from pathlib import Path
+import math
+from pathlib import Path, PurePosixPath
+import re
 from statistics import median
 
-from run_matrix import plan_cells
+from run_matrix import configuration_fingerprint, plan_cells
 
 
 GROUP = ('suite', 'dataset', 'mode', 'algorithm', 'engine', 'variant')
@@ -24,12 +27,12 @@ def number(value):
 
 def cell_row(cell, summary, receipt):
     row = {k: cell[k] for k in ('cell_id', 'sequence', 'repeat', *GROUP, 'expected_outcome')}
-    row.update(outcome=summary['outcome'] if summary else 'not_run',
-               expected_outcome_observed=bool(summary and summary['expected_outcome_observed']))
+    outcome = summary['outcome'] if summary else ('incomplete_record' if receipt else 'not_run')
+    row.update(outcome=outcome, original_outcome=outcome,
+               receipt_outcome=receipt.get('outcome') if receipt else None,
+               integrity_errors=[], expected_outcome_observed=outcome == cell['expected_outcome'])
     row.update({key: None for key in METRICS})
     if not receipt:
-        if row['outcome'] == 'passed':
-            raise ValueError(f"successful cell has no receipt: {cell['cell_id']}")
         return row
     peaks = receipt.get('memory', {}).get('phase_peaks', {}).get('execute', {})
     correctness = receipt.get('correctness', {})
@@ -67,6 +70,99 @@ def cell_row(cell, summary, receipt):
     return row
 
 
+def digest(value):
+    return hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
+
+
+def sha256_value(value):
+    return isinstance(value, str) and re.fullmatch(r'[a-f0-9]{64}', value) is not None
+
+
+def integrity_errors(cell, summary, receipt, config):
+    """Check an apparent pass against its planned cell, not just its label."""
+    errors = []
+    if summary.get('configuration_sha256') != configuration_fingerprint(config):
+        errors.append('configuration fingerprint differs')
+    for key, value in cell.items():
+        if summary.get(key) != value:
+            errors.append(f'summary cell field differs: {key}')
+    if not receipt:
+        return errors + ['passed summary has no valid receipt']
+    if receipt.get('outcome') != 'passed':
+        errors.append('passed summary disagrees with receipt outcome')
+    for key in ('harness_source_sha', 'runtime_source_sha', 'native_source_sha'):
+        if receipt.get(key) != config[key]:
+            errors.append(f'source differs: {key}')
+    if receipt.get('source_dirty') != '':
+        errors.append('source is dirty or cleanliness is unrecorded')
+    arguments = receipt.get('arguments') or {}
+    expected = {key: cell[key] for key in ('engine', 'algorithm', 'variant', 'mode', 'repeat', 'max_iterations')}
+    expected.update({key: config['defaults'][key] for key in
+                     ('partitions', 'threads', 'native_quota', 'tolerance', 'damping', 'timeout', 'seed')})
+    root = PurePosixPath(config['container_root'])
+    expected.update(dataset=str(root / 'datasets' / cell['dataset']),
+                    output=str(root / 'cells' / cell['cell_id']),
+                    sail_binary=config['container_sail_binary'],
+                    runtime_source_sha=config['runtime_source_sha'],
+                    native_source_sha=config['native_source_sha'],
+                    allow_dirty=False, allow_unisolated=False)
+    for key, value in expected.items():
+        if arguments.get(key) != value:
+            errors.append(f'receipt argument differs: {key}')
+    memory = receipt.get('memory') or {}
+    if 'error' not in memory or memory['error'] is not None:
+        errors.append('memory sampler failed or has no completion record')
+    seconds = receipt.get('end_to_end_seconds')
+    if not isinstance(seconds, (float, int)) or not math.isfinite(seconds) or seconds < 0:
+        errors.append('passed receipt has no finite nonnegative duration')
+    if not sha256_value(receipt.get('binary_sha256')):
+        errors.append('Sail binary hash is missing or malformed')
+    native = (receipt.get('native_package_identity') or {}).get('files_sha256')
+    if not isinstance(native, dict) or not native or not all(sha256_value(v) for v in native.values()):
+        errors.append('native installed-file hashes are missing or malformed')
+    manifest = receipt.get('dataset') or {}
+    files = manifest.get('files') or {}
+    required = ('vertices.parquet', 'edges.parquet', 'reference.parquet')
+    if (set(files) != set(required) or
+            any(not isinstance(files.get(name), dict) or not sha256_value(files[name].get('sha256')) for name in required)):
+        errors.append('dataset hashes are missing or malformed')
+    options = config['datasets'][cell['dataset']]
+    observed = dict(manifest.get('parameters') or {}, family=manifest.get('family'),
+                    vertices=(manifest.get('counts') or {}).get('vertices'), seed=manifest.get('seed'),
+                    **{k: (manifest.get('pagerank') or {}).get(k) for k in ('damping', 'tolerance')})
+    for key, value in dict(options, **{k: config['defaults'][k] for k in ('damping', 'tolerance')}).items():
+        if observed.get(key) != value:
+            errors.append(f'dataset configuration differs: {key}')
+    return errors
+
+
+def audited_rows(entries, config):
+    """Keep every planned outcome; reject conflicting identities symmetrically."""
+    rows, identities = [], defaultdict(list)
+    for cell, summary, receipt in entries:
+        row = cell_row(cell, summary, receipt)
+        if row['outcome'] == 'passed':
+            row['integrity_errors'] = integrity_errors(cell, summary, receipt, config)
+            if not row['integrity_errors']:
+                native = receipt['native_package_identity']['files_sha256']
+                files = {name: details['sha256'] for name, details in receipt['dataset']['files'].items()}
+                row['native_installed_files_identity'] = digest(native)
+                row['dataset_files_identity'] = digest(files)
+                identities[('Sail binary', 'all cells')].append((row, receipt['binary_sha256']))
+                identities[('native installed files', 'all cells')].append((row, digest(native)))
+                identities[('dataset files', cell['dataset'])].append((row, digest(files)))
+        rows.append(row)
+    for (kind, scope), observations in identities.items():
+        if len({identity for _, identity in observations}) > 1:
+            for row, _ in observations:
+                row['integrity_errors'].append(f'inconsistent {kind} identity across {scope}')
+    for row in rows:
+        if row['integrity_errors']:
+            row['outcome'] = 'integrity_error'
+            row['expected_outcome_observed'] = False
+    return rows
+
+
 def aggregate(rows):
     groups = defaultdict(list)
     for row in rows:
@@ -88,12 +184,12 @@ def display(metric, divisor=1):
     if metric is None:
         return 'unavailable'
     middle, low, high = (metric[k] / divisor for k in ('median', 'minimum', 'maximum'))
-    return f'{middle:.3f} [{low:.3f}, {high:.3f}]'
+    return f'{middle:.3f} [{low:.3f}, {high:.3f}] (n={metric["samples"]})'
 
 
 def tables(groups):
     lines = ['# All PageRank and WCC methods', '',
-             'Cells show median [minimum, maximum] for passed trials only. Counts retain every outcome.', '',
+             'Cells show median [minimum, maximum] for passed trials only; n is the available sample count for that metric. Counts retain every outcome.', '',
              'RSS/PSS are sampled execution-phase process totals. Cgroup peak is the lifetime peak through result delivery, before verification. Memory is MiB.', '']
     previous = None
     names = {'pecan': 'Pecan', 'nutmeg-native': 'Banda', 'nutmeg-datafusion': 'Grenada'}
@@ -119,7 +215,7 @@ def main():
     parser.add_argument('--output', required=True, type=Path)
     args = parser.parse_args()
     config = json.loads((args.evidence / 'configuration.json').read_text())
-    rows = []
+    entries = []
     for cell in plan_cells(config):
         directory = args.evidence / 'cells' / cell['cell_id']
         path = directory / 'summary.json'
@@ -129,20 +225,15 @@ def main():
             receipt = json.loads(receipt_path.read_text()) if receipt_path.exists() else None
         except json.JSONDecodeError:
             receipt = None
-        row = cell_row(cell, summary, receipt)
-        if row['outcome'] == 'passed':
-            for key in ('harness_source_sha', 'runtime_source_sha', 'native_source_sha'):
-                assert row[key] == config[key], (cell['cell_id'], key)
-            assert not receipt['source_dirty'], cell['cell_id']
-            assert not receipt['arguments']['allow_dirty'] and not receipt['arguments']['allow_unisolated']
-            assert receipt['memory']['error'] is None
-            assert row['seconds'] is not None and row['seconds'] >= 0
-        rows.append(row)
+        entries.append((cell, summary, receipt))
+    rows = audited_rows(entries, config)
     groups = aggregate(rows)
     result = dict(generated_utc=datetime.now(timezone.utc).isoformat(),
                   planned_cells=len(rows), outcomes=dict(Counter(r['outcome'] for r in rows)),
                   expected_outcomes_observed=sum(r['expected_outcome_observed'] for r in rows),
                   sources={k: config[k] for k in ('harness_source_sha', 'runtime_source_sha', 'native_source_sha')},
+                  integrity_errors=[{k: row[k] for k in ('cell_id', 'original_outcome', 'receipt_outcome', 'integrity_errors')}
+                                    for row in rows if row['integrity_errors']],
                   groups=groups)
     args.output.mkdir(parents=True, exist_ok=False)
     (args.output / 'summary.json').write_text(json.dumps(result, indent=2) + '\n')
@@ -153,7 +244,8 @@ def main():
         writer.writerows(rows)
     (args.output / 'tables.md').write_text(tables(groups) + '\n')
     print(json.dumps({k: result[k] for k in ('planned_cells', 'outcomes', 'expected_outcomes_observed')}))
+    return 1 if result['integrity_errors'] else 0
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

@@ -33,6 +33,10 @@ def write_json(path, value):
     temporary.replace(path)
 
 
+def configuration_fingerprint(config):
+    return hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()
+
+
 def validate_config(config):
     required = ('run_id', 'docker_context', 'image', 'target_volume', 'container_python',
                 'container_repo', 'container_sail_binary', 'runtime_source_sha', 'native_source_sha',
@@ -199,6 +203,8 @@ def run_container(config, name, command, output, image, timeout, copy_paths):
                     destination.mkdir()
                     result = capture(base + ['cp', name + ':' + source + '/.', str(destination)], timeout=180)
                     record['copied'][label] = result
+                    if result['returncode'] != 0:
+                        record['transport_errors'].append(f'required artifact copy failed: {label}')
             except BaseException as error:
                 record['transport_errors'].append(repr(error))
             finally:
@@ -286,7 +292,7 @@ def main():
         if unknown:
             parser.error(f'unknown selected cells: {sorted(unknown)}')
         cells = [cell for cell in cells if cell['cell_id'] in args.select]
-    fingerprint = hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()
+    fingerprint = configuration_fingerprint(config)
     plan = dict(configuration_sha256=fingerprint, configuration=config, cells=cells,
                 randomized_order='Python random.Random(seed), shuffle independently within each suite/repetition')
     if args.dry_run:

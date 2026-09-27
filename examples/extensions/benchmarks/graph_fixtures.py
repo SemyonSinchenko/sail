@@ -168,7 +168,8 @@ def _file_details(path: Path) -> dict:
 
 def prepare(output: str | Path, *, vertices: int, family: str = "sparse", seed: int = 20260927,
             degree: float = 8, tolerance: float = 1e-8, damping: float = 0.85,
-            max_iterations: int = 1000, block_size: int = 1024) -> dict:
+            max_iterations: int = 1000, block_size: int = 1024,
+            edge_file: str | Path | None = None, edge_sha256: str | None = None) -> dict:
     """Write a fixture and return its JSON-serializable manifest.
 
     Files are vertices.parquet(id:int64), edges.parquet(src:int64,dst:int64),
@@ -179,7 +180,14 @@ def prepare(output: str | Path, *, vertices: int, family: str = "sparse", seed: 
     output = Path(output)
     if output.exists() and (not output.is_dir() or any(output.iterdir())):
         raise FileExistsError(f"fixture output must be absent or empty: {output}")
-    source, target = generate(vertices, family=family, seed=seed, degree=degree, block_size=block_size)
+    imported = None
+    if family == "edge-list":
+        from imported_fixture import read_edges
+        source, target, imported = read_edges(edge_file, edge_sha256, vertices)
+    else:
+        if edge_file is not None or edge_sha256 is not None:
+            raise ValueError("edge_file and edge_sha256 require family=edge-list")
+        source, target = generate(vertices, family=family, seed=seed, degree=degree, block_size=block_size)
     ranks = pagerank_reference(vertices, source, target, damping=damping, tolerance=tolerance,
                                max_iterations=max_iterations)
     components = wcc_reference(vertices, source, target)
@@ -219,6 +227,12 @@ def prepare(output: str | Path, *, vertices: int, family: str = "sparse", seed: 
                      "precision": "float64", "score_sum": float(ranks.scores.sum())},
         "files": {name: _file_details(output / name) for name in tables},
     }
+    if imported is not None:
+        manifest["generator"] = {"numpy": np.__version__, "pyarrow": pa.__version__,
+                                 "kind": "hash-verified edge-list import"}
+        manifest["input"] = imported
+        manifest["seed"] = None
+        manifest["parameters"] = {"degree_applies": False, "seed_applies": False}
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return manifest
 
@@ -227,7 +241,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--vertices", required=True, type=int)
-    parser.add_argument("--family", choices=["sparse", "chain"], default="sparse")
+    parser.add_argument("--family", choices=["sparse", "chain", "edge-list"], default="sparse")
+    parser.add_argument("--edge-file", type=Path)
+    parser.add_argument("--edge-sha256")
     parser.add_argument("--seed", type=int, default=20260927)
     parser.add_argument("--degree", type=float, default=8)
     parser.add_argument("--tolerance", type=float, default=1e-8)

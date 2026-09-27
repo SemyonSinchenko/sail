@@ -72,8 +72,14 @@ def validate_config(config):
     for name, dataset in config['datasets'].items():
         if not re.fullmatch(r'[a-z0-9][a-z0-9-]*', name):
             raise ValueError(f'invalid dataset name: {name}')
-        if dataset['family'] not in ('sparse', 'chain') or dataset['vertices'] <= 0:
+        if dataset['family'] not in ('sparse', 'chain', 'edge-list') or dataset['vertices'] <= 0:
             raise ValueError(f'invalid dataset: {name}')
+        if dataset['family'] == 'edge-list':
+            path = PurePosixPath(dataset.get('edge_file', ''))
+            if not path.is_absolute() or '..' in path.parts:
+                raise ValueError('edge_file must be an absolute container path without ..')
+            if not re.fullmatch(r'[a-f0-9]{64}', dataset.get('edge_sha256', '')):
+                raise ValueError('edge_sha256 must pin the imported bytes')
     for suite in config['suites']:
         if not re.fullmatch(r'[a-z0-9][a-z0-9-]*', suite['name']):
             raise ValueError('suite name must be safe in a filename')

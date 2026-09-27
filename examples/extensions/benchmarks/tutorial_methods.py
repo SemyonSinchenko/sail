@@ -8,6 +8,7 @@ comparisons use run_matrix.py, which creates a fresh container per trial.
 import argparse
 from datetime import datetime, timezone
 import json
+import math
 from pathlib import Path
 import subprocess
 import sys
@@ -32,6 +33,61 @@ def display(value, *, mib=False):
     if value is None:
         return "unavailable"
     return f"{value / 1024**2 if mib else value:.3f}"
+
+
+def write_summary(path, summary):
+    temporary = path.with_suffix('.json.tmp')
+    temporary.write_text(json.dumps(summary, indent=2) + '\n')
+    temporary.replace(path)
+
+
+def run_case(command, log_path, receipt_path, private_container):
+    """Ordinary child/receipt failures are retained; operator cancellation escapes."""
+    row = dict(outcome='incomplete_record', returncode=None, original_receipt_outcome=None,
+               error=None, end_to_end_seconds=None,
+               sampled_execution_rss_bytes=None, sampled_execution_pss_bytes=None)
+    errors = []
+    try:
+        with log_path.open('w') as log:
+            completed = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT)
+        row['returncode'] = completed.returncode
+    except (OSError, subprocess.SubprocessError) as error:
+        errors.append(f'child launch/execution failed: {error!r}')
+    receipt = {}
+    try:
+        if receipt_path.exists():
+            receipt = json.loads(receipt_path.read_text())
+            if not isinstance(receipt, dict):
+                raise ValueError('receipt must be a JSON object')
+            row['original_receipt_outcome'] = receipt.get('outcome')
+            if receipt.get('outcome') not in ('passed', 'error', 'mismatch', 'nonconverged', 'timeout'):
+                raise ValueError('receipt has no completed outcome')
+            memory = receipt.get('memory', {})
+            if not isinstance(memory, dict):
+                raise ValueError('receipt memory must be a JSON object')
+            phases = memory.get('phase_peaks', {})
+            if not isinstance(phases, dict):
+                raise ValueError('receipt memory phase_peaks must be a JSON object')
+            peaks = phases.get('execute', {})
+            if not isinstance(peaks, dict):
+                raise ValueError('receipt execution memory must be a JSON object')
+            metrics = dict(end_to_end_seconds=receipt.get('end_to_end_seconds'),
+                           sampled_execution_rss_bytes=peaks.get('rss_bytes') if private_container else None,
+                           sampled_execution_pss_bytes=peaks.get('pss_bytes') if private_container else None)
+            for key, value in metrics.items():
+                if value is not None and (not isinstance(value, (int, float)) or
+                                          not math.isfinite(value) or value < 0):
+                    raise ValueError(f'invalid numeric receipt field: {key}')
+            row.update(metrics, outcome=receipt['outcome'])
+    except (OSError, UnicodeError, ValueError, TypeError, AttributeError) as error:
+        errors.append(f'receipt unavailable or invalid: {error!r}')
+    if row['outcome'] == 'passed' and row['returncode'] != 0:
+        errors.append('passed receipt disagrees with nonzero or unavailable child exit status')
+    if errors:
+        row.update(outcome='orchestration_error', error='; '.join(errors))
+    elif receipt.get('error'):
+        row['error'] = receipt['error']
+    return row
 
 
 def main():
@@ -69,6 +125,11 @@ def main():
         ),
         "cells": [],
     }
+    summary['planned_cells'] = (len(selection(args.engine, ENGINES)) *
+                                len(selection(args.algorithm, ALGORITHMS)) *
+                                len(selection(args.variant, VARIANTS)))
+    summary_path = args.output / 'tutorial-summary.json'
+    write_summary(summary_path, summary)
     print(json.dumps({"fixture": summary["dataset_counts"], "purpose": summary["purpose"]}), flush=True)
     print("engine | algorithm | flavor | outcome | call seconds | sampled execution RSS MiB | PSS MiB", flush=True)
     failed = False
@@ -92,33 +153,32 @@ def main():
                 ]
                 if args.allow_dirty:
                     command.append("--allow-dirty")
-                with (args.output / f"{name}.log").open("w") as log:
-                    completed = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT)
                 receipt_path = output / "receipt.json"
-                receipt = json.loads(receipt_path.read_text()) if receipt_path.exists() else {}
-                outcome = receipt.get("outcome", "incomplete_record")
-                if completed.returncode != 0 or outcome != "passed":
-                    failed = True
-                peaks = receipt.get("memory", {}).get("phase_peaks", {}).get("execute", {})
-                rss = peaks.get("rss_bytes") if private_container else None
-                pss = peaks.get("pss_bytes") if private_container else None
                 row = {
                     "engine": engine, "algorithm": algorithm, "variant": variant,
-                    "outcome": outcome, "returncode": completed.returncode,
-                    "end_to_end_seconds": receipt.get("end_to_end_seconds"),
-                    "sampled_execution_rss_bytes": rss, "sampled_execution_pss_bytes": pss,
+                    "outcome": 'incomplete_record', "returncode": None, "original_receipt_outcome": None,
                     "receipt": str(receipt_path.relative_to(args.output)),
                     "log": f"{name}.log", "command": command,
                 }
-                summary["cells"].append(row)
-                summary["updated_utc"] = utc()
-                (args.output / "tutorial-summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+                try:
+                    row.update(run_case(command, args.output / f'{name}.log', receipt_path, private_container))
+                except (KeyboardInterrupt, SystemExit) as error:
+                    row.update(outcome='interrupted', error=repr(error))
+                    summary.update(finished_utc=utc(), outcome='interrupted')
+                    raise
+                finally:
+                    summary['cells'].append(row)
+                    summary['updated_utc'] = utc()
+                    write_summary(summary_path, summary)
+                outcome = row['outcome']
+                failed |= outcome != 'passed'
+                rss, pss = row['sampled_execution_rss_bytes'], row['sampled_execution_pss_bytes']
                 flavor = "advanced" if variant == "optimized" else "reference"
                 print(f"{engine} | {algorithm} | {flavor} | {outcome} | "
                       f"{display(row['end_to_end_seconds'])} | {display(rss, mib=True)} | {display(pss, mib=True)}",
                       flush=True)
     summary.update(finished_utc=utc(), outcome="failed" if failed else "passed")
-    (args.output / "tutorial-summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+    write_summary(summary_path, summary)
     print(f"Receipts, result Parquet, server logs and summary: {args.output}", flush=True)
     return 1 if failed else 0
 

@@ -1,6 +1,7 @@
 # Portable graph algorithms through Spark Connect
 
-Status: implementation in progress on `work/extensions-datafusion-graphs`.
+Status: implemented on `work/extensions-datafusion-graphs`; see the
+[exact-revision validation record](portable-graph-validation.md).
 
 The first distributed graph algorithm implementation is now a pure PySpark client
 with a small Sail utilities service. This adopts Semyon Sinchenko's

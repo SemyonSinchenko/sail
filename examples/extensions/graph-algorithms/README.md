@@ -42,6 +42,8 @@ The service uses Sail's existing object-store registry and credentials.
 The local root must already exist and be exclusively managed by Sail. Symlinks
 inside owned runs are rejected; concurrent external filesystem modification is
 outside this storage contract.
+The [two-host recipe and validation record](../../../docs/development/extensions/portable-graph-validation.md#reproduction)
+show how to supply shared storage configuration to the launcher.
 
 In another terminal:
 
@@ -110,6 +112,7 @@ and invalidates its DataFrame. `touch()` keeps the owning server session active;
 results do not survive session expiration or `spark.stop()`. `write_parquet()`
 exports to an independently owned path before closing the result. Do not keep
 the returned DataFrame beyond its result context unless you have exported it.
+Choose an export destination outside the owned staging run.
 
 Validation failures, convergence failures and cancellation between completed
 writes remove the run immediately. A failed or interrupted write RPC has an
@@ -168,6 +171,9 @@ same session. A path under the root is not sufficient authority; root deletion
 is prohibited. Retrying allocation is idempotent; retrying removal is safe.
 PageRank and this WCC implementation require no native function capability.
 Other graph algorithms are not exposed by this initial API.
+The host accepts at most 8 KiB per request, lists at most 1,000 entries plus its
+summary row, and retains at most 1,024 run identities per session (including
+released runs for retry safety). Use a new session after reaching that limit.
 
 The client uses the same protocol for any compatible Spark Connect engine;
 cross-engine portability requires an engine's utils implementation and semantic

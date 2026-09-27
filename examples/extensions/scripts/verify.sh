@@ -60,6 +60,9 @@ CARGO_TARGET_DIR="$target/nutmeg-core" cargo test --locked --manifest-path "$ven
 "$venv/bin/python" -m unittest discover -s examples/extensions/scripts/tests -v
 for mode in local local-cluster process-cluster; do
     "$venv/bin/python" -m pytest examples/extensions/tests --sail-binary "$target/host/debug/sail" --execution-mode "$mode" --basetemp "$target/pytest-$mode" -q
+    "$venv/bin/python" examples/extensions/scripts/test_graph_algorithms.py \
+        --sail-binary "$target/host/debug/sail" --execution-mode "$mode" \
+        --output "$target/graph-algorithms-$mode"
 done
 [[ "$(git rev-parse HEAD)" == "$sha" ]]
 [[ -z "$(git status --porcelain)" ]]

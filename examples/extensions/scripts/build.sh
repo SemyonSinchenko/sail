@@ -49,5 +49,6 @@ PY
     done
 done
 uv pip install --python "$venv/bin/python" --reinstall "$target"/wheels/*.whl
+uv pip install --python "$venv/bin/python" --no-deps "$base/graph-algorithms"
 CARGO_TARGET_DIR="$target/host" cargo build --manifest-path "$repo/Cargo.toml" --locked -p sail-cli
 printf 'Host: %s\nPython: %s\nWheels: %s\n' "$target/host/debug/sail" "$venv/bin/python" "$target/wheels"

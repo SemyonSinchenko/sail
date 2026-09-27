@@ -3,6 +3,7 @@
 //! Python metadata is the bootstrap protocol; native objects use DataFusion's
 //! named capsules. This is deliberately not a promise of a stable Sail C ABI.
 mod driver;
+pub(crate) mod graph_utils;
 mod manifest;
 mod plan;
 mod python_owner;
@@ -311,7 +312,20 @@ pub(crate) fn register_extensions(
         }
         Ok(scalars)
     })?;
-    for udf in scalars {
+    let graph_scalars = graph_utils::register(
+        &mut config,
+        runtime,
+        &mut registry,
+        distributed.then_some(driver_registry),
+    )?;
+    for udf in scalars.into_iter().chain(graph_scalars) {
+        if catalog
+            .get_function(udf.name())
+            .map_err(py_error)?
+            .is_some()
+        {
+            return plan_err!("extension function name collision: {}", udf.name());
+        }
         catalog.register_function(udf).map_err(py_error)?;
     }
     config.set_extension(Arc::new(registry));
@@ -323,6 +337,7 @@ pub(crate) fn register_extensions(
 /// mutate the driver catalog; the codec resolves native scalar descriptors from
 /// the process-local registry populated here.
 pub(crate) fn load_worker_extensions() -> Result<()> {
+    graph_utils::register_worker_functions()?;
     Python::attach(|py| {
         let kwargs = PyDict::new(py);
         kwargs

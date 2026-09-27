@@ -191,17 +191,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--exercise", choices=["extensions", "portable-graphs"], default="extensions")
     args = parser.parse_args()
     config = json.loads(args.config.read_text())
     driver, workers = config["driver"], config["workers"]
     args.output.mkdir(parents=True, exist_ok=False)
-    receipt = dict(started_utc=datetime.now(timezone.utc).isoformat(), config=config,
+    receipt = dict(started_utc=datetime.now(timezone.utc).isoformat(), config=config, exercise=args.exercise,
                    controller_host=platform.node(), controller_architecture=platform.machine(),
                    boundary="Two physical hosts; functional checks only. Rosetta/emulation is not a performance measurement.")
     snapshots = args.output / "harness"
     snapshots.mkdir()
     receipt["harness_sha256"] = {}
-    for name in ("two_host.py", "two_host_worker.py", "two_host_remote.py"):
+    for name in ("two_host.py", "two_host_worker.py", "two_host_remote.py", "two_host_graphs.py"):
         data = Path(__file__).with_name(name).read_bytes()
         (snapshots / name).write_bytes(data)
         receipt["harness_sha256"][name] = hashlib.sha256(data).hexdigest()
@@ -211,6 +212,8 @@ def main():
         for target in [driver, *workers]:
             inventories.append(inventory(target))
         reference = inventories[0]
+        assert all(item["source_commit"] == reference["source_commit"] and not item["source_dirty"]
+                   for item in inventories), "driver/worker sources must be clean at the same commit"
         assert {"sedona", "nutmeg"}.issubset(reference["packages"])
         assert all(item["binary_sha256"] == reference["binary_sha256"] and item["packages"] == reference["packages"]
                    for item in inventories), "driver/worker executable or native package identity mismatch"
@@ -234,7 +237,10 @@ def main():
             try:
                 wait_server(process, driver["advertise"], driver["connect_port"])
                 receipt["checks"] = {}
-                exercise(f"sc://{driver['advertise']}:{driver['connect_port']}",
+                run_exercise = exercise
+                if args.exercise == "portable-graphs":
+                    from two_host_graphs import exercise as run_exercise
+                run_exercise(f"sc://{driver['advertise']}:{driver['connect_port']}",
                          {target["advertise"] for target in workers}, receipt["checks"])
             finally:
                 stop(process)
@@ -245,6 +251,18 @@ def main():
                             if row["host"] in {target["advertise"] for target in workers}}
         assert required_workers.issubset({row["worker_id"] for row in completed}), \
             "missing directly observed successful tasks from a registered worker"
+        if args.exercise == "portable-graphs":
+            # Match worker completion logs specifically to iteration stages;
+            # initial graph ingestion does not qualify algorithm distribution.
+            windows = receipt["checks"]["iteration_windows"]
+            for algorithm in {window["algorithm"] for window in windows}:
+                keys = {(stage["job_id"], stage["stage"])
+                        for window in windows if window["algorithm"] == algorithm
+                        for stage in window["stages"]}
+                observed = {row["worker_id"] for row in completed
+                            if (row["job_id"], row["stage"]) in keys}
+                assert required_workers <= observed, \
+                    f"{algorithm} iteration stages did not complete on every host worker"
         cleanup = receipt["process_cleanup"] = process_cleanup(
             [driver, *workers], inventories, args.output / "server-and-workers.log")
         assert not any(row["alive"] for rows in cleanup.values() for row in rows), \

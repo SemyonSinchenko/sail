@@ -7,8 +7,10 @@ client, a minimal handler, and how to build and run.
 For a fresh install, local and distributed deployment, and executable review
 examples, use the [source-distribution tutorial](TUTORIAL.md).
 
-The proposed [graphframes-rs integration](../../docs/development/extensions/graphframes-rs-plan.md)
-describes PageRank and WCC executed through Sail’s DataFusion job runners.
+The [portable graph algorithm plan](../../docs/development/extensions/portable-graph-plan.md)
+adds client-controlled PageRank and WCC through ordinary distributed Sail queries.
+The [server-side graphframes-rs integration](../../docs/development/extensions/graphframes-rs-plan.md)
+remains a later option.
 
 This branch implements a local and distributed proof of concept for the fifth-revision
 [Sail extension proposal](https://github.com/querygraph/grust/blob/7fc0514/docs/proposals/sail-extension-api.md).

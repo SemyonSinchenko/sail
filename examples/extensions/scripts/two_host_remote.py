@@ -6,6 +6,7 @@ stdin line is versioned JSON, never shell source; remaining stdin is a lease.
 """
 import json
 import os
+from pathlib import Path
 import platform
 import select
 import signal
@@ -15,6 +16,26 @@ import sysconfig
 import time
 
 MAX_REQUEST = 128 * 1024
+
+
+def storage_environment(filename):
+    """Read host-local object-store settings without admitting process controls."""
+    if not isinstance(filename, str) or "\0" in filename or not Path(filename).is_absolute():
+        raise ValueError("environment_file must be an absolute path")
+    with Path(filename).open("rb") as stream:
+        data = stream.read(MAX_REQUEST + 1)
+    if len(data) > MAX_REQUEST:
+        raise ValueError("environment_file is too large")
+    configured = json.loads(data)
+    if not isinstance(configured, dict) or not all(
+        isinstance(key, str) and isinstance(value, str)
+        and "=" not in key and "\0" not in key and "\0" not in value
+        and (key.startswith(("AWS_", "AZURE_", "GOOGLE_"))
+             or key == "SAIL_GRAPH_UTILS_ROOT")
+        for key, value in configured.items()
+    ):
+        raise ValueError("environment_file may contain only object-store settings and SAIL_GRAPH_UTILS_ROOT")
+    return configured
 
 
 def event(name, **fields):
@@ -69,6 +90,8 @@ def main():
     if not isinstance(lease_seconds, (int, float)) or not 1 <= lease_seconds <= 300:
         raise ValueError("lease_seconds must be between 1 and 300")
     env = dict(os.environ)
+    if "environment_file" in request:
+        env.update(storage_environment(request["environment_file"]))
     env.update(configured)
     env.pop("SAIL_INTERNAL__RUN_PYTHON", None)
     # Derive these from THIS host/interpreter, never the driver's paths.

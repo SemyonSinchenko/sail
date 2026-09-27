@@ -383,6 +383,9 @@ impl SessionManagerActor {
         let checkpoint_registry = context.extension::<RemoteCheckpointRegistry>().ok();
         let lifecycle = context.extension::<SessionLifecycle>().ok();
         let native_resources = context.extension::<NativeResourceTracker>().ok();
+        let graph_runs = context
+            .extension::<crate::extensions::graph_utils::GraphRuns>()
+            .ok();
         let runtime_env = context.runtime_env();
         cleanup.spawn(async move {
             if let Some(lifecycle) = lifecycle
@@ -390,8 +393,14 @@ impl SessionManagerActor {
             {
                 warn!("failed to stop session resources for {session_id}: {error}");
             }
-            // Stop tasks before deleting the namespace so late attempts cannot recreate objects.
+            // Request executor/job shutdown before cleanup. Detached data-source
+            // writers are not all joined here, so storage cleanup is best effort.
             service.runner().stop().await;
+            if let Some(graph_runs) = graph_runs
+                && let Err(error) = graph_runs.cleanup().await
+            {
+                warn!("failed to clean graph runs for session {session_id}: {error}");
+            }
             if let Some(checkpoint_registry) = checkpoint_registry
                 && let Err(error) = checkpoint_registry
                     .cleanup_session(runtime_env.as_ref())

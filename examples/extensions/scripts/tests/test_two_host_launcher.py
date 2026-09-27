@@ -31,6 +31,51 @@ def stopped(pid):
 
 
 class LauncherLifecycle(unittest.TestCase):
+    def test_host_local_storage_environment_does_not_disclose_credentials(self):
+        sys.path.insert(0, str(SCRIPTS))
+        from two_host_worker import launch, stop
+
+        with tempfile.TemporaryDirectory(prefix="sail-storage-environment-") as temporary:
+            directory = Path(temporary)
+            environment = directory / "storage.json"
+            environment.write_text(json.dumps(dict(
+                AWS_SECRET_ACCESS_KEY="test-secret-do-not-log",
+                SAIL_GRAPH_UTILS_ROOT="s3://test-bucket/runs")))
+            environment.chmod(0o600)
+            result = directory / "result.json"
+            code = ("import json,os,time; from pathlib import Path; "
+                    f"Path({str(result)!r}).write_text(json.dumps(["
+                    "os.environ['AWS_SECRET_ACCESS_KEY'], os.environ['SAIL_GRAPH_UTILS_ROOT']])); "
+                    "time.sleep(300)")
+            target = dict(repo=str(REPO), python=sys.executable,
+                          environment_file=str(environment))
+            with (directory / "log").open("w") as output:
+                process = launch(target, [sys.executable, "-c", code], {}, stdout=output)
+                try:
+                    wait_for(result.exists, "worker did not receive storage configuration")
+                    self.assertEqual(json.loads(result.read_text()),
+                                     ["test-secret-do-not-log", "s3://test-bucket/runs"])
+                finally:
+                    stop(process)
+            self.assertNotIn("test-secret-do-not-log", (directory / "log").read_text())
+
+    def test_storage_environment_cannot_override_process_controls(self):
+        with tempfile.TemporaryDirectory(prefix="sail-storage-rejection-") as temporary:
+            environment = Path(temporary) / "storage.json"
+            for key in ("PYTHONPATH", "PYTHONHOME", "SAIL_INTERNAL__RUN_PYTHON",
+                        "SAIL_CLUSTER__WORKER_ID", "LD_PRELOAD"):
+                with self.subTest(key=key):
+                    environment.write_text(json.dumps({key: "invalid-control-value"}))
+                    request = dict(version=1, argv=[sys.executable, "-c", "pass"],
+                                   environment_file=str(environment))
+                    result = subprocess.run([sys.executable, str(SCRIPTS / "two_host_remote.py")],
+                                            input=json.dumps(request).encode() + b"\n",
+                                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                            timeout=15)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertNotIn(b"sail_remote_started", result.stdout)
+                    self.assertNotIn(b"invalid-control-value", result.stdout)
+
     def run_cleanup(self, abrupt):
         with tempfile.TemporaryDirectory(prefix="sail-launcher-lifecycle-") as temporary:
             directory = Path(temporary)

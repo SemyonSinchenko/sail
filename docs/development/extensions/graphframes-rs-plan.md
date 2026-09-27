@@ -1,7 +1,9 @@
 # Running graphframes-rs inside Sail
 
-**Status: proposed implementation, for review.** No integration described here
-has been built or qualified yet.
+**Status: deferred server-side option.** The first implementation now follows
+the [portable PySpark client plan](portable-graph-plan.md), using ordinary Sail
+queries and a small storage/function utils service. The server controller and
+Rust library integration described below remain proposed, not implemented.
 
 Implement PageRank and weakly connected components (WCC) over Sail tables using
 `graphframes-rs`. Execute their DataFusion joins and aggregations inside Sail,
@@ -40,11 +42,11 @@ A Python client can issue each iteration as ordinary Spark Connect joins and
 aggregations, with materialization between iterations. Sail already distributes
 these relational operations. This avoids a new host adapter and provides an
 independent way to establish graph semantics and exercise worker execution.
-It still requires algorithm code, convergence checks, checkpoint ownership,
-cleanup and a consistent input snapshot. It is not an implementation of this
-library's Rust algorithms, and a complete client loop has not been verified here.
-In particular, a simple label-propagation WCC would differ from the library's
-randomized contraction implementation.
+The [portable client implementation](../../../examples/extensions/graph-algorithms/README.md)
+now supplies the loop, convergence checks and owned Parquet staging. Its
+[integration plan](portable-graph-plan.md) records the lifecycle limits and
+qualification requirements. It is not an implementation of this library's Rust
+algorithms: its minimum-label WCC differs from randomized contraction.
 
 | Choice | Benefit | Cost |
 | --- | --- | --- |

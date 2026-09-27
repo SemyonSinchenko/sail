@@ -38,6 +38,10 @@ def launch(target, argv, environment, stdout=None):
                                stdout=stdout, stderr=subprocess.STDOUT,
                                env=clean_python_environment())
     request = dict(version=1, argv=argv, environment=environment, cwd=target["repo"])
+    if "environment_file" in target:
+        # Keep credentials on their host: the wire request and receipts contain
+        # only a trusted configuration path, never the file's contents.
+        request["environment_file"] = target["environment_file"]
     try:
         process.stdin.write(json.dumps(request).encode() + b"\n")
         process.stdin.flush()

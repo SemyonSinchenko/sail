@@ -8158,6 +8158,8 @@ dependencies = [
  "indexmap 2.14.2",
  "log",
  "object_store",
+ "prost",
+ "prost-build",
  "pyo3",
  "readonly",
  "sail-cache",
@@ -8191,6 +8193,7 @@ dependencies = [
  "thiserror 2.0.20",
  "tokio",
  "tonic",
+ "url",
  "uuid",
 ]
 

@@ -83,3 +83,21 @@ The example is the parallel Sail campaign. A one-CPU local campaign requires a
 separate run ID, CPU quota/cpuset, thread and partition counts, and `mode=local`.
 Do not merge its results with the parallel campaign or imply either reproduces
 the original in-memory benchmark's execution boundary.
+
+## Render time and memory together
+
+After measurement, summarize the evidence and render the tables and PNG/SVG
+figures in a separate reporting environment. Rendering was checked with
+Matplotlib 3.11.2. The figures take limits and source identities from the actual
+configuration, display observed ranges, and keep unavailable values distinct.
+
+```sh
+python3 examples/extensions/benchmarks/summarize.py \
+  --evidence /path/to/evidence --output ../large-summary
+python3 -m venv ../graph-report-venv
+../graph-report-venv/bin/pip install matplotlib==3.11.2
+../graph-report-venv/bin/python examples/extensions/benchmarks/render_large.py \
+  --summary ../large-summary/summary.json \
+  --config /path/to/evidence/configuration.json --host 'Morrobay Linux VM' \
+  --output ../large-figures
+```

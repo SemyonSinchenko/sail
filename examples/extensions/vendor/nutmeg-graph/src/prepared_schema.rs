@@ -3,10 +3,10 @@ use super::*;
 
 /// Prepare the finite output-schema catalog before accepting user plans.
 ///
-/// Grust owns the result types; Nutmeg observes each on its fixed three-node
-/// probe graph. This setup runs once per library instance, under a separate
-/// 16 MiB budget. Default schemas and the two supported rank precisions are
-/// the entire key space. Session reads then use cache-only lookup.
+/// Reference result types come from Grust and are observed on a fixed three-node
+/// probe graph under a separate 16 MiB budget. The two local optimized kernels
+/// supply static schemas. Setup runs once per library instance; defaults and
+/// supported rank precisions define a finite cache. Session reads use only it.
 pub fn prepare_output_schemas() -> Result<()> {
     static PREPARED: OnceCell<()> = OnceCell::new();
     PREPARED
@@ -20,6 +20,9 @@ pub fn prepare_output_schemas() -> Result<()> {
                     .any(|o| o.field.name == PRECISION_OPTION)
                 {
                     for precision in ["f32", "f64"] {
+                        if algorithm == "pagerankDelta" && precision != "f64" {
+                            continue;
+                        }
                         output_schema_at(algorithm, Some(precision))?;
                     }
                 }

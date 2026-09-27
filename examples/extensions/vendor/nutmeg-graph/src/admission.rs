@@ -319,12 +319,10 @@ pub(super) fn unify_bound(batches: &[RecordBatch]) -> usize {
     batches
         .iter()
         .flat_map(|batch| {
-            fields.iter().filter_map(move |(name, kind)| {
-                batch
-                    .column_by_name(name)
-                    .is_none()
-                    .then(|| building(null_bound(kind, batch.num_rows())))
-            })
+            fields
+                .iter()
+                .filter(move |(name, _)| batch.column_by_name(name).is_none())
+                .map(move |(_, kind)| building(null_bound(kind, batch.num_rows())))
         })
         .fold(0, add)
 }

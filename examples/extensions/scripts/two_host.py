@@ -192,6 +192,12 @@ def main():
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--exercise", choices=["extensions", "portable-graphs"], default="extensions")
+    parser.add_argument("--pagerank-method", choices=["power", "delta"], default="power")
+    parser.add_argument("--wcc-method", choices=["min_label", "randomized"], default="min_label")
+    parser.add_argument("--pagerank-iterations", type=int, help="portable graphs: power default 3, delta default 1000")
+    parser.add_argument("--tolerance", type=float, help="portable graphs: power default fixed steps, delta default 1e-8")
+    parser.add_argument("--wcc-iterations", type=int, help="portable graphs: min_label default 10, randomized default 100")
+    parser.add_argument("--seed", type=int, default=42, help="portable graphs: randomized WCC seed")
     args = parser.parse_args()
     config = json.loads(args.config.read_text())
     driver, workers = config["driver"], config["workers"]
@@ -238,10 +244,14 @@ def main():
                 wait_server(process, driver["advertise"], driver["connect_port"])
                 receipt["checks"] = {}
                 run_exercise = exercise
+                graph_options = {}
                 if args.exercise == "portable-graphs":
                     from two_host_graphs import exercise as run_exercise
+                    graph_options = dict(pagerank_method=args.pagerank_method, wcc_method=args.wcc_method,
+                                         pagerank_iterations=args.pagerank_iterations, tolerance=args.tolerance,
+                                         wcc_iterations=args.wcc_iterations, seed=args.seed)
                 run_exercise(f"sc://{driver['advertise']}:{driver['connect_port']}",
-                         {target["advertise"] for target in workers}, receipt["checks"])
+                         {target["advertise"] for target in workers}, receipt["checks"], **graph_options)
             finally:
                 stop(process)
                 receipt["driver_supervisor_returncode"] = process.returncode
@@ -267,6 +277,8 @@ def main():
             [driver, *workers], inventories, args.output / "server-and-workers.log")
         assert not any(row["alive"] for rows in cleanup.values() for row in rows), \
             "a supervised Sail process remained alive after launcher shutdown"
+        assert receipt["driver_supervisor_returncode"] == 0, \
+            f"driver supervisor failed during shutdown: {receipt['driver_supervisor_returncode']}"
         receipt["outcome"] = "passed"
     except BaseException:
         receipt["outcome"] = "failed"

@@ -524,19 +524,43 @@ fn gds_aliases_name_declared_columns_and_never_collide() {
 /// a rename were applied to one and not the other.
 #[test]
 fn every_algorithm_reports_the_columns_its_scan_returns_under_either_naming() {
+    // The optimized WCC contract is BIGINT identity, unlike the unrestricted
+    // string IDs in the Grust probe. Exercise its real scan on valid IDs too.
+    let numeric_store = Arc::new(Store::new(16 << 20));
+    let numeric_probe = "numeric-schema-probe";
+    numeric_store
+        .stage(
+            numeric_probe,
+            Part::Edges,
+            &[edges(&["1", "2"], &["2", "3"], None)],
+            &ColumnMapping::default(),
+            true,
+            StageOrder::Canonical,
+        )
+        .unwrap();
     for definition in definitions() {
         let name = short(definition);
         output_schema(name).unwrap_or_else(|e| panic!("{name}: {e}"));
-        let (args, _) = probe(name, Default::default()).unwrap_or_else(|e| panic!("{name}: {e}"));
+        let (args, store, graph) = if name == "wccRandomized" {
+            (
+                validate(name, &Default::default()).unwrap(),
+                numeric_store.clone(),
+                numeric_probe,
+            )
+        } else {
+            let (args, _) =
+                probe(name, Default::default()).unwrap_or_else(|e| panic!("{name}: {e}"));
+            (args, SCHEMA_STORE.clone(), PROBE)
+        };
         let args = Arc::new(args);
         for names in [ColumnNames::Grust, ColumnNames::Gds] {
             let table = AlgorithmTable {
                 session: Some(SessionRegistry {
-                    store: SCHEMA_STORE.clone(),
+                    store: store.clone(),
                     reads: Default::default(),
                 }),
                 algorithm: name,
-                graph: PROBE.to_string(),
+                graph: graph.to_string(),
                 args: args.clone(),
                 names,
                 limits: QueryLimits::default(),
@@ -2905,7 +2929,7 @@ fn the_catalog_is_served_whole_and_is_larger_than_the_twelve() {
 /// which is the failure this prevents: when Grust registers a kernel, this
 /// fails and names it, rather than the page quietly becoming wrong.
 #[test]
-fn the_readmes_catalog_list_is_exactly_what_is_served() {
+fn upstream_readme_catalog_matches_reference_algorithms() {
     let readme =
         std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/UPSTREAM_README.md"))
             .expect("the upstream README fixture accompanies the vendored crate");
@@ -2924,7 +2948,13 @@ fn the_readmes_catalog_list_is_exactly_what_is_served() {
         })
         .map(|item| item.to_string())
         .collect();
-    let served: BTreeSet<String> = algorithm_names().iter().map(|n| n.to_string()).collect();
+    // UPSTREAM_README.md is an unchanged provenance fixture. Nutmeg-local
+    // experimental algorithms have their own documentation and catalog test.
+    let served: BTreeSet<String> = algorithm_names()
+        .iter()
+        .filter(|name| !optimized::NAMES.contains(name))
+        .map(|n| n.to_string())
+        .collect();
     let missing: Vec<&String> = served.difference(&listed).collect();
     assert!(
         missing.is_empty(),

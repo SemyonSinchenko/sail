@@ -1,10 +1,18 @@
-"""PageRank and WCC using server tables and a client iteration controller."""
+"""Compatibility imports for Pecan's former Python package name.
 
-from .algorithms import ConvergenceError, GraphAlgorithms
-from .lifecycle import CancellationToken, GraphCancelledError, GraphResult
-from .utils import CapabilityError, GraphUtils
+Use ``pyspark_pecan`` in new code. Both names resolve to the same classes and
+protobuf modules; the gf.utils.v1 wire contract has not changed.
+"""
 
-__all__ = [
-    "CancellationToken", "CapabilityError", "ConvergenceError", "GraphAlgorithms", "GraphCancelledError",
-    "GraphResult", "GraphUtils",
-]
+import importlib as _importlib
+import sys as _sys
+
+from pyspark_pecan import *  # noqa: F403
+from pyspark_pecan import __all__
+
+for _name in ("algorithms", "lifecycle", "staging", "utils", "utils_pb2"):
+    _module = _importlib.import_module(f"pyspark_pecan.{_name}")
+    _sys.modules[f"{__name__}.{_name}"] = _module
+    globals()[_name] = _module
+
+del _name, _module, _importlib, _sys

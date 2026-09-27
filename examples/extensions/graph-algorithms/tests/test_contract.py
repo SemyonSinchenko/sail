@@ -3,14 +3,14 @@ import json
 import pytest
 from pyspark.sql import Row
 
-from pyspark_graph_algorithms import CapabilityError, GraphAlgorithms
-from pyspark_graph_algorithms import utils_pb2 as wire
-from pyspark_graph_algorithms.utils import GraphUtils, TYPE_URL, _UtilsRelation
+from pyspark_pecan import CapabilityError, GraphAlgorithms
+from pyspark_pecan import utils_pb2 as wire
+from pyspark_pecan.utils import GraphUtils, TYPE_URL, _UtilsRelation
 
 
 def test_connect_expressions_do_not_require_remote_environment_flag(monkeypatch):
     from pyspark.sql.connect.column import Column
-    from pyspark_graph_algorithms.algorithms import F
+    from pyspark_pecan.algorithms import F
 
     monkeypatch.delenv("SPARK_CONNECT_MODE_ENABLED", raising=False)
     assert isinstance(F.col("id"), Column)

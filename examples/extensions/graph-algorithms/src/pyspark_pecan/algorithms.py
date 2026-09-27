@@ -64,10 +64,10 @@ class GraphAlgorithms:
         self.utils = GraphUtils(spark)
         self.observer = observer
 
-    def _observe(self, run, algorithm, step, kind):
+    def _observe(self, run, algorithm, step, kind, **metrics):
         if self.observer is not None:
             self.observer({"kind": kind, "algorithm": algorithm,
-                           "iteration": step, "run_path": run.path})
+                           "iteration": step, "run_path": run.path, **metrics})
 
     def _run(self, vertices, edges, partitions, cancellation, body):
         _positive_integer(partitions, "partitions")
@@ -115,16 +115,23 @@ class GraphAlgorithms:
             cancellation.detach()
 
     def pagerank(self, vertices, edges, *, reset_probability=0.15,
-                 max_iterations=20, tolerance=None, partitions=4, cancellation=None):
+                 max_iterations=20, tolerance=None, partitions=4, cancellation=None, method="power"):
         """Probability-normalized directed PageRank with uniform restart.
 
         Initialize rank=1/N. At each step, redistribute dangling rank uniformly,
         then set rank(v)=reset/N+(1-reset)*(incoming(v)+dangling/N). Parallel edges
         count separately; self-loops and isolated vertices are retained.
 
-        With tolerance=None perform exactly max_iterations (converged=None).
-        Otherwise stop when the L1 rank change <= tolerance, or raise
-        ConvergenceError at the limit. Output: id BIGINT, pagerank DOUBLE.
+        The default method="power" performs exactly max_iterations when
+        tolerance=None (converged=None), or stops at L1 rank change <= tolerance.
+        method="delta" retains unsent residual and pushes a tolerance-scaled
+        active frontier; inactive vertices can accumulate updates and reactivate.
+        It requires a positive tolerance and certifies the normalized output's
+        full fixed-point L1 residual. Its result exposes residual/error_bound.
+        Set an explicit larger cap, e.g. 1000, for strict delta tolerances.
+        Frontier joins can still scan the edge table. Both tolerance-controlled
+        methods raise ConvergenceError at the limit. Output: id BIGINT,
+        pagerank DOUBLE. Fixed-step power behavior remains unchanged.
         """
         _positive_integer(max_iterations, "max_iterations")
         if (isinstance(reset_probability, bool) or not isinstance(reset_probability, (int, float))
@@ -135,6 +142,16 @@ class GraphAlgorithms:
             or not math.isfinite(tolerance) or tolerance <= 0
         ):
             raise ValueError("tolerance must be a positive finite number")
+
+        if method == "delta":
+            if tolerance is None:
+                raise ValueError("delta PageRank requires a positive tolerance")
+            from .pagerank_delta import execute as execute_delta
+            return execute_delta(self, vertices, edges, reset_probability=reset_probability,
+                                 max_iterations=max_iterations, tolerance=tolerance,
+                                 partitions=partitions, cancellation=cancellation)
+        if method != "power":
+            raise ValueError("PageRank method must be power or delta")
 
         def execute(run, vertices, edges, size):
             if not size:
@@ -181,16 +198,28 @@ class GraphAlgorithms:
 
         return self._run(vertices, edges, partitions, cancellation, execute)
 
-    def wcc(self, vertices, edges, *, max_iterations=100, partitions=4, cancellation=None):
-        """Exact weak components by minimum-label propagation, not contraction.
+    def wcc(self, vertices, edges, *, max_iterations=100, partitions=4, cancellation=None,
+            method="min_label", seed=42):
+        """Exact weak components by propagation or seeded randomized contraction.
 
-        Treat every edge as undirected. Each vertex starts with its own ID and
-        repeatedly takes the minimum of its own and its neighbors' labels.
-        Stop only at a fixed point. A component is labeled by its minimum ID;
-        isolated vertices label themselves. Reaching the limit raises
-        ConvergenceError. Output: id BIGINT, component BIGINT.
+        Treat every edge as undirected. The default method="min_label"
+        starts each vertex with its own ID and repeatedly takes the minimum of each
+        vertex's own and its neighbors' labels, stopping at a fixed point.
+        method="randomized" contracts using GF64 affine priorities and expands
+        representative maps in reverse; it requires axpb and an unsigned 64-bit
+        seed (default 42). max_iterations limits propagation or contraction
+        rounds, respectively. Both methods label a component by its minimum ID;
+        isolates label themselves. Reaching the cap raises ConvergenceError.
+        Output: id BIGINT, component BIGINT.
         """
         _positive_integer(max_iterations, "max_iterations")
+
+        if method == "randomized":
+            from .wcc_randomized import execute as execute_randomized
+            return execute_randomized(self, vertices, edges, max_iterations=max_iterations,
+                                      partitions=partitions, cancellation=cancellation, seed=seed)
+        if method != "min_label":
+            raise ValueError("WCC method must be min_label or randomized")
 
         def execute(run, vertices, edges, size):
             _, adjacency = run.materialize(edges.unionByName(

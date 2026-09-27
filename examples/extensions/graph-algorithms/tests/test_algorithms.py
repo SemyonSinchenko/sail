@@ -1,6 +1,6 @@
 import pytest
 
-from pyspark_graph_algorithms import (
+from pyspark_pecan import (
     CancellationToken, ConvergenceError, GraphAlgorithms, GraphCancelledError,
 )
 

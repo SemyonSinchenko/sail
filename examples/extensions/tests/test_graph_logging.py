@@ -3,9 +3,9 @@ from pathlib import Path
 
 from pyspark.sql.connect.dataframe import DataFrame
 from pyspark.sql.connect.session import SparkSession
-from pyspark_graph_algorithms import GraphUtils
-from pyspark_graph_algorithms import utils_pb2 as wire
-from pyspark_graph_algorithms.utils import _UtilsRelation
+from pyspark_pecan import GraphUtils
+from pyspark_pecan import utils_pb2 as wire
+from pyspark_pecan.utils import _UtilsRelation
 
 from conftest import start_server
 

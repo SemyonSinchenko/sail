@@ -1,7 +1,7 @@
 # Running graphframes-rs inside Sail
 
 **Status: deferred server-side option.** The first implementation now follows
-the [portable PySpark client plan](portable-graph-plan.md), using ordinary Sail
+the [Pecan PySpark client plan](portable-graph-plan.md), using ordinary Sail
 queries and a small storage/function utils service. The server controller and
 Rust library integration described below remain proposed, not implemented.
 
@@ -45,8 +45,9 @@ independent way to establish graph semantics and exercise worker execution.
 The [portable client implementation](../../../examples/extensions/graph-algorithms/README.md)
 now supplies the loop, convergence checks and owned Parquet staging. Its
 [integration plan](portable-graph-plan.md) records the lifecycle limits and
-qualification requirements. It is not an implementation of this library's Rust
-algorithms: its minimum-label WCC differs from randomized contraction.
+qualification requirements. Its original minimum-label WCC remains available;
+an explicit randomized-contraction method now adds the same algorithm family.
+The client implementation does not import this library's Rust code.
 
 | Choice | Benefit | Cost |
 | --- | --- | --- |

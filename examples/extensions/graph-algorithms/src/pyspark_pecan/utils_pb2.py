@@ -28,7 +28,7 @@ DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17gf/utils/v1/ut
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'pyspark_graph_algorithms.utils_pb2', _globals)
+_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'pyspark_pecan.utils_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_REQUEST']._serialized_start=41

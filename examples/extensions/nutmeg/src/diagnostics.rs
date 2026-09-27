@@ -119,6 +119,7 @@ impl ExecutionPlan for DiagnosticsExec {
                 "id": r.id, "algorithm": r.algorithm, "graph": r.graph, "state": r.state.name(),
                 "message": r.message, "batches": r.batches, "rows": r.rows,
                 "live_bytes": r.live_bytes, "peak_bytes": r.peak_bytes, "work_units": r.work_units,
+                "diagnostics": r.diagnostics,
             })).collect::<Vec<_>>();
                 let status = json!({
                     "memory": {"limit_bytes": memory.limit_bytes, "used_bytes": memory.used_bytes,

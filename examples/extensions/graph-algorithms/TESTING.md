@@ -1,9 +1,11 @@
-# Test relational graph algorithms on Sail
+# Test Pecan graph algorithms on Sail
 
-This tutorial builds the extension branch and tests PageRank and weakly connected
+This tutorial builds the extension branch and tests Pecan's PageRank and weakly connected
 components (WCC) locally, with worker processes, and across two hosts. The Python
 client controls iterations; Sail/DataFusion executes the joins, aggregates and
-Parquet writes. WCC uses minimum-label propagation.
+Parquet writes. PageRank retains power iteration and adds delta/frontier execution;
+WCC retains minimum-label propagation and adds seeded randomized contraction.
+The existing methods remain the defaults.
 
 Commands use Bash and run from the checkout root unless stated otherwise. Steps
 1–5 are the automated review path. Steps 6–7 provide an interactive example;
@@ -82,7 +84,7 @@ output in the Linux volume when using Docker on a Mac.
 ## 3. Build Sail and install the clients
 
 Use a dedicated environment: the script synchronizes `.venv` to the dependency
-lock, then installs the two native extension wheels and the graph client.
+lock, then installs the two native extension wheels and Pecan (`pyspark-pecan`).
 
 ```bash
 unset PYTHONHOME PYTHONPATH DYLD_LIBRARY_PATH LD_LIBRARY_PATH
@@ -90,8 +92,8 @@ export CARGO_BUILD_JOBS=4
 bash examples/extensions/scripts/build.sh
 .venv/bin/python - <<'PY'
 from importlib.metadata import version
-from pyspark_graph_algorithms import GraphAlgorithms, GraphUtils
-for name in ("pyspark", "protobuf", "pyspark-graph-algorithms",
+from pyspark_pecan import GraphAlgorithms, GraphUtils
+for name in ("pyspark", "protobuf", "pyspark-pecan",
              "sail-sedona-extension", "sail-nutmeg"):
     print(name, version(name))
 PY
@@ -130,7 +132,7 @@ printf 'Results: %s\n' "$review_output"
 ```
 
 Require a successful pytest summary and a `portable-graphs: PASSED <mode>` line
-for **each** mode. At the reviewed revision the package has 33 tests. A failure
+for **each** mode. A failure
 stops this block with a nonzero exit status; it is not a pass for the remaining
 modes. Each output directory must be new, so generate a new `review_output`
 when repeating the run.
@@ -141,9 +143,13 @@ when repeating the run.
 | `local-cluster` | Driver and worker actors in one process |
 | `process-cluster` | Driver plus two separate worker executables on one host |
 
-The suite checks exact WCC labels and independently calculated PageRank scores,
+The suite checks both methods of each algorithm: exact WCC labels and independently
+calculated PageRank scores,
 including sinks, isolates, duplicates, self-loops, empty graphs, invalid inputs,
-convergence limits, cancellation and result ownership. Each mode's server log
+convergence limits, cancellation and result ownership. Delta tests also require
+frontier shrinkage and later reactivation, and validate the final global residual
+against an independent linear solve. Randomized WCC tests check multiple seeds and
+chain contraction. Each mode's server log
 is at `$review_output/<mode>/server/server.log`. Successful shutdown leaves no
 Parquet files in that mode's `staging` directory; empty directories may remain.
 
@@ -204,7 +210,7 @@ In **terminal B**, from the same checkout, probe the service:
 ```bash
 .venv/bin/python - <<'PY'
 from pyspark.sql.connect.session import SparkSession
-from pyspark_graph_algorithms import GraphUtils
+from pyspark_pecan import GraphUtils
 spark = SparkSession.builder.remote("sc://127.0.0.1:50051").create()
 try:
     utils = GraphUtils(spark)
@@ -237,6 +243,31 @@ PageRank scores sum approximately to one. Vertex 9 remains an isolated
 component. The PageRank run uses a fixed iteration count; it makes no convergence
 claim. The example closes its result contexts and session, releasing its staging.
 
+To exercise the optimized methods on the same graph and server:
+
+```bash
+.venv/bin/python examples/extensions/graph-algorithms/examples/run.py \
+  --remote sc://127.0.0.1:50051 --partitions 4 \
+  --pagerank-method delta --tolerance 1e-8 --iterations 1000 \
+  --wcc-method randomized --seed 42 --wcc-iterations 100
+```
+
+Expect the same WCC labels. Delta prints its push count and final global residual,
+which must be at most `1e-8`; its normalized scores approximate stationary
+PageRank rather than the fixed-ten-step values above. It retains unsent residual
+and allows reactivation; its activity threshold scales with the requested
+tolerance, vertex count and current score mass. The final full residual check
+remains the convergence criterion. `--tolerance` on `--pagerank-method power` instead controls
+the L1 difference between successive iterates. Omitting tolerance on power keeps
+the fixed-step behavior. Cap exhaustion raises an error, not a convergence claim.
+Randomized WCC requires the `axpb` capability reported by the probe.
+
+Delta's active-edge count measures propagated messages; a Sail join may still
+scan the full Parquet edge input. Use the [benchmark guide](../benchmarks/README.md)
+for time/memory comparisons of **all retained and optimized methods** through
+Pecan, **Nutmeg Banda** (native staged kernels), and **Nutmeg Grenada** (Nutmeg graph
+tables using Pecan's controller). Grenada shares Pecan's algorithms.
+
 ## 7. Run the same example with separate workers
 
 Stop terminal A's server with Ctrl-C. In that terminal retain the exports from
@@ -247,7 +278,8 @@ SAIL_MODE=local-cluster SAIL_EXPERIMENTAL_PROCESS_WORKERS=1 \
   target/extensions-poc/host/debug/sail spark server --ip 127.0.0.1 --port 50051
 ```
 
-Repeat terminal B's probe and example unchanged. Expect the same answers. The
+Repeat terminal B's probe and either example unchanged. Expect the corresponding
+answers and certificates from step 6. The
 server log reports worker PIDs different from the driver PID. A local file root
 works here because all processes use the same host filesystem. Stop the server
 before proceeding to the supervised two-host test.
@@ -347,9 +379,25 @@ unset PYTHONHOME PYTHONPATH DYLD_LIBRARY_PATH LD_LIBRARY_PATH
   --output ../sail-graph-two-host-result-1
 ```
 
+The default exercise runs power PageRank for three steps and minimum-label WCC.
+Run the optimized methods separately, keeping the same source, artifacts and
+storage configuration and choosing a new output directory:
+
+```bash
+.venv/bin/python examples/extensions/scripts/two_host.py \
+  --config ../sail-graph-two-host.json --exercise portable-graphs \
+  --pagerank-method delta --pagerank-iterations 1000 --tolerance 1e-8 \
+  --wcc-method randomized --wcc-iterations 100 --seed 42 \
+  --output ../sail-graph-two-host-result-optimized-1
+```
+
 The output directory must be new. The harness configures embedded Python,
 starts the driver/workers, checks graph answers and task placement, and shuts
 everything down. It does not leave an interactive cluster running.
+The optimized exercise independently verifies delta's global residual and
+stationary-score error and checks exact randomized WCC labels. Its iteration
+windows retain frontier and contraction metrics. This is a functional distributed
+test, not a performance measurement.
 
 Inspect `../sail-graph-two-host-result-1/receipt.json`. Require:
 
@@ -357,6 +405,9 @@ Inspect `../sail-graph-two-host-result-1/receipt.json`. Require:
 - Every inventory has the same source commit, binary hash and native packages.
 - `checks.iteration_windows` records PageRank and WCC iteration stages, with
   matching `completed_worker_tasks` from both workers. The harness asserts this.
+- `checks.methods` identifies the selected methods, limits, tolerance and seed.
+  The optimized receipt also includes the independently checked PageRank residual
+  and WCC contraction history.
 - Every process in `process_cleanup` has `alive: false`.
 
 Keep `server-and-workers.log` and the receipt, including on failure. For the
@@ -376,12 +427,14 @@ require administrative cleanup.
 | Symptom | Check |
 | --- | --- |
 | `graph utils Ping failed` | Correct branch binary, extension opt-in, valid precreated root, server log |
-| `No module named pyspark_graph_algorithms` | Use `.venv/bin/python`; rerun the pure-client install command from step 8a if needed |
+| `No module named pyspark_pecan` | Use `.venv/bin/python`; rerun the pure-client install command from step 8a if needed |
 | `libpython` or interpreter startup error | Use step 6's runtime settings for manual startup; clear old overrides before automated tests |
 | Missing `google/protobuf/any.proto` | Install protobuf headers as well as `protoc`; the Linux image includes both |
 | Existing output directory | Pick a new test output directory; preserve the failed run's logs |
 | Two-host identity mismatch | Same clean Git SHA, copied executable and identical installed native wheel contents |
 | Worker cannot read staging | Same shared URI and credentials on all targets; `environment_file` must be set on every entry |
+| `randomized WCC requires the axpb capability` | This branch's scalar implementation must be available on driver and workers; no hash fallback is used |
+| `ConvergenceError` | Keep the selected method and tolerance visible; raise its iteration cap if appropriate, and retain failed benchmark outcomes |
 | Compilation runs out of memory/disk | Check the actual host or VM limits and lower `CARGO_BUILD_JOBS` |
 
 Include the Git SHA, OS/architecture, mode, command, outcome and logs in review

@@ -3,8 +3,8 @@
 import pytest
 from pyspark.sql.types import LongType, StructField, StructType
 
-from pyspark_graph_algorithms import CancellationToken, GraphAlgorithms, GraphCancelledError
-from pyspark_graph_algorithms import algorithms
+from pyspark_pecan import CancellationToken, GraphAlgorithms, GraphCancelledError
+from pyspark_pecan import algorithms
 
 
 class ReceiptStore:

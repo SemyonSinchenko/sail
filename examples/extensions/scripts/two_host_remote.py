@@ -42,6 +42,20 @@ def event(name, **fields):
     print(json.dumps(dict(event=name, hostname=platform.node(), **fields)), flush=True)
 
 
+def group_exists(pgid):
+    try:
+        os.killpg(pgid, 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        # macOS can return EPERM for a group whose leader has just exited.
+        # Check the process table: permission failure alone proves no absence.
+        rows = subprocess.check_output(["ps", "-axo", "pid=,pgid="], text=True, timeout=5)
+        return any(line.split()[1] == str(pgid) for line in rows.splitlines()
+                   if len(line.split()) == 2)
+
+
 def terminate(process):
     if process is None:
         return
@@ -55,9 +69,7 @@ def terminate(process):
     deadline = time.monotonic() + 5
     while time.monotonic() < deadline:
         process.poll()  # Reap the leader even while its descendants are closing.
-        try:
-            os.killpg(process.pid, 0)
-        except ProcessLookupError:
+        if not group_exists(process.pid):
             return
         time.sleep(0.05)
     try:

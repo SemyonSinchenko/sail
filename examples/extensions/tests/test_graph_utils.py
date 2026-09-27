@@ -9,9 +9,9 @@ import time
 import pytest
 from pyspark.sql.connect.dataframe import DataFrame
 from pyspark.sql.connect.session import SparkSession
-from pyspark_graph_algorithms import GraphUtils
-from pyspark_graph_algorithms.utils import _UtilsRelation
-from pyspark_graph_algorithms import utils_pb2 as wire
+from pyspark_pecan import GraphUtils
+from pyspark_pecan.utils import _UtilsRelation
+from pyspark_pecan import utils_pb2 as wire
 
 from conftest import start_server
 
@@ -97,7 +97,7 @@ def test_killed_client_staging_is_removed_after_session_expiry(request, tmp_path
     program = '''
 import json, sys, time
 from pyspark.sql.connect.session import SparkSession
-from pyspark_graph_algorithms import GraphUtils
+from pyspark_pecan import GraphUtils
 spark = SparkSession.builder.remote(sys.argv[1]).create()
 utils = GraphUtils(spark)
 path, token = utils.allocate()
@@ -138,7 +138,7 @@ time.sleep(120)
 
 def test_cancel_active_stage_writer_defers_deletion_until_session_close(utils_server):
     from concurrent.futures import ThreadPoolExecutor
-    from pyspark_graph_algorithms import CancellationToken, GraphAlgorithms
+    from pyspark_pecan import CancellationToken, GraphAlgorithms
 
     spark, root, _ = utils_server
     token = CancellationToken()

@@ -11,10 +11,11 @@ The host discovers `sail_nutmeg:extension`, validates its manifest and calls
 graph store/read log and a default 256 MiB cap prepaid from Sail's memory pool.
 A recycled session ID receives a new store.
 
-Binding prepares the finite algorithm-schema catalog once per library: tiny
-kernels run on an isolated three-node setup graph under a fixed 16 MiB budget.
-Defaults plus `f32`/`f64` for the algorithms declaring precision are the entire
-cache key space. User relation planning uses cache-only schema lookup, and
+Binding prepares the finite algorithm-schema catalog once per library: reference
+kernels run on an isolated three-node setup graph under a fixed 16 MiB budget;
+the two local optimized kernels declare static schemas. Reference defaults plus
+`f32`/`f64` for algorithms declaring precision, and the optimized kernels' fixed
+schemas, define the entire cache key space. User relation planning uses cache-only schema lookup, and
 unsupported precision values fail without running a probe. Setup work and its
 budget are separate from every user's graph store.
 
@@ -86,6 +87,55 @@ edge endpoints. Canonical staging retains empty schemas and fills absent
 properties. The lower-level legacy `asStaged` mode still accepts heterogeneous
 batches, but relational scans require a common schema. Staged sources have one
 driver partition; downstream relational operators may redistribute their output.
+
+## Banda and Grenada algorithm paths
+
+**Nutmeg Banda** names native execution. Existing `pagerank` and `wcc` remain
+unchanged Grust kernels. This branch also provides explicit `pagerankDelta`
+(active residual frontier) and `wccRandomized` (seeded neighborhood contraction).
+The latter requires IDs that parse uniquely as BIGINT; original string IDs are
+returned, and component labels use numeric minima. For example:
+
+```python
+v = spark.createDataFrame([(0,), (1,), (2,), (9,)], "id long")
+e = spark.createDataFrame([(0, 1), (1, 2), (2, 0)], "src long, dst long")
+nm.stage("numeric", v.selectExpr("cast(id as string) as node_id"),
+         e.selectExpr("cast(src as string) as source", "cast(dst as string) as target"))
+nm.run("numeric", "pagerankDelta", tolerance=1e-8,
+       maxIterations=1000, concurrency=8).show()
+nm.run("numeric", "wccRandomized", seed=42,
+       maxIterations=100, concurrency=8).show()
+print(nm.status())  # reads[].diagnostics includes frontier/contraction work
+nm.drop("numeric")
+```
+
+Both new kernels use the existing memory/work admission and read lifecycle.
+Their serial phases, additional scratch space, supported options, convergence
+contracts and source attribution are specified in
+[the kernel documentation](../vendor/nutmeg-graph/OPTIMIZED_ALGORITHMS.md).
+They execute in the driver even when the surrounding Sail query uses workers.
+
+**Nutmeg Grenada** names relational execution through Nutmeg graph tables and
+Pecan's controller. It shares Pecan's implementation and creates no native graph:
+
+```python
+from pyspark_pecan import GraphAlgorithms
+
+tables = nm.tables(v, e, node_id="id", source="src", target="dst")
+vertices = tables.nodes.selectExpr("node_id as id")
+edges = tables.edges.selectExpr("source as src", "target as dst")
+algorithms = GraphAlgorithms(spark)
+with algorithms.pagerank(vertices, edges, method="delta", tolerance=1e-8,
+                         max_iterations=1000) as result:
+    result.frame.show()
+with algorithms.wcc(vertices, edges, method="randomized", seed=42) as result:
+    result.frame.show()
+```
+
+Use `method="power"` and `method="min_label"` for the retained relational methods.
+Grenada needs the [Pecan package and graph staging service](../graph-algorithms/README.md).
+The [benchmark harness](../benchmarks/README.md) measures all methods and entry
+paths with a common output, accuracy check and resource envelope.
 
 ## Memory admission
 

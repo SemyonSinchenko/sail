@@ -17,8 +17,8 @@ def main():
         generated = (Path(temporary) / "gf/utils/v1/utils_pb2.py").read_text()
     # The wire namespace stays gf.utils.v1. Relocate only the Python import
     # namespace so generated message classes can also be imported/pickled.
-    generated = generated.replace("'gf.utils.v1.utils_pb2'", "'pyspark_graph_algorithms.utils_pb2'")
-    (package / "src/pyspark_graph_algorithms/utils_pb2.py").write_text(generated)
+    generated = generated.replace("'gf.utils.v1.utils_pb2'", "'pyspark_pecan.utils_pb2'")
+    (package / "src/pyspark_pecan/utils_pb2.py").write_text(generated)
 
 
 if __name__ == "__main__":

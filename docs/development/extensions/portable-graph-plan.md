@@ -1,13 +1,20 @@
-# Portable graph algorithms through Spark Connect
+# Pecan: portable graph algorithms through Spark Connect
 
-Status: implemented on `work/extensions-datafusion-graphs`; see the
-[exact-revision validation record](portable-graph-validation.md).
+Status: implemented on `work/extensions-datafusion-graphs`. The
+[initial exact-revision validation record](portable-graph-validation.md) covers
+the original power PageRank and minimum-label WCC delivery. The
+[current API tutorial](../../../examples/extensions/graph-algorithms/README.md)
+also describes the subsequent delta/frontier and randomized-contraction methods.
 
-The first distributed graph algorithm implementation is now a pure PySpark client
+Pecan, the first distributed graph algorithm implementation, is a pure PySpark client
 with a small Sail utilities service. This adopts Semyon Sinchenko's
 `pyspark-graph-algorithms` project draft and develops the client-loop alternative
 from the [graphframes-rs plan](graphframes-rs-plan.md). The compiled-in
 server-side algorithm controller remains a later option, not a prerequisite.
+
+Pecan is distributed as `pyspark-pecan` and imported as `pyspark_pecan`.
+The former `pyspark_graph_algorithms` import paths remain compatibility aliases;
+the `gf.utils.v1` protocol and existing source-directory/document URLs are unchanged.
 
 ## Architecture and scope
 
@@ -23,11 +30,13 @@ Python lifecycle helper
 ```
 
 The Python process controls iterations and collects only bounded control results.
-Graph rows remain in engine relations. The initial implementation provides
-PageRank and exact minimum-label WCC. WCC label propagation is an explicit
-initial algorithm; it does not claim to implement graphframes-rs's randomized
-contraction. Native `gf_axpb` is a separately tested primitive for that future
-implementation, without a prime-field fallback.
+Graph rows remain in engine relations. The original power PageRank and exact
+minimum-label WCC remain the defaults. Explicit `method="delta"` PageRank adds
+signed residual pushes, inactive-residual retention, reactivation and a final
+global fixed-point certificate. Explicit `method="randomized"` WCC adds seeded
+closed-neighborhood contraction and reverse representative expansion using
+native `gf_axpb`, without a prime-field fallback. These are separate methods;
+the earlier validation record does not qualify the later algorithms.
 
 PageRank defines reset probability, dangling-node redistribution, normalization,
 convergence norm and iteration-limit behavior in its client API. WCC treats edges
@@ -43,12 +52,14 @@ Algorithms beyond the implemented set are explicitly unsupported.
 | Sedona wheel | Native spatial scalar functions, including worker execution. |
 | Nutmeg graph-table helpers | Degrees, triplets and bounded walks using ordinary Sail plans, with no CSR. |
 | Nutmeg native wheel | Explicit graph staging and driver-native kernels; host-funded quota and shared CSR snapshots. |
-| Portable graph client and utils | Iterative relational algorithms, distributed through ordinary queries, with engine-owned storage utilities. |
+| Pecan client and graph utils | Iterative relational algorithms, distributed through ordinary queries, with engine-owned storage utilities. |
 
 The portable client is a new graph API implementation, not another CSR engine.
-It can later be exposed through Nutmeg's graph-table API with an explicit backend
-choice. It does not change existing Nutmeg algorithm semantics or silently fall
-back to its kernels. Relational execution avoids a separate native topology but
+The benchmark exposes it through Nutmeg's graph-table API as **Nutmeg Grenada**;
+this adapts tables into the same Pecan controller. **Nutmeg Banda** names the native
+path. Its existing Grust kernels remain available, alongside explicit local
+`pagerankDelta` and `wccRandomized` additions with corresponding algorithm contracts.
+No path silently falls back to another. Relational execution avoids a separate native topology but
 still creates shuffle buffers, spill files and successive Parquet generations.
 No single-copy or total-RSS guarantee is made.
 
@@ -169,4 +180,6 @@ for reusing its Rust algorithm implementation inside Sail. Revisit it when lazy
 query composition or server-owned iteration justifies the extra execution
 interface, preparation hook and child-job lifecycle. The portable client provides
 an independent semantic reference, but a min-label WCC result is not evidence
-that randomized contraction uses the same intermediate algorithm.
+that randomized contraction uses the same intermediate algorithm. Pecan's current
+randomized method and Banda's local kernel share seeded contraction semantics;
+neither imports graphframes-rs's Rust implementation.

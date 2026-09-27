@@ -7,8 +7,9 @@ client, a minimal handler, and how to build and run.
 For a fresh install, local and distributed deployment, and executable review
 examples, use the [source-distribution tutorial](TUTORIAL.md).
 
-The [portable graph algorithm plan](../../docs/development/extensions/portable-graph-plan.md)
+The [Pecan graph algorithm plan](../../docs/development/extensions/portable-graph-plan.md)
 adds client-controlled PageRank and WCC through ordinary distributed Sail queries.
+The Python distribution is `pyspark-pecan`, imported as `pyspark_pecan`.
 Use its [testing tutorial](graph-algorithms/TESTING.md) to build this branch and
 check the algorithms locally, with worker processes, or across two hosts.
 The [server-side graphframes-rs integration](../../docs/development/extensions/graphframes-rs-plan.md)

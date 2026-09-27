@@ -45,6 +45,10 @@ fn stage(registry: &SessionRegistry, nodes: &[&str], edges: &[(&str, &str)]) {
 }
 
 #[tokio::test]
+#[expect(
+    clippy::disallowed_methods,
+    reason = "standalone DataFusion catalog integration, outside Sail's session catalog"
+)]
 async fn ordinary_relational_scan_preserves_nodes_edges_and_never_builds_csr() -> Result<()> {
     let registry = SessionRegistry::new(16 << 20);
     stage(&registry, &["a", "b", "isolate"], &[("a", "b"), ("a", "b")]);
@@ -71,6 +75,10 @@ async fn ordinary_relational_scan_preserves_nodes_edges_and_never_builds_csr() -
 }
 
 #[tokio::test]
+#[expect(
+    clippy::disallowed_methods,
+    reason = "standalone DataFusion catalog integration, outside Sail's session catalog"
+)]
 async fn empty_tables_keep_their_normalized_property_schema() -> Result<()> {
     let registry = SessionRegistry::new(16 << 20);
     let mapping = ColumnMapping::default();

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the portable graph package against a real, isolated Sail server."""
+"""Run Pecan against a real, isolated Sail server."""
 import argparse
 import importlib.util
 import os

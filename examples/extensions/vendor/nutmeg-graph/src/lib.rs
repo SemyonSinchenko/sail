@@ -1,6 +1,6 @@
 //! Grust's graph algorithms as DataFusion table functions over named graphs.
 //!
-//! Nutmeg adds no algorithm surface of its own. The catalog — which
+//! The reference catalog — which
 //! algorithms exist, their arguments, option names, defaults and declared
 //! outputs — is Grust's procedure registry (`grust-algorithm-procedures`),
 //! the same one behind `CALL grust.algorithms.pagerank(...)`. A call here
@@ -9,6 +9,8 @@
 //! algorithm's own options; unknown keys are rejected by Grust's validator.
 //! An algorithm registered in Grust appears here by name; serving it needs
 //! one dispatch arm, and a test fails until that arm exists.
+//! Nutmeg additionally exposes explicitly named experimental `pagerankDelta`
+//! and `wccRandomized` kernels; the Grust reference names remain unchanged.
 //!
 //! A graph is staged once under a name as node and edge record batches in
 //! the grust-arrow layout (`node_id`, `label` / `source`, `target`, `label`,
@@ -80,6 +82,7 @@ use once_cell::sync::{Lazy, OnceCell};
 
 mod admission;
 mod graph_tables;
+mod optimized;
 mod prepared_schema;
 pub use graph_tables::GraphSnapshot;
 pub use prepared_schema::prepare_output_schemas;
@@ -96,6 +99,7 @@ static PROCEDURES: Lazy<ProcedureRegistry> = Lazy::new(|| {
     let mut builder = RegistryBuilder::default();
     grust_algorithm_procedures::register_algorithms(&mut builder)
         .expect("grust algorithm procedures register");
+    optimized::register(&mut builder).expect("Nutmeg optimized kernels register");
     builder.build()
 });
 
@@ -119,6 +123,7 @@ fn spelled(registered: &'static str) -> &'static str {
     grust_algorithm_procedures::projection_kernel_names()
         .into_iter()
         .chain(INSPECTIONS)
+        .chain(optimized::NAMES)
         .find(|s| s.eq_ignore_ascii_case(registered))
         .unwrap_or(registered)
 }
@@ -1364,7 +1369,10 @@ impl Store {
                 ..ChildLimits::default()
             })
             .map_err(|e| DataFusionError::Plan(format!("nutmeg: read limits: {e}")))?;
-        Ok(Query { context })
+        Ok(Query {
+            context,
+            diagnostics: Default::default(),
+        })
     }
 
     /// Run `algorithm` on `graph_name` for `query`: the projection is
@@ -1457,6 +1465,9 @@ impl Store {
         // Grust refuses a view on any execution not within the owner's.
         let view = cached.with_execution(context).map_err(err)?;
         let g = &view;
+        if optimized::NAMES.contains(&algorithm) {
+            return optimized::run(algorithm, g, args, query, emit);
+        }
         let cursor = match algorithm {
             "projectionStats" => {
                 let s = g.statistics().map_err(failed)?;
@@ -1862,6 +1873,7 @@ impl QueryLimits {
 #[derive(Clone, Debug)]
 pub struct Query {
     context: ExecutionContext,
+    diagnostics: Arc<std::sync::Mutex<serde_json::Value>>,
 }
 
 impl Query {
@@ -1950,6 +1962,9 @@ pub struct ReadInfo {
     pub peak_bytes: usize,
     /// Grust work units the read has charged.
     pub work_units: usize,
+    /// Bounded per-round diagnostics for explicitly named Nutmeg kernels.
+    /// Like read-log strings, this is bookkeeping, outside buffer accounting.
+    pub diagnostics: serde_json::Value,
 }
 
 /// Ended reads kept for [`Registry::reads`], newest last.
@@ -1969,6 +1984,9 @@ fn with_usage(mut info: ReadInfo, query: &Query) -> ReadInfo {
         info.live_bytes = usage.live_bytes;
         info.peak_bytes = usage.peak_bytes;
         info.work_units = usage.counted_work().unwrap_or(0);
+    }
+    if let Ok(diagnostics) = query.diagnostics.lock() {
+        info.diagnostics = diagnostics.clone();
     }
     info
 }
@@ -2003,6 +2021,7 @@ impl ReadRecord {
             live_bytes: 0,
             peak_bytes: 0,
             work_units: 0,
+            diagnostics: serde_json::Value::Null,
         };
         log.running.insert(id, (info, query.clone()));
         drop(log);
@@ -2171,6 +2190,7 @@ pub fn validate(
         .map_err(err)?;
     let definition = resolved.definition();
     let mut configuration = options.clone();
+    optimized::normalize_seed(algorithm, &mut configuration);
     let mut args = Vec::new();
     for (index, argument) in definition.arguments.iter().enumerate() {
         if Some(index) == definition.options_argument {
@@ -2194,9 +2214,11 @@ pub fn validate(
         });
     }
     args.push(Value::Json(serde_json::Value::Object(configuration)));
-    resolved
+    let args = resolved
         .validate_arguments(args)
-        .map_err(|e| DataFusionError::Plan(format!("nutmeg: {algorithm}: {e}")))
+        .map_err(|e| DataFusionError::Plan(format!("nutmeg: {algorithm}: {e}")))?;
+    optimized::check_options(algorithm, &args)?;
+    Ok(args)
 }
 
 /// Data source options arrive as lowercase-keyed strings; restore Grust's
@@ -2573,6 +2595,10 @@ fn output_schema_at(algorithm: &str, precision: Option<&str>) -> Result<SchemaRe
         return Ok(found.clone());
     }
     let mut schemas = SCHEMAS.write().map_err(|_| poisoned())?;
+    if let Some(schema) = optimized::schema(algorithm) {
+        schemas.insert(key, schema.clone());
+        return Ok(schema);
+    }
     if SCHEMA_STORE.entry(PROBE)?.is_none() {
         let edges = RecordBatch::try_new(
             Arc::new(Schema::new(vec![

@@ -1,20 +1,33 @@
-# Relational PageRank and weakly connected components
+# Pecan: relational PageRank and weakly connected components
 
-This pure Python client runs graph algorithms through ordinary Spark Connect
+Pecan is a pure Python client that runs graph algorithms through ordinary Spark Connect
 queries. Joins, aggregations and Parquet writes run in Sail/DataFusion; the
 client advances iterations and receives only scalar reductions and filesystem
 receipts. It does not build a local graph representation.
 
-The first implementation provides probability-normalized PageRank and exact
-minimum-label WCC. WCC is **not** the randomized contraction algorithm from
-graphframes-rs. It requires no affine hash, and has no prime-field fallback.
-This is a new API, not a GraphFrames wire or behavioral compatibility layer.
+PageRank offers reference power iteration and an active-frontier delta method.
+WCC offers reference minimum-label propagation and seeded randomized contraction.
+The reference methods remain the defaults. This is a new API, not a GraphFrames
+wire or behavioral compatibility layer.
 
 For a fresh build and executable review, follow the [testing tutorial](TESTING.md).
 It covers local execution, separate worker processes, two hosts, expected
 algorithm answers and cleanup checks.
 
+The [benchmark guide](../benchmarks/README.md) defines comparisons retaining all
+reference and optimized algorithms. **Nutmeg Banda** runs native kernels over a
+staged driver-resident graph. **Nutmeg Grenada** exposes Nutmeg graph tables to
+Pecan's relational controller; it shares these implementations rather than
+providing an independent third algorithm. Results distinguish both entry path
+and method, with explicit timing and memory boundaries.
+
 ## Install and run
+
+The distribution is `pyspark-pecan`; import it as `pyspark_pecan`.
+The existing `examples/extensions/graph-algorithms` source directory and tutorial
+URLs are unchanged. Old `pyspark_graph_algorithms` imports, including its
+submodules, remain compatibility aliases supplied by Pecan. The wire protocol
+remains `gf.utils.v1`.
 
 Clone the implementation branch:
 
@@ -31,6 +44,7 @@ Python environment: PySpark Connect 4.0.1 and protobuf 7.36.2. A released Sail
 wheel does not contain the new service either.
 
 ```bash
+uv pip uninstall --python .venv/bin/python pyspark-graph-algorithms
 uv pip install --python .venv/bin/python --no-deps ./examples/extensions/graph-algorithms
 
 # Set these on the Sail server, in addition to its usual embedded-Python setup.
@@ -39,6 +53,10 @@ mkdir -p /absolute/path/to/graph-staging
 export SAIL_GRAPH_UTILS_ROOT=file:///absolute/path/to/graph-staging
 target/extensions-poc/host/debug/sail spark server --ip 127.0.0.1 --port 50051
 ```
+
+The uninstall removes the former distribution when upgrading an existing review
+environment; Pecan itself supplies the compatibility imports. Fresh builds
+already install Pecan through `examples/extensions/scripts/build.sh`.
 
 For multiple hosts, configure a shared object store or filesystem visible under
 the same URI to every worker. A driver's private local directory is insufficient.
@@ -60,7 +78,7 @@ In another terminal:
 
 ```python
 from pyspark.sql.connect.session import SparkSession
-from pyspark_graph_algorithms import GraphAlgorithms
+from pyspark_pecan import GraphAlgorithms
 
 spark = SparkSession.builder.remote("sc://localhost:50051").create()
 vertices = spark.createDataFrame([(0,), (1,), (2,), (9,)], "id long")
@@ -75,6 +93,20 @@ with graph.pagerank(vertices, edges, max_iterations=20) as result:
 with graph.wcc(vertices, edges) as result:
     result.frame.show()                 # id, component
     assert result.converged
+```
+
+Select the optimized methods explicitly. These calls use the same input and
+result ownership rules:
+
+```python
+with graph.pagerank(vertices, edges, method="delta", tolerance=1e-8,
+                    max_iterations=1000) as result:
+    result.frame.show()
+    print(result.residual, result.error_bound)
+
+with graph.wcc(vertices, edges, method="randomized", seed=42,
+               max_iterations=100) as result:
+    result.frame.show()
 spark.stop()
 ```
 
@@ -85,31 +117,60 @@ Duplicate edges and self-loops are permitted. Isolated vertices are preserved.
 The client separately snapshots the two input relations into Parquet; this is
 not an atomic snapshot across mutable input sources.
 
-| Option/result | PageRank | WCC |
+| Method | Stopping rule | Defaults and limits |
 |---|---|---|
-| Algorithm | Directed probability-normalized PageRank | Undirected minimum-label propagation |
-| Initial state | `1 / number_of_vertices` | Each vertex's own ID |
-| Dangling vertices | Their probability is redistributed uniformly | Isolated vertices retain their own ID |
-| Duplicate edges | Count separately in outgoing degree and contributions | Do not change component membership |
-| Label/score | `pagerank: double`, total approximately 1 | `component: bigint`, minimum ID in the component |
-| Stopping | Exactly `max_iterations` when `tolerance=None`; otherwise L1 change <= tolerance | No label changes |
-| Limit without convergence | Raises `ConvergenceError` when a tolerance was requested | Raises `ConvergenceError` |
-| Defaults | Reset 0.15; 20 iterations; no tolerance | At most 100 iterations |
+| `pagerank(method="power")` | Fixed number of steps when `tolerance=None`; otherwise successive-rank L1 change <= tolerance | Default method; reset 0.15, 20 steps, no tolerance |
+| `pagerank(method="delta")` | Normalize output and certify full fixed-point L1 residual <= tolerance | Requires a positive tolerance; set `max_iterations=1000` for strict convergence runs |
+| `wcc(method="min_label")` | No label changes | Default method; at most 100 propagation rounds |
+| `wcc(method="randomized")` | No edges remain after contraction, then reverse expansion | Seed 42; at most 100 contraction rounds |
 
 Each PageRank step is
 `reset / N + (1 - reset) * (incoming_probability + dangling_probability / N)`.
-`reset_probability` must lie in `(0, 1]`. When running a fixed number of steps,
-`result.converged` is `None`, not a convergence claim. An empty graph returns an
-empty result with zero iterations. WCC needs at most component diameter + 1
-iterations to detect its fixed point; a larger diameter may require raising
-`max_iterations`. No performance equivalence to contraction is claimed.
+Both PageRank methods start uniformly, count duplicate edges separately and
+redistribute dangling probability uniformly. They return `id: bigint` and
+`pagerank: double`, with total probability approximately one. `reset_probability`
+must lie in `(0, 1]`. Fixed-step power iteration returns `converged=None`.
+
+Delta retains accumulated, unsent signed residual and can reactivate vertices
+after they become inactive. For `N` vertices, current score mass `m` and total
+pending residual norm `R`, a vertex is active when its absolute pending residual
+exceeds `min(R / (2*N), tolerance*m / (4*N))`. The tolerance-scaled term permits
+small contributions to accumulate; the relative cap preserves progress. No
+inactive residual is discarded. For normalized output `y` and the PageRank operator
+`T`, its final certificate is `||T(y) - y||_1 <= tolerance`; this implies stationary
+L1 error at most `tolerance / reset_probability` in exact arithmetic. The measured
+DOUBLE certificate is `result.residual`, and `result.error_bound` is that residual
+divided by reset. This differs from power's successive-iterate stopping rule.
+`result.iterations` counts frontier pushes, excluding full certificate passes;
+uniform-stationary input can require zero pushes. The API's iteration default is
+still 20, so specify a larger cap with a strict delta tolerance.
+
+Only active sources emit delta edge messages. Sail's relational join may still
+scan the full Parquet edge table; fewer propagated messages do not establish
+fewer physical edge reads or faster execution. Fewer rounds can also involve more
+propagated edge messages; the benchmark records both work counts and elapsed time.
+
+Both WCC methods treat edges as undirected and return `id: bigint` and
+`component: bigint`, the minimum vertex ID in each component. Isolates retain
+their own IDs; duplicate edges and self-loops do not alter membership. Minimum-label
+propagation can take component diameter + 1 rounds, including the no-change check.
+Randomized contraction uses reproducible GF64 affine priorities, retains original
+vertex identities, and expands representative mappings in reverse. Its seed is
+an unsigned 64-bit integer; changing it can change the contraction work, not the
+required component answer. It requires the `axpb` capability and `gf_axpb` scalar
+function; missing capability fails explicitly, with no hash fallback.
+
+Empty graphs return empty results with zero iterations. Both WCC methods and
+tolerance-controlled PageRank raise `ConvergenceError` when their cap is exhausted.
 
 ## Staging, cancellation and ownership
 
-Every iteration writes a new Parquet generation and reads it back before
-removing its predecessor. The client checks schema and vertex row count. It
-does not equate the requested partition count with the number of output files.
-At completion only the result generation remains in the run directory.
+Algorithms materialize Parquet generations and check schema and vertex counts.
+Power, delta and minimum-label propagation release obsolete iteration state.
+Randomized WCC retains representative maps until its reverse expansion consumes
+them, while releasing superseded edge tables. The requested partition count is
+not equated with the number of output files. At completion only the result
+generation remains in the run directory.
 
 `GraphResult` owns that directory. `close()` or leaving its context removes it
 and invalidates its DataFrame. `touch()` keeps the owning server session active;
@@ -136,7 +197,7 @@ protocol has no independent run TTL
 (`lease_seconds=0`). It does not delete an active run on a separate timer.
 
 ```python
-from pyspark_graph_algorithms import CancellationToken
+from pyspark_pecan import CancellationToken
 
 token = CancellationToken()
 # A UI or another thread can call token.cancel(). It interrupts only queries
@@ -152,8 +213,13 @@ schema-analysis RPCs are outside that interruption mechanism.
 
 For an optional progress callback, construct
 `GraphAlgorithms(spark, observer=callback)`. It receives dictionaries containing
-`kind` (`iteration_start` or `iteration_end`), `algorithm`, `iteration`, and
-`run_path`. Exceptions raised by the callback abort the run and trigger cleanup.
+`kind`, `algorithm`, `iteration`, and `run_path`. Iterations emit `iteration_start`
+and `iteration_end`; delta also emits `certificate`. Delta end events include
+`frontier_size`, `active_edges`, `reactivated_vertices`, maintained `residual` and
+`normalized_residual_bound`. Certificate events report the recomputed global
+residual. Randomized WCC end events include `active_vertices`, `edges_before`,
+`edges_after` and the round's affine coefficients. Frontier sizes need not shrink
+monotonically. Exceptions raised by the callback abort the run and trigger cleanup.
 
 ## Required server contract
 
@@ -173,7 +239,9 @@ The client requires protocol version 1 and capabilities `fs` and
 opaque run token. Subsequent filesystem operations require that token and the
 same session. A path under the root is not sufficient authority; root deletion
 is prohibited. Retrying allocation is idempotent; retrying removal is safe.
-PageRank and this WCC implementation require no native function capability.
+Power/delta PageRank and minimum-label WCC require no native function capability.
+Randomized WCC additionally requires `axpb` and executes the host's `gf_axpb`
+scalar on every worker that evaluates its priority expression.
 Other graph algorithms are not exposed by this initial API.
 The host accepts at most 8 KiB per request, lists at most 1,000 entries plus its
 summary row, and retains at most 1,024 run identities per session (including

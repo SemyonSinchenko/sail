@@ -6,8 +6,8 @@ Revision: `f267b03659dd536981f98420944f911b667632b7`.
 
 Only `crates/nutmeg-graph/src` is included as implementation, with the upstream
 MIT and Apache licenses and the upstream README as a catalog-test fixture. The standalone manifest reproduces its dependencies with the Sail
-PoC's exact DataFusion 55.1.0 and Arrow 59.3.0 pins. This is a source dependency,
-not a second implementation of Grust's algorithms.
+PoC's exact DataFusion 55.1.0 and Arrow 59.3.0 pins. The original catalog remains
+a source dependency backed by the unchanged Grust 0.23.0 algorithms.
 
 Local changes add `SessionRegistry` with a separate graph store and memory pool,
 atomic two-part replacement, stable graph snapshots for read providers, and
@@ -49,3 +49,21 @@ Query cancellation remains cooperative within kernels. Initial CSR construction
 and the final canonical staging sort are synchronous store operations and cannot
 be preempted by query interruption. No native spill or automatic cache eviction
 is introduced.
+
+The local optimized-algorithm follow-up adds distinct `pagerankDelta` and
+`wccRandomized` kernels under `src/optimized/`; the original `pagerank` and `wcc`
+names keep their Grust implementations. These additions use public projection
+edges and the existing query admission, work, cancellation and output ownership
+paths. Rayon is now an explicit dependency for per-read worker pools, bounded
+by configured concurrency. PageRank uses fixed input partitions for floating
+reductions; randomized WCC uses SplitMix64/GF64 priorities, stable original-ID
+representatives, contraction histories and reverse expansion. Both have static
+output schemas, so session binding does not execute them against Grust's
+string-ID probe graph. Bounded diagnostic records expose the work performed.
+
+See [OPTIMIZED_ALGORITHMS.md](OPTIMIZED_ALGORITHMS.md) for exact options,
+normalization/certification rules, algorithm attribution, serial phases and
+accounting boundaries. These kernels were written locally; no Grust repository,
+published crate, or registry-cache source was modified. The upstream README
+fixture stays unchanged and its catalog test covers the reference catalog;
+separate tests cover the documented local additions.

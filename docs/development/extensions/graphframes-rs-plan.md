@@ -245,6 +245,34 @@ cancellation, worker failure and partial checkpoint writes. Record non-convergen
 and failures explicitly. Distributed floating-point reductions need justified
 tolerances; do not assume bitwise equality across partition counts.
 
+## Relationship to Nutmeg's direct DataFusion path
+
+Both approaches keep graph data in tables and execute relational operations
+through Sail's DataFusion engine. The proposed integration extends that approach
+to iterative algorithms; it does not replace the existing graph-table helpers.
+
+| | Existing Nutmeg graph-table path | Proposed graphframes-rs path |
+| --- | --- | --- |
+| Operations | Degrees, triplets and fixed-length walks | Initially PageRank and WCC |
+| Implementation | Python helpers generate ordinary Spark Connect plans | A Rust library constructs DataFusion operations, executed through the Sail adapter |
+| Iteration control | No convergence loop; bounded walks expand into a fixed sequence of joins | A controller submits successive jobs until convergence or an explicit limit |
+| Intermediate state | Ordinary query execution | Explicit checkpoints between iterations |
+| Sail integration | Uses existing relational execution | Requires host-controlled iteration, checkpoint ownership and cancellation |
+
+The existing [Nutmeg graph-table helpers](../../../examples/extensions/nutmeg/python/sail_nutmeg/graph.py)
+construct no CSR. Nutmeg's current `run(..., "pagerank")` and `run(..., "wcc")`
+use its staged native graph path instead; those algorithms are not implemented
+by the direct DataFusion helpers today.
+
+This is initially a proposed compiled-in adapter, not a third independently
+installed extension beside Sedona and Nutmeg. Separating its implementation does
+not require a third user-facing graph API. One option is to expose graphframes-rs
+behind Nutmeg's graph-table API with an explicit execution-backend choice,
+retaining the distinction between relational algorithms and staged native
+kernels. That API choice remains subject to review; it is not implemented and
+must not silently change existing Nutmeg calls or imply identical algorithm
+semantics. Independently installed plugin packaging is a later decision.
+
 ## Choosing a graph path and its semantics
 
 Use relational helpers for degrees, triplets and bounded walks. Use relational
@@ -269,7 +297,8 @@ tolerances across partition counts. No cross-backend bitwise guarantee is made.
 2. Is a compiled-in optional Sail adapter the right first integration boundary,
    before designing an independently installed plugin interface?
 3. Which PageRank options and WCC labeling convention should the initial client
-   guarantee? Should the first API be library-native or a GraphFrames subset?
+   guarantee? Should these be exposed through Nutmeg's graph-table API with an
+   explicit backend, a library-native API, or a GraphFrames subset?
 4. Can the first distributed implementation use ordinary Parquet checkpoints,
    deferring partition-preserving checkpoint optimization?
 5. Is the proposed pre-submission preparation phase acceptable, including early

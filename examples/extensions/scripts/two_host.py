@@ -187,6 +187,16 @@ def exercise(endpoint, worker_hosts, evidence):
         spark.stop()
 
 
+def positive_int(value):
+    try:
+        parsed = int(value)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError("must be a positive integer") from error
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("must be a positive integer")
+    return parsed
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, required=True)
@@ -198,11 +208,14 @@ def main():
     parser.add_argument("--tolerance", type=float, help="portable graphs: power default fixed steps, delta default 1e-8")
     parser.add_argument("--wcc-iterations", type=int, help="portable graphs: min_label default 10, randomized default 100")
     parser.add_argument("--seed", type=int, default=42, help="portable graphs: randomized WCC seed")
+    parser.add_argument("--worker-task-slots", type=positive_int, default=2,
+                        help="asynchronous task slots per worker (default: 2; fused WCC needs at least 4)")
     args = parser.parse_args()
     config = json.loads(args.config.read_text())
     driver, workers = config["driver"], config["workers"]
     args.output.mkdir(parents=True, exist_ok=False)
     receipt = dict(started_utc=datetime.now(timezone.utc).isoformat(), config=config, exercise=args.exercise,
+                   worker_task_slots=args.worker_task_slots,
                    controller_host=platform.node(), controller_architecture=platform.machine(),
                    boundary="Two physical hosts; functional checks only. Rosetta/emulation is not a performance measurement.")
     snapshots = args.output / "harness"
@@ -234,7 +247,7 @@ def main():
                    SAIL_CLUSTER__DRIVER_EXTERNAL_HOST=driver["advertise"],
                    SAIL_CLUSTER__DRIVER_EXTERNAL_PORT=str(driver["gateway_port"]),
                    SAIL_CLUSTER__WORKER_INITIAL_COUNT="2", SAIL_CLUSTER__WORKER_MAX_COUNT="2",
-                   SAIL_CLUSTER__WORKER_TASK_SLOTS="2",
+                   SAIL_CLUSTER__WORKER_TASK_SLOTS=str(args.worker_task_slots),
                    SAIL_CLUSTER__WORKER_MAX_IDLE_TIME_SECS="600", SAIL_CLUSTER__TASK_MAX_ATTEMPTS="3",
                    SAIL_EXECUTION__DEFAULT_PARALLELISM="4")
         with (args.output / "server-and-workers.log").open("w") as log:

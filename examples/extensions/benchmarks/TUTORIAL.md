@@ -368,13 +368,20 @@ starts/stops all processes; no manual server should occupy those ports.
   --pagerank-method delta --pagerank-iterations 1000 --tolerance 1e-8 \
   --wcc-method randomized --wcc-iterations 100 --seed 42 \
   --output ../pecan-two-host-advanced
+.venv/bin/python examples/extensions/scripts/two_host.py \
+  --config ../sail-graph-two-host.json --exercise portable-graphs \
+  --pagerank-method delta --pagerank-iterations 1000 --tolerance 1e-8 \
+  --wcc-method randomized_fused --wcc-iterations 100 --seed 42 \
+  --worker-task-slots 4 --output ../pecan-two-host-fused
 ```
 
 Require `outcome: passed`, supervisor return code zero, both workers' completed
 tasks inside each algorithm's iteration windows, and all cleanup PIDs absent.
-This checks the four original Pecan methods. Repeat the advanced command with
-`--wcc-method randomized_fused` to qualify the fused relational plan on both hosts. `--exercise extensions` separately
-checks Nutmeg graph-table operations and driver-native integration; it is not an
+These commands check all five Pecan methods. The fused fixture needs four
+asynchronous task slots per worker (eight total); `--worker-task-slots` defaults
+to two. Slots are scheduling capacity, not CPU cores, and larger plans may need
+more. `--exercise extensions` separately checks Nutmeg graph-table operations
+and driver-native integration; it is not an
 all-fifteen physical-host algorithm test. Grenada shares the relational controller;
 Banda remains driver-local. The launcher does not leave an interactive cluster
 running and does not configure TLS/authentication: use a trusted private network.

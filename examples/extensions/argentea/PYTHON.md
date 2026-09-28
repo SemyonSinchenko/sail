@@ -154,14 +154,27 @@ SPARK_CONNECT_MODE_ENABLED=1 .venv/bin/python \
   examples/extensions/argentea/python/qualify.py \
   --mode two-host --two-host-config /absolute/path/to/argentea-two-host.json \
   --runtime-source-sha "$candidate" --native-source-sha "$candidate" \
-  --iterations 2 --partitions 3 \
+  --iterations 2 --partitions 5 \
   --output /tmp/argentea-two-host-evidence
 ```
 
-This adds supervised hostname/PID evidence to the native receipts, checks both
-actual hosts executed native partitions and verifies that the supervised Sail
-processes have exited. A pair of distinct worker IDs alone is not two-host
-evidence. The driver collects only this tiny fixture's results for validation.
+This adds supervised hostname/PID evidence to the native receipts. It requires
+nonempty vertices on each physical host and at least one edge crossing between
+hosts, then verifies that the supervised Sail processes have exited. The five
+owners retain an empty owner for the completion check; this fixture's three-owner
+layout puts every nonempty owner on one worker and cannot satisfy the stronger
+two-host graph check. The process-only default remains three owners. Actual
+placement is checked from validated rank rows and supervised worker/PID identities,
+with per-host vertex/edge counts and crossing edges retained in `native_host_graph`.
+A pair of distinct worker IDs alone is not two-host graph evidence. The driver
+collects only this tiny fixture's results for validation.
 Large-graph scaling, cancellation during an active round, worker loss, quota
 refusal and retained Arrow-buffer release require their own gates before a
 broader distributed-support claim.
+
+For a development network that cannot reach Sail's direct LAN ports, explicit
+SSH local/reverse forwards can carry the same driver and worker gRPC connections.
+Record the tunnel endpoints and remote SSH hostnames with the run configuration.
+The host check still uses actual supervised hostnames and PIDs, not advertised
+loopback addresses. Such a run qualifies execution through SSH forwarding; it
+is not evidence of direct LAN reachability or network performance.

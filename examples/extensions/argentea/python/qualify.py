@@ -18,6 +18,7 @@ from two_host_worker import launch, stop
 from argentea_client import options
 from argentea_evidence import parse_log, parse_worker_tasks, validate_audit
 from argentea_exercise import exercise
+from argentea_host_evidence import validate_host_graph
 from argentea_runtime import local_server
 
 
@@ -34,6 +35,9 @@ def audit(receipt, log, *, minimum_workers, required_hosts=()):
     receipt['native_execution'] = validate_audit(records, check['rows'], check['request'], check['iterations'],
         minimum_workers=minimum_workers, worker_endpoints=check['worker_endpoints'], supervisors=supervisors,
         required_hosts=required_hosts, stages=check['stages'], task_statuses=tasks)
+    if required_hosts:
+        receipt['native_host_graph'] = validate_host_graph(
+            check['rows'],check['edges'],supervisors,required_hosts=required_hosts)
 
 
 def two_hosts(args, receipt):

@@ -64,8 +64,8 @@ def exercise(endpoint, output, *, iterations=2, partitions=3, expect_local_rejec
             FROM system.cluster.workers
         ''').collect()]
         evidence['stages'] = [row.asDict() for row in spark.sql('''
-            SELECT CAST(job_id AS BIGINT) AS job_id, CAST(stage AS BIGINT) AS stage,
-                   CAST(partitions AS BIGINT) AS partitions, placement
+            SELECT session_id, CAST(job_id AS BIGINT) AS job_id, CAST(stage AS BIGINT) AS stage,
+                   CAST(partitions AS BIGINT) AS partitions, placement, `group` AS slot_group, mode
             FROM system.execution.stages
         ''').collect()]
         evidence['outcome'] = 'answers-passed-awaiting-native-audit'

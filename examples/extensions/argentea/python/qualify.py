@@ -16,7 +16,7 @@ from runtime import git, native_package_identity, package_versions, sha256, vali
 from two_host import INVENTORY, completed_worker_tasks, process_cleanup, target_python, wait_server
 from two_host_worker import launch, stop
 from argentea_client import options
-from argentea_evidence import parse_log, validate_audit
+from argentea_evidence import parse_log, parse_worker_tasks, validate_audit
 from argentea_exercise import exercise
 from argentea_runtime import local_server
 
@@ -29,13 +29,11 @@ def audit(receipt, log, *, minimum_workers, required_hosts=()):
     records, supervisors = parse_log(log)
     check = receipt['checks']
     receipt['native_receipts'] = records
+    receipt['worker_task_statuses'] = tasks = parse_worker_tasks(log)
+    receipt['completed_worker_tasks'] = completed_worker_tasks(log)
     receipt['native_execution'] = validate_audit(records, check['rows'], check['request'], check['iterations'],
         minimum_workers=minimum_workers, worker_endpoints=check['worker_endpoints'], supervisors=supervisors,
-        required_hosts=required_hosts, stages=check['stages'])
-    completed = receipt['completed_worker_tasks'] = completed_worker_tasks(log)
-    job = receipt['native_execution']['job_id']
-    observed = {task['worker_id'] for task in completed if task['job_id'] == job}
-    assert set(receipt['native_execution']['native_workers']) <= observed, 'native job lacks successful task receipts'
+        required_hosts=required_hosts, stages=check['stages'], task_statuses=tasks)
 
 
 def two_hosts(args, receipt):

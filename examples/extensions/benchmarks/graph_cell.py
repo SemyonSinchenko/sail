@@ -200,7 +200,8 @@ def execute(spark, args, manifest, receipt, sampler):
         receipt['iteration_events'] = events
 
 
-def validate_dataset_identity(manifest, *, family=None, vertices=None, graph500_sha256=None):
+def validate_dataset_identity(manifest, *, family=None, vertices=None, graph500_sha256=None,
+                              input_sha256=None, edge_sha256=None, weight_policy=None, weight_seed=None):
     """Check matrix expectations even when input preparation was skipped."""
     if family is not None and manifest.get('family') != family:
         raise ValueError('dataset family differs from matrix configuration')
@@ -212,6 +213,49 @@ def validate_dataset_identity(manifest, *, family=None, vertices=None, graph500_
         actual = manifest.get('canonical', {}).get('edges', {}).get('sha256')
         if actual != graph500_sha256:
             raise ValueError('Graph500 canonical edge bytes differ from matrix configuration')
+    if any(value is not None for value in (input_sha256, edge_sha256, weight_policy, weight_seed)):
+        if manifest.get('family') != 'edge-list-traversal':
+            raise ValueError('imported traversal identity requires an edge-list-traversal manifest')
+        if input_sha256 is not None and manifest.get('input', {}).get('sha256') != input_sha256:
+            raise ValueError('original topology bytes differ from matrix configuration')
+        if edge_sha256 is not None and manifest.get('canonical', {}).get('edges', {}).get('sha256') != edge_sha256:
+            raise ValueError('canonical weighted edge bytes differ from matrix configuration')
+        for key, expected in (('weight_policy', weight_policy), ('weight_seed', weight_seed)):
+            if expected is not None and manifest.get('traversal', {}).get(key) != expected:
+                raise ValueError(f'{key} differs from matrix configuration')
+
+
+def validate_dataset_files(dataset, manifest):
+    """Reject added/missing input files, including partitions absent from the pin.
+
+    Readers load entire Parquet directories. Checking only listed file hashes
+    would let an additional partition silently change both execution and its
+    later certificate. Input trees must therefore have exactly the pinned files.
+    """
+    dataset = Path(dataset)
+    roots = ('vertices.parquet', 'edges.parquet', 'reference.parquet')
+    expected = manifest.get('files', {})
+    if not isinstance(expected, dict) or not expected:
+        raise ValueError('dataset manifest must pin its input files')
+    for name in expected:
+        path = Path(name)
+        if path.is_absolute() or '..' in path.parts or path.as_posix() != name or path.parts[0] not in roots:
+            raise ValueError('dataset manifest file must remain inside its input tree')
+    actual = set()
+    for name in roots:
+        path = dataset / name
+        if name != 'reference.parquet' and not path.exists():
+            raise ValueError(f'dataset is missing required input: {name}')
+        for item in (path, *path.rglob('*')) if path.is_dir() else (path,):
+            if item.is_symlink():
+                raise ValueError('dataset input symlinks are not permitted')
+            if item.is_file():
+                actual.add(item.relative_to(dataset).as_posix())
+    if actual != set(expected):
+        raise ValueError('dataset input file inventory differs from manifest')
+    for name, details in expected.items():
+        if sha256(dataset / name) != details['sha256']:
+            raise ValueError(f'dataset changed: {name}')
 
 
 def main():
@@ -223,6 +267,10 @@ def main():
     parser.add_argument('--expected-dataset-family')
     parser.add_argument('--expected-vertices', type=int)
     parser.add_argument('--expected-graph500-sha256')
+    parser.add_argument('--expected-input-sha256')
+    parser.add_argument('--expected-edge-sha256')
+    parser.add_argument('--expected-weight-policy')
+    parser.add_argument('--expected-weight-seed', type=int)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--engine', choices=['pecan', 'nutmeg-native', 'nutmeg-datafusion'], required=True)
     parser.add_argument('--algorithm', choices=['pagerank', 'wcc', 'bfs', 'sssp'], required=True)
@@ -266,11 +314,12 @@ def main():
     manifest = json.loads((args.dataset / 'manifest.json').read_text())
     validate_dataset_identity(manifest, family=args.expected_dataset_family,
                               vertices=args.expected_vertices,
-                              graph500_sha256=args.expected_graph500_sha256)
+                              graph500_sha256=args.expected_graph500_sha256,
+                              input_sha256=args.expected_input_sha256, edge_sha256=args.expected_edge_sha256,
+                              weight_policy=args.expected_weight_policy, weight_seed=args.expected_weight_seed)
     for name in (() if args.algorithm in ('bfs', 'sssp') else ('damping', 'tolerance')):
         assert manifest['pagerank'][name] == getattr(args, name), f'reference {name} differs'
-    for name, details in manifest['files'].items():
-        assert sha256(args.dataset / name) == details['sha256'], f'dataset changed: {name}'
+    validate_dataset_files(args.dataset, manifest)
     if args.algorithm in ('bfs', 'sssp'):
         assert manifest['traversal']['source'] == args.source
         assert manifest['traversal']['directed'] == args.directed
@@ -282,7 +331,7 @@ def main():
                    packages=package_versions(), platform=platform.platform(), python=sys.version,
                    dataset=manifest, cgroup_before=cgroup_snapshot(),
                    host_load_before=read_text('/proc/loadavg'),
-                   installed_extension_boundary='Sedona and Nutmeg loaded for every path; same shared-extension deployment',
+                   installed_extension_boundary='Experimental extension loading enabled; installed package inventory is recorded separately and does not by itself prove runtime use',
                    prepaid_native_quota_bytes=args.native_quota,
                    sail_pool_per_process_bytes=args.sail_pool_bytes,
                    remaining_participating_df_budget_bytes=args.sail_pool_bytes - args.native_quota,

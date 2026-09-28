@@ -174,7 +174,9 @@ and memory fields. Tutorial times are functional observations on a shared outer
 environment, not isolated benchmark results. Memory is unavailable in the tutorial
 table outside a private Linux container. No zero is substituted for missing PSS.
 
-Start with the bounded fixture. [Graph500 input preparation](GRAPH500.md) scales
+Start with the bounded fixture, then the
+[large Graph Kernels traversal workloads](GRAPH-KERNELS-TRAVERSAL.md).
+[Graph500 input preparation](GRAPH500.md) scales
 input generation separately; generating a large graph does not certify its
 algorithm results or make this an official Graph500 submission. Preserve the
 [capacity ladder and external-control plan](TRAVERSAL-PLAN.md) before large runs.

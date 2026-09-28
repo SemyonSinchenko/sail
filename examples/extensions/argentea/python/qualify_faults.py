@@ -27,6 +27,11 @@ def save(path, value):
     path.write_text(json.dumps(value, sort_keys=True, indent=2, default=str)+'\n')
 
 
+def qualification_source_hashes():
+    paths = [*Path(__file__).parent.glob('*.py'), *(EXAMPLES/'scripts').glob('*.py')]
+    return {str(path.relative_to(REPO)): sha256(path) for path in sorted(paths)}
+
+
 def terminal_inventory(spark, check, log):
     deadline = time.monotonic()+30
     while True:
@@ -45,8 +50,10 @@ def terminal_inventory(spark, check, log):
         ''').collect()]
         records = operation_records(read_complete_log(log), check['request'])
         initialized = {r['partition'] for r in records if r['event'] == 'init'}
-        killed = check.get('injection', {}).get('killed_worker', {}).get('pid')
-        expected_closed = {r['partition'] for r in records if r['event'] == 'init' and r['pid'] != killed}
+        victim = check.get('injection', {}).get('killed_worker', {})
+        killed = (victim.get('worker_id'), victim.get('pid'))
+        expected_closed = {r['partition'] for r in records if r['event'] == 'init'
+                           and (r['worker_id'], r['pid']) != killed}
         closed = {r['partition'] for r in records if r['event'] == 'close'}
         stopped = check['stored_tasks'] and all(t['status'] in ('SUCCEEDED', 'FAILED', 'CANCELED') for t in check['stored_tasks'])
         if stopped and closed == expected_closed and (initialized == {0, 1} or check['case'] == 'quota'):
@@ -56,19 +63,21 @@ def terminal_inventory(spark, check, log):
         time.sleep(.05)
 
 
-def exercise(endpoint, args, driver, check):
+def exercise(endpoint, args, driver, check, *, remote_workers=None):
     from pyspark.sql.connect.client.retries import DefaultPolicy
     from pyspark.sql.connect.session import SparkSession
     from pyspark_pecan import CancellationToken
     spark = SparkSession.builder.remote(endpoint).create()
     spark.client.set_retry_policies([DefaultPolicy(max_retries=0, initial_backoff=100, max_backoff=100, jitter=0)])
     token, controller = CancellationToken(), None
-    log = args.output/'server.log'
+    log = args.output/('server-and-workers.log' if remote_workers is not None else 'server.log')
     check.update(case=args.case, native_quota=args.native_quota, query_failed=False, cleanup_errors=[],
                  connect_max_retries=0, requested_victim_owner=args.victim_owner)
     try:
         wait_for_workers(spark, evidence=check)
-        workers = workers_from_log(read_complete_log(log), driver)
+        workers = remote_workers(spark) if callable(remote_workers) else (remote_workers if remote_workers is not None else workers_from_log(read_complete_log(log), driver))
+        if remote_workers is not None:
+            check['mode'] = 'two-host'
         check['supervised_workers'] = workers
         interrupt = spark.interruptTag
         def record_interrupt(tag):
@@ -83,8 +92,13 @@ def exercise(endpoint, args, driver, check):
             check['views'] = [v['alias'] for v in event['view_registrations']]
             assert not operation_records(read_complete_log(log), check['request'])
             if args.case != 'quota':
-                controller = FaultController(args.case, log, check['request'], workers, driver, token,
-                                             check.setdefault('injection', {}), args.victim_owner)
+                if remote_workers is None:
+                    controller = FaultController(args.case, log, check['request'], workers, driver, token,
+                                                 check.setdefault('injection', {}), args.victim_owner)
+                else:
+                    from argentea_remote_fault_control import RemoteFaultController
+                    controller = RemoteFaultController(args.case, log, check['request'], workers, token,
+                                                       check.setdefault('injection', {}), args.victim_owner)
                 controller.thread.start()
         # All 524288 arcs cross owners. PageRank's first certificate and
         # WCC/SSSP topology must emit them in one-row batches; this fixture actually enters native work before the
@@ -136,11 +150,21 @@ def exercise(endpoint, args, driver, check):
         assert not any(v['exists'] for v in check['view_cleanup'])
         records, _ = parse_log(read_complete_log(log))
         check['live_audit'] = validate_fault(read_complete_log(log), records, check)
-        check['live_workers_after_close'] = live_pids([w['pid'] for w in workers])
-        killed = check.get('injection', {}).get('killed_worker', {}).get('pid')
-        check['worker_process_states_after_close'] = states([w['pid'] for w in workers])
-        from argentea_fault_control import validate_after_close
-        validate_after_close(check['worker_process_states_after_close'], workers, killed)
+        if remote_workers is None:
+            check['live_workers_after_close'] = live_pids([w['pid'] for w in workers])
+            killed = check.get('injection', {}).get('killed_worker', {}).get('pid')
+            check['worker_process_states_after_close'] = states([w['pid'] for w in workers])
+            from argentea_fault_control import validate_after_close
+            validate_after_close(check['worker_process_states_after_close'], workers, killed)
+        else:
+            from argentea_remote_fault_control import control_worker
+            victim = check.get('injection', {}).get('killed_worker')
+            surviving = [w for w in workers if w != victim]
+            check['remote_survivors_after_close'] = []
+            for worker in surviving:
+                state = control_worker(worker, {'state': True})
+                assert state['alive'] and not any(c in state['status'] for c in 'ZT')
+                check['remote_survivors_after_close'].append(dict(state, host=worker['host']))
         # ProcessWorkerManager retains Child handles and calls wait() at session
         # stop. A SIGKILL victim may be a zombie until then; kill(pid,0) alone
         # does not distinguish it from a running process. The final gate below
@@ -160,7 +184,8 @@ def exercise(endpoint, args, driver, check):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--output', type=Path, required=True)
-    p.add_argument('--sail-binary', type=Path, required=True)
+    p.add_argument('--sail-binary', type=Path)
+    p.add_argument('--two-host-config', type=Path, help='physical-host launch configuration; otherwise use local processes')
     p.add_argument('--runtime-source-sha', required=True)
     p.add_argument('--native-source-sha', required=True)
     p.add_argument('--algorithm',choices=('pagerank_delta','wcc_reference','wcc_star','sssp_reference','sssp_delta_star'),default='pagerank_delta')
@@ -171,7 +196,12 @@ def main():
     args = p.parse_args()
     if args.victim_owner is not None and args.case != 'worker-loss':
         p.error('--victim-owner requires --case worker-loss')
-    args.mode, args.partitions, args.threads, args.worker_task_slots = 'process-cluster', 2, 4, 32
+    if args.two_host_config is None and args.sail_binary is None:
+        p.error('--sail-binary is required for local process qualification')
+    if args.two_host_config is not None and args.case == 'quota':
+        p.error('two-host quota qualification uses the resource harness, not first-call fault injection')
+    args.mode = 'two-host' if args.two_host_config else 'process-cluster'
+    args.partitions, args.threads, args.worker_task_slots = 2, 4, 32
     args.sail_pool_bytes = 2 << 30
     # Bound fault detection through the existing worker-pool configuration;
     # these settings do not create a native execution delay or test hook.
@@ -185,35 +215,39 @@ def main():
         p.error('freeze clean source before qualification, or label a development check')
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=False)
-    hashes = {f.name: sha256(f) for f in Path(__file__).parent.glob('*.py')}
+    hashes = qualification_source_hashes()
     receipt = dict(started_utc=utc(), outcome='running', source_commit=source, source_dirty=dirty,
         source_files_sha256=hashes, arguments={k:str(v) if isinstance(v,Path) else v for k,v in vars(args).items()},
-        controller_host=platform.node(), binary_sha256=sha256(args.sail_binary), native_package=native_package_identity(),
+        controller_host=platform.node(), binary_sha256=sha256(args.sail_binary) if args.sail_binary else None, native_package=native_package_identity(),
         packages=package_versions(), checks={}, cleanup_errors=[],
-        boundary='two processes on one host; first-call fault and owner/task/process/storage cleanup; no timings, RSS-zero, retained Arrow-buffer or two-host fault claim')
+        boundary=f'{args.mode}; first-call fault and owner/task/process/storage cleanup; no timings, RSS-zero or retained Arrow-buffer claim')
     try:
-        try:
-            with local_server(args, receipt['cleanup_errors']) as (endpoint, driver):
-                receipt['driver_pid'] = driver
-                exercise(endpoint, args, driver, receipt['checks'])
-                receipt['post_session_storage'] = wait_empty(args.output/'staging')
-        finally:
-            text = read_complete_log(args.output/'server.log')
-            import re
-            pids = [int(v) for v in re.findall(r'extension process worker \d+: pid=Some\((\d+)\)', text)]
-            if 'driver_pid' in receipt:
-                receipt['process_cleanup'] = live_pids([receipt['driver_pid'], *pids])
-                receipt['driver_process_group_exists'] = group_exists(receipt['driver_pid'])
-            receipt['final_storage_files'] = [str(f.relative_to(args.output/'staging'))
-                for f in (args.output/'staging').rglob('*') if f.is_file() or f.is_symlink()]
-        assert not receipt['cleanup_errors'] and not receipt['checks']['cleanup_errors']
-        assert not any(r['alive'] for r in receipt['process_cleanup']) and not receipt['driver_process_group_exists']
-        assert not receipt['final_storage_files']
-        text = (args.output/'server.log').read_text()
-        records, _ = parse_log(text)
-        receipt['native_execution'] = validate_fault(text, records, receipt['checks'])
+        if args.two_host_config:
+            from argentea_remote_fault_run import run_remote_fault
+            run_remote_fault(args, receipt)
+        else:
+            try:
+                with local_server(args, receipt['cleanup_errors']) as (endpoint, driver):
+                    receipt['driver_pid'] = driver
+                    exercise(endpoint, args, driver, receipt['checks'])
+                    receipt['post_session_storage'] = wait_empty(args.output/'staging')
+            finally:
+                text = read_complete_log(args.output/'server.log')
+                import re
+                pids = [int(v) for v in re.findall(r'extension process worker \d+: pid=Some\((\d+)\)', text)]
+                if 'driver_pid' in receipt:
+                    receipt['process_cleanup'] = live_pids([receipt['driver_pid'], *pids])
+                    receipt['driver_process_group_exists'] = group_exists(receipt['driver_pid'])
+                receipt['final_storage_files'] = [str(f.relative_to(args.output/'staging'))
+                    for f in (args.output/'staging').rglob('*') if f.is_file() or f.is_symlink()]
+            assert not receipt['cleanup_errors'] and not receipt['checks']['cleanup_errors']
+            assert not any(r['alive'] for r in receipt['process_cleanup']) and not receipt['driver_process_group_exists']
+            assert not receipt['final_storage_files']
+            text = (args.output/'server.log').read_text()
+            records, _ = parse_log(text)
+            receipt['native_execution'] = validate_fault(text, records, receipt['checks'])
         assert git(REPO, 'rev-parse', 'HEAD') == source
-        assert hashes == {f.name: sha256(f) for f in Path(__file__).parent.glob('*.py')}
+        assert hashes == qualification_source_hashes()
         receipt['outcome'] = 'passed-development' if dirty else 'passed'
     except BaseException:
         receipt.update(outcome='failed', error=traceback.format_exc())

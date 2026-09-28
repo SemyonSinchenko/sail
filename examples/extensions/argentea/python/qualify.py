@@ -40,7 +40,7 @@ def audit(receipt, log, *, minimum_workers, required_hosts=()):
             check['rows'],check['edges'],supervisors,required_hosts=required_hosts)
 
 
-def two_hosts(args, receipt, *, exercise_fn=None, audit_fn=None):
+def two_hosts(args, receipt, *, exercise_fn=None, audit_fn=None, fault_control=False):
     configuration = json.loads(args.two_host_config.read_text())
     driver, workers = configuration['driver'], configuration['workers']
     if len(workers) != 2:
@@ -70,6 +70,10 @@ def two_hosts(args, receipt, *, exercise_fn=None, audit_fn=None):
         SAIL_RUNTIME__MEMORY_POOL__TYPE='greedy', SAIL_RUNTIME__MEMORY_POOL__GREEDY__MAX_SIZE=str(args.sail_pool_bytes),
         TOKIO_WORKER_THREADS=str(args.threads), RAYON_NUM_THREADS=str(args.threads),
         RUST_LOG='info,sail_execution::task_runner::actor::handler=debug')
+    if fault_control:
+        env.update(SAIL_QUALIFICATION_FAULT_CONTROL='1',
+                   SAIL_CLUSTER__WORKER_HEARTBEAT_INTERVAL_SECS='1',
+                   SAIL_CLUSTER__WORKER_HEARTBEAT_TIMEOUT_SECS='10')
     log_path = args.output / 'server-and-workers.log'
     with log_path.open('w') as log:
         process = launch(driver, [driver['sail'], 'spark', 'server', '--ip', '0.0.0.0', '--port', str(driver['connect_port'])], env, stdout=log)

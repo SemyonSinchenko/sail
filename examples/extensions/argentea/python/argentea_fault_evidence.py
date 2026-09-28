@@ -46,17 +46,37 @@ def worker_loss_path(check, owners, session, job):
         dict(session_id=session, job_id=job, status='FAILED')], 'worker loss did not fail the job'
     victim = check['injection']['killed_worker']
     assert victim in check['supervised_workers'], 'killed worker is not supervised'
-    own = [r for r in owners.values() if r['pid'] == victim['pid']]
+    own = [r for r in owners.values() if (r['worker_id'], r['pid']) == (victim['worker_id'], victim['pid'])]
     assert len(own) == 1 and all(own[0][k] == victim[k] for k in ('worker_id', 'pid', 'session_id')), \
         'killed worker differs from native owner'
     window = check['injection']['window']
-    validate_window(window['native_receipts'], check['request'], check['supervised_workers'],
-                    {int(k): v for k, v in window['process_states'].items()}, victim['driver_pid'])
+    remote = check.get('mode') == 'two-host'
+    if remote:
+        from argentea_remote_fault_control import validate_remote_window
+        states = window['process_states']
+        assert len(states) == 2 and len({(s['host'],s['pid']) for s in states}) == 2
+        validate_remote_window(window['native_receipts'], check['request'], check['supervised_workers'],
+                               {(s['host'],s['pid']):s for s in states})
+    else:
+        validate_window(window['native_receipts'], check['request'], check['supervised_workers'],
+                        {int(k): v for k, v in window['process_states'].items()}, victim['driver_pid'])
     initial = [r for r in window['native_receipts'] if r['event'] == 'init']
     assert sorted(initial, key=lambda r: r['partition']) == sorted(owners.values(), key=lambda r: r['partition']), \
         'held window differs from initialized owners'
     assert check['requested_victim_owner'] == check['injection']['requested_native_owner'], 'requested victim changed'
-    expected_victim, owner = select_victim(window, check['supervised_workers'], check['injection']['requested_native_owner'])
+    if remote:
+        owner = check['injection']['requested_native_owner']
+        owner = 0 if owner is None else owner
+        selected = [r for r in initial if r['partition'] == owner]
+        assert len(selected) == 1
+        expected = [w for w in check['supervised_workers']
+                    if (w['worker_id'],w['pid']) == (selected[0]['worker_id'],selected[0]['pid'])]
+        assert len(expected) == 1
+        expected_victim = expected[0]
+        assert any(s.get('host') == victim['host'] and s['pid'] == victim['pid']
+                   and s['signal'] == 'SIGKILL' for s in check['injection']['signals'])
+    else:
+        expected_victim, owner = select_victim(window, check['supervised_workers'], check['injection']['requested_native_owner'])
     assert victim == expected_victim and owner == check['injection']['selected_native_owner'], 'victim selection changed'
     job_tasks = [t for t in check['stored_tasks'] if t['session_id'] == session and t['job_id'] == job]
     assert job_tasks and all(t['attempt'] == 0 and t['status'] in ('SUCCEEDED', 'FAILED', 'CANCELED')
@@ -109,15 +129,32 @@ def validate_fault(log, records, check):
         assert 'controller_error' not in check['injection']
         assert Counter(r['partition'] for r in selected if r['event'] == 'init') == Counter(range(2))
         owners = {r['partition']: r for r in selected if r['event'] == 'init'}
-        assert len({r['pid'] for r in owners.values()}) == 2
+        assert len({(r['worker_id'], r['pid']) for r in owners.values()}) == 2
+        if check.get('mode') == 'two-host':
+            from argentea_remote_fault_control import validate_remote_window
+            window = check['injection']['window']
+            states = window['process_states']
+            assert len(states) == 2 and len({(r['host'],r['pid']) for r in states}) == 2
+            workers = check['supervised_workers']
+            assert len(workers) == 2 and len({w['host'] for w in workers}) == 2
+            validate_remote_window(window['native_receipts'], request, workers,
+                                   {(r['host'],r['pid']):r for r in states})
+            initial = [r for r in window['native_receipts'] if r['event'] == 'init']
+            assert sorted(initial,key=lambda r:r['partition']) == sorted(owners.values(),key=lambda r:r['partition'])
+            assert not check['injection'].get('resume_errors'), 'remote worker resume failed'
+            for worker in workers:
+                assert any(signal.get('host') == worker['host'] and signal['pid'] == worker['pid']
+                           and signal['signal'] == 'SIGSTOP' for signal in check['injection']['signals'])
         for record in selected:
             owner = owners[record['partition']]
             assert all(record[k] == owner[k] for k in ('worker_id', 'pid', 'adjacency_id', 'session_id', 'job_id'))
             assert record['session_id'] == session and record['job_id'] == job
             assert record['snapshot_id'] == request['snapshot_id'] and record['generation'] == request['generation']
         assert all(t['partition'] in owners and t['worker_id'] == owners[t['partition']]['worker_id'] for t in tasks)
-        killed = check['injection'].get('killed_worker', {}).get('pid')
-        expected_closed = Counter(p for p, r in owners.items() if r['pid'] != killed)
+        victim = check['injection'].get('killed_worker', {})
+        killed = victim.get('pid')
+        expected_closed = Counter(p for p, r in owners.items()
+                                  if (r['worker_id'],r['pid']) != (victim.get('worker_id'),killed))
         assert Counter(r['partition'] for r in selected if r['event'] == 'close') == expected_closed, 'surviving owners did not close exactly once'
         if case == 'cancel':
             assert check['error_type'] == 'GraphCancelledError'

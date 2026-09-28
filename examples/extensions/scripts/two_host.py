@@ -46,14 +46,14 @@ print(json.dumps(dict(host=platform.node(), platform=platform.platform(), archit
 '''
 
 
-def target_python(target, program, *arguments):
+def target_python(target, program, *arguments, timeout=120):
     argv = ["env", "-u", "PYTHONHOME", "-u", "PYTHONPATH", "-u", "DYLD_LIBRARY_PATH",
             target["python"], "-c", program, *arguments]
     if target.get("ssh"):
         argv = ["ssh", "-T", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
                 target["ssh"], shlex.join(argv)]
     return json.loads(subprocess.check_output(argv, text=True,
-                     env=clean_python_environment(), timeout=120))
+                     env=clean_python_environment(), timeout=timeout))
 
 
 def inventory(target):

@@ -13,7 +13,7 @@ from two_host_worker import launch, stop
 
 def worker_environment(target, environment):
     forwarded = ('SAIL_EXPERIMENTAL_EXTENSIONS', 'SAIL_ARGENTEA_MEMORY_BYTES',
-                 'SAIL_NUTMEG_MEMORY_BYTES', 'RUST_LOG', 'TOKIO_WORKER_THREADS', 'RAYON_NUM_THREADS')
+                 'SAIL_NUTMEG_MEMORY_BYTES', 'SAIL_QUALIFICATION_FAULT_CONTROL', 'RUST_LOG', 'TOKIO_WORKER_THREADS', 'RAYON_NUM_THREADS')
     env = {key: value for key, value in environment.items()
            if key.startswith(('SAIL_CLUSTER__', 'SAIL_EXECUTION__', 'SAIL_RUNTIME__')) or key in forwarded}
     env.update(SAIL_CLUSTER__WORKER_LISTEN_HOST='0.0.0.0',

@@ -194,3 +194,51 @@ def test_fault_protocol_must_match_the_recorded_native_execution():
     text,records,check,_,_=fixture()
     records[0]['algorithm']='sssp_reference'
     with pytest.raises(AssertionError,match='protocol changed'):validate_fault(text,records,check)
+
+
+def remote_loss_fixture():
+    text, records, check, workers, _ = fixture('worker-loss')
+    check['mode']='two-host'
+    for i,w in enumerate(workers):
+        w.update(host=f'host-{i}',pid=100)
+    for r in records:r['pid']=100
+    window=check['injection']['window']
+    for r in window['native_receipts']:r['pid']=100
+    window['process_states']=[dict(host=w['host'],pid=100,pgid=100,status='T') for w in workers]
+    check['injection']['signals'][0]['host']='host-0'
+    check['injection']['signals'].extend(dict(host=w['host'],pid=w['pid'],signal='SIGSTOP') for w in workers)
+    return text,records,check
+
+
+def test_remote_loss_equal_host_pids_keeps_survivor_cleanup():
+    result=validate_fault(*remote_loss_fixture())
+    assert result['closed_surviving_owners']==1
+    assert result['initialized_owners']==2
+
+
+@pytest.mark.parametrize('defect',['signal-host','state-host','survivor-close'])
+def test_remote_loss_rejects_cross_host_evidence_confusion(defect):
+    text,records,check=remote_loss_fixture()
+    if defect=='signal-host':check['injection']['signals'][0]['host']='host-1'
+    elif defect=='state-host':check['injection']['window']['process_states'][1]['host']='host-0'
+    else:records=[r for r in records if r['event']!='close']
+    with pytest.raises((ValueError,AssertionError)):
+        validate_fault(text,records,check)
+
+
+@pytest.mark.parametrize('defect',[None,'running','missing-stop','wrong-job','resume-error'])
+def test_remote_cancel_requires_audited_window(defect):
+    text,records,check=remote_loss_fixture()
+    check.update(case='cancel',error_type='GraphCancelledError')
+    check['jobs'][0]['status']='CANCELED'
+    del check['injection']['killed_worker']
+    check['injection']['signals']=[s for s in check['injection']['signals'] if s['signal']!='SIGKILL']
+    records.append(dict(records[0],event='close'))
+    if defect=='running':check['injection']['window']['process_states'][0]['status']='R'
+    elif defect=='missing-stop':check['injection']['signals'].pop()
+    elif defect=='wrong-job':check['injection']['window']['native_receipts'][0]['job_id']=999
+    elif defect=='resume-error':check['injection']['resume_errors']=['failed']
+    if defect:
+        with pytest.raises((AssertionError,ValueError)):validate_fault(text,records,check)
+    else:
+        assert validate_fault(text,records,check)['closed_surviving_owners']==2

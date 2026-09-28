@@ -115,13 +115,20 @@ def main():
     else:
         env["LD_LIBRARY_PATH"] = library
     process = None
+    fault_control = None
     try:
         process = subprocess.Popen(argv, cwd=request.get("cwd"), env=env,
                                    stdin=subprocess.DEVNULL, start_new_session=True)
+        if configured.get("SAIL_QUALIFICATION_FAULT_CONTROL") == "1":
+            from remote_fault_socket import FaultSocket
+            fault_control = FaultSocket(process)
         event("sail_remote_started", pid=process.pid, architecture=platform.machine(),
-              worker_id=env.get("SAIL_CLUSTER__WORKER_ID"), argv=argv)
+              worker_id=env.get("SAIL_CLUSTER__WORKER_ID"), argv=argv,
+              fault_control=fault_control.path if fault_control else None)
         last_heartbeat = time.monotonic()
         while process.poll() is None:
+            if fault_control is not None:
+                fault_control.serve_pending()
             readable, _, _ = select.select([sys.stdin.buffer], [], [], 0.2)
             if readable:
                 if not os.read(sys.stdin.fileno(), 4096):
@@ -133,6 +140,8 @@ def main():
                 break
         return process.poll() or 0
     finally:
+        if fault_control is not None:
+            fault_control.close()
         terminate(process)
         if process is not None:
             event("sail_remote_stopped", pid=process.pid, returncode=process.returncode)

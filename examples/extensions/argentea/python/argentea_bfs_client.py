@@ -13,8 +13,8 @@ from argentea_views import compose_views
 
 TYPE_URL = 'type.googleapis.com/nutmeg.v3.ArgenteaBfsApi'
 METHODS = ('reference','frontier','direction')
-MAX_LEVELS = 14
-MAX_PHASE_BUDGET = 32
+MAX_LEVELS = 62
+MAX_PHASE_BUDGET = 128
 
 
 def _integer(value,name,minimum,maximum):
@@ -158,7 +158,9 @@ class ArgenteaBfs:
         in one job through bounded lazy views and retained worker adjacency.
 
         A reachable depth D needs D+1 expansions to prove an empty frontier;
-        max_levels<=14 and 2K+4<=32 are initial qualification bounds. Cap failure
+        max_levels<=62 and 2K+4<=128 are bounded deployment limits.
+        Defaults retain the original 14-level/32-stage envelope; larger calls
+        must explicitly raise max_phase_budget. Cap failure
         never returns partial distances. An isolated source still needs one
         expansion. Direction mode may use an incoming CSR in the same quota.
         """

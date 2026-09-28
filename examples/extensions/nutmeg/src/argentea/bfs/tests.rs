@@ -259,6 +259,15 @@ async fn integer_bfs_variants_run_real_range_exchanges_with_nullable_results_and
 fn bfs_request_and_wire_schema_are_strict() {
     let base = request(Verb::Init, 0, 2, 8, "bfs_direction");
     assert!(Request::parse(request::TYPE_URL, &serde_json::to_vec(&base).unwrap()).is_ok());
+    let mut expanded = base.clone();
+    expanded.max_levels = 62;
+    expanded.max_phase_budget = 128;
+    assert!(Request::parse(request::TYPE_URL, &serde_json::to_vec(&expanded).unwrap()).is_ok());
+    expanded.max_levels = 63;
+    assert!(Request::parse(request::TYPE_URL, &serde_json::to_vec(&expanded).unwrap()).is_err());
+    expanded.max_levels = 62;
+    expanded.max_phase_budget = 129;
+    assert!(Request::parse(request::TYPE_URL, &serde_json::to_vec(&expanded).unwrap()).is_err());
     for defect in 0..7 {
         let mut v = serde_json::to_value(&base).unwrap();
         match defect {

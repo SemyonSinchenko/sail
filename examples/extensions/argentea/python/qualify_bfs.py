@@ -25,6 +25,8 @@ from qualify_resources import inventory, validate_source_identities, wait_empty
 IDS = [-5,0,1,6,10,11,20,21]
 EDGES = [(-5,0),(-5,1),(-5,1),(0,6),(1,6),(6,10),(10,10),(20,21)]
 CASES = {
+    'chain-62': dict(ids=list(range(62)),edges=[(i,i+1) for i in range(61)],source=0,directed=True,max_levels=62),
+    'graph-62': dict(ids=IDS,edges=EDGES,source=-5,directed=True,max_levels=62),
     'graph': dict(ids=IDS,edges=EDGES,source=-5,directed=True,max_levels=14),
     'undirected': dict(ids=IDS,edges=EDGES,source=10,directed=False,max_levels=14),
     'source-only': dict(ids=[0],edges=[],source=0,directed=True,max_levels=14),
@@ -86,7 +88,7 @@ def exercise(endpoint,args):
             result = ArgenteaBfs(spark,observer=observe).bfs(nodes,edges,source=case['source'],
                 method=args.method,directed=case['directed'],max_levels=case['max_levels'],
                 partitions=args.partitions,alpha=args.alpha,beta=args.beta,
-                max_phase_budget=32,batch_rows=args.batch_rows)
+                max_phase_budget=max(32,2*case['max_levels']+4),batch_rows=args.batch_rows)
         except Exception as error:
             evidence.update(error=str(error),error_type=type(error).__name__,
                 run_path=getattr(error,'run_path',None),cleanup_deferred=getattr(error,'cleanup_deferred',None),
@@ -192,7 +194,7 @@ def main():
     args = parser.parse_args()
     case = CASES[args.case]
     options(source=case['source'],method=args.method,directed=case['directed'],max_levels=case['max_levels'],
-            partitions=args.partitions,alpha=args.alpha,beta=args.beta,max_phase_budget=32,batch_rows=args.batch_rows)
+            partitions=args.partitions,alpha=args.alpha,beta=args.beta,max_phase_budget=max(32,2*case['max_levels']+4),batch_rows=args.batch_rows)
     validate_admission_settings(args.worker_task_slots,args.sail_pool_bytes,args.native_quota)
     try:
         validate_source_identities((args.runtime_source_sha,args.native_source_sha))

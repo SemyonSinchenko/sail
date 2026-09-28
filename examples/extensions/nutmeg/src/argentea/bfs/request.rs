@@ -72,7 +72,7 @@ impl Request {
             || self.vertices > i64::MAX as u64
             || !(1..=64).contains(&self.partitions)
             || !(1..=65_536).contains(&self.batch_rows)
-            || !(4..=32).contains(&self.max_phase_budget)
+            || !(4..=128).contains(&self.max_phase_budget)
             || self.options().native_phase_bound().map_err(error)? > self.max_phase_budget
             || [&self.operation_id, &self.snapshot_id]
                 .iter()

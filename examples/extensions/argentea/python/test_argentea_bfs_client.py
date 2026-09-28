@@ -45,7 +45,7 @@ def test_static_bfs_schedule_and_wire_identity(envelope,levels,method):
     {'max_levels':-1},{'max_levels':15},{'max_levels':True},{'max_levels':1.0},
     {'partitions':0},{'partitions':65},{'partitions':True},
     {'alpha':0},{'alpha':1<<64},{'alpha':False},{'beta':0},{'beta':float('inf')},
-    {'max_phase_budget':3},{'max_phase_budget':33},{'max_phase_budget':True},
+    {'max_phase_budget':3},{'max_phase_budget':129},{'max_phase_budget':True},
     {'max_levels':1,'max_phase_budget':4},{'batch_rows':0},{'batch_rows':65_537},
 ])
 def test_options_fail_before_staging_or_session(changes):
@@ -166,3 +166,13 @@ def test_bfs_native_failure_defers_uncertain_write_but_drops_views(bfs_wrapper):
     assert caught.value is failure and failure.cleanup_deferred
     assert failure.view_cleanup_deferred is False and not bfs_wrapper.views
     assert not bfs_wrapper.run.closed
+
+
+@pytest.mark.parametrize('method',client.METHODS)
+def test_explicit_extended_budget_and_boundary(method):
+    value=client.request(vertices_count=62,source=0,method=method,max_levels=62,max_phase_budget=128)
+    assert len(client.phases(value['max_levels']))==128
+    with pytest.raises(ValueError):
+        client.request(vertices_count=62,source=0,method=method,max_levels=63,max_phase_budget=128)
+    with pytest.raises(ValueError):
+        client.request(vertices_count=62,source=0,method=method,max_levels=62)

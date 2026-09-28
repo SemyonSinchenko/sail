@@ -1,0 +1,85 @@
+{
+  "archive": "remote-harness-local-regressions.tar.gz",
+  "sha256": "3df26f7b08c95dc511cbd8be8e80c049d0f2aec52c2ef440e03838932704e793",
+  "included_files": 71,
+  "cases": [
+    {
+      "case": "resource",
+      "outcome": "passed",
+      "controller_host": "Capitola.local",
+      "source_commit": "95f36ff6306529d7443053862df78e45866739bc",
+      "arguments": {
+        "algorithm": "sssp_delta_star",
+        "allow_working_tree": false,
+        "failure_vertices": 524288,
+        "iterations": 2,
+        "mode": "process-cluster",
+        "native_quota": 33554432,
+        "native_source_sha": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33",
+        "output": "/private/tmp/sail-remote-resource-local-regression-95f36",
+        "partitions": 2,
+        "runtime_source_sha": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+        "sail_binary": "/tmp/sail-argentea-artifacts/sail-arm64-d9c6381a0eff",
+        "sail_pool_bytes": 50331648,
+        "threads": 4,
+        "two_host_config": null,
+        "worker_task_slots": 32
+      },
+      "binary_sha256": "8138df899bfb7978dedf3020faa190c289c1bb5fce0bbeaa0cbc5f9e21343a1c"
+    },
+    {
+      "case": "fault",
+      "outcome": "passed",
+      "controller_host": "Capitola.local",
+      "source_commit": "95f36ff6306529d7443053862df78e45866739bc",
+      "arguments": {
+        "algorithm": "wcc_star",
+        "allow_working_tree": false,
+        "case": "worker-loss",
+        "heartbeat_interval_seconds": 1,
+        "heartbeat_timeout_seconds": 10,
+        "mode": "process-cluster",
+        "native_quota": 268435456,
+        "native_source_sha": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33",
+        "output": "/private/tmp/sail-remote-fault-local-regression-95f36",
+        "partitions": 2,
+        "runtime_source_sha": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+        "sail_binary": "/tmp/sail-argentea-artifacts/sail-arm64-d9c6381a0eff",
+        "sail_pool_bytes": 2147483648,
+        "threads": 4,
+        "two_host_config": null,
+        "victim_owner": 1,
+        "worker_task_slots": 32
+      },
+      "binary_sha256": "8138df899bfb7978dedf3020faa190c289c1bb5fce0bbeaa0cbc5f9e21343a1c"
+    },
+    {
+      "case": "cancel",
+      "outcome": "passed",
+      "controller_host": "Capitola.local",
+      "source_commit": "95f36ff6306529d7443053862df78e45866739bc",
+      "arguments": {
+        "algorithm": "sssp_delta_star",
+        "allow_working_tree": false,
+        "case": "cancel",
+        "heartbeat_interval_seconds": 1,
+        "heartbeat_timeout_seconds": 10,
+        "mode": "process-cluster",
+        "native_quota": 268435456,
+        "native_source_sha": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33",
+        "output": "/private/tmp/sail-remote-cancel-local-regression-95f36",
+        "partitions": 2,
+        "runtime_source_sha": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+        "sail_binary": "/tmp/sail-argentea-artifacts/sail-arm64-d9c6381a0eff",
+        "sail_pool_bytes": 2147483648,
+        "threads": 4,
+        "two_host_config": null,
+        "victim_owner": null,
+        "worker_task_slots": 32
+      },
+      "binary_sha256": "8138df899bfb7978dedf3020faa190c289c1bb5fce0bbeaa0cbc5f9e21343a1c"
+    }
+  ],
+  "boundary": "Three local macOS process-cluster regression runs; not physical two-host or Linux qualification and not timing evidence.",
+  "reaudit": "All native fault/resource audits rerun on complete final logs; process and storage teardown receipts checked."
+}

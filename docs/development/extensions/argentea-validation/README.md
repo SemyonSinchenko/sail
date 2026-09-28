@@ -354,3 +354,23 @@ budget. A public-client regression test reproduces that failure, then passes wit
 the forwarding fix. Defaults stay at14 levels/32 stages; callers opt into the
 larger budget. Linux and physical two-host execution at128 stages remain pending.
 See [BFS reproduction commands](../../../../examples/extensions/argentea/BFS.md#extended-128-stage-qualification).
+
+## Remote-harness local regressions
+
+The [regression bundle](remote-harness-local-regressions.tar.gz) preserves 71
+original files plus their hash manifest. Its [index](remote-harness-local-regressions.json)
+pins the source, artifacts, commands, host, and archive digest. The three runs
+passed on local macOS process workers:
+
+- SSSP delta-star: warmup, post-init native memory refusal, and three reuse jobs
+  in the same session, with retained earlier Parquet outputs.
+- WCC star: loss of native owner 1 after both owners initialized.
+- SSSP delta-star: cancellation after both owners initialized.
+
+Complete final logs were re-audited. Each run's teardown receipt reports all
+supervised processes absent and no owned staging files. The qualifier snapshot
+`95f36ff6306529d7443053862df78e45866739bc` has the same source tree as published
+commit `8c6c9423b4f774f945f8c6423320014d442d5375`. Runtime and native build commits
+are recorded separately in the index. These runs check the local execution path
+after adding the remote adapters; they do **not** qualify physical two-host
+execution or Linux, and their durations are not benchmark results.

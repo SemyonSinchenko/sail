@@ -202,3 +202,70 @@ fn producer_origin_and_late_publication_remain_pinned_to_the_job() {
     assert!(state.configure(&request).is_err());
     assert!(state.claim(&request, 1).is_err());
 }
+
+#[tokio::test]
+async fn typed_cap_receipt_survives_guard_cancellation_and_never_labels_quota() {
+    // Actual four-stage K=0 relation execution. The resulting RPC error is not
+    // used to classify failure: only a fresh typed cap receipt can do so.
+    for quota in [false, true] {
+        let ctx = SessionContext::new();
+        let drops = Arc::new(AtomicUsize::new(0));
+        let state =
+            DeltaState::new(worker(1, if quota { 24 << 10 } else { 4 << 20 }, &drops)).unwrap();
+        let path = std::env::temp_dir().join(format!(
+            "argentea-cap-receipt-{}-{quota}.jsonl",
+            std::process::id()
+        ));
+        state
+            .base
+            .test_audit_file(std::fs::File::create(&path).unwrap());
+        let mut base = request(Verb::Init, 0, 1, 3);
+        base.max_pushes = 0;
+        let plan = build(
+            &ctx,
+            &base,
+            graph(&ctx, &[0, 1, 2], &[(0, 1)], 1).await,
+            std::slice::from_ref(&state),
+        )
+        .await;
+        assert!(collect(plan.clone(), ctx.task_ctx()).await.is_err());
+        assert!(state.base.resources.execution.checkpoint().is_err());
+        state.base.close().unwrap();
+        state.close().unwrap();
+        let receipts = std::fs::read_to_string(&path)
+            .unwrap()
+            .lines()
+            .map(|s| serde_json::from_str::<serde_json::Value>(s).unwrap())
+            .collect::<Vec<_>>();
+        let failures = receipts
+            .iter()
+            .filter(|r| r["event"] == "failure")
+            .collect::<Vec<_>>();
+        if quota {
+            assert!(failures.is_empty());
+        } else {
+            assert_eq!(failures.len(), 1);
+            let f = failures[0];
+            assert_eq!(f["code"], "pagerank_push_cap");
+            assert_eq!(f["outcome"], "nonconverged");
+            assert_eq!(f["phase"], 1);
+            assert_eq!(f["pushes"], 0);
+            assert_eq!(f["max_pushes"], 0);
+            assert_eq!(f["certificate_passes"], 1);
+            assert!(f["residual_l1"].as_f64().unwrap() > f["tolerance"].as_f64().unwrap());
+            assert_eq!(
+                receipts.iter().filter(|r| r["event"] == "result").count(),
+                0
+            );
+            let failed = receipts
+                .iter()
+                .position(|r| r["event"] == "failure")
+                .unwrap();
+            let closed = receipts.iter().position(|r| r["event"] == "close").unwrap();
+            assert!(failed < closed);
+        }
+        drop(plan);
+        drop(state);
+        std::fs::remove_file(path).unwrap();
+    }
+}

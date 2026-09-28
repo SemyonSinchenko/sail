@@ -256,14 +256,14 @@ impl DeltaPartition {
         Ok(global)
     }
     pub(super) fn decision(&self, global: &Scalars) -> Result<DeltaMode> {
+        if let Some(cap) = self.cap_failure_for(global) {
+            return Err(cap.to_string());
+        }
         match self.completed {
             DeltaMode::Initial => Ok(DeltaMode::Certify),
             DeltaMode::Done => Ok(DeltaMode::Done),
             DeltaMode::Certify if global.residual_l1 <= self.options.tolerance => {
                 Ok(DeltaMode::Done)
-            }
-            DeltaMode::Certify if self.pushes >= self.options.max_pushes => {
-                Err("residual PageRank did not converge at the push cap".into())
             }
             DeltaMode::Certify => Ok(DeltaMode::Push),
             DeltaMode::Push

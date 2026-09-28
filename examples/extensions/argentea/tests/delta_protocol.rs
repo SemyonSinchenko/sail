@@ -278,3 +278,42 @@ fn borrowed_statistics_and_phase_readiness_use_the_same_state_machine() {
             .is_err()
     );
 }
+
+#[test]
+fn typed_cap_evidence_requires_a_fresh_complete_failed_certificate() {
+    use sail_argentea_core::DeltaCapFailure;
+    for stationary in [false, true] {
+        let op = operation(3, 3);
+        let (resources, usage, _) = resources(1024 * 1024);
+        let mut opts = options();
+        opts.max_pushes = 0;
+        let edges = if stationary {
+            vec![(0, 1), (1, 2), (2, 0)]
+        } else {
+            vec![(0, 1)]
+        };
+        let mut parts = partitions(&op, &[0, 1, 2], &edges, opts, &resources);
+        let phase0 = phase(&op, &parts);
+        assert!(parts[0].cap_failure(&phase0).is_err());
+        stats(&mut parts).unwrap();
+        assert_eq!(parts[0].cap_failure(&phase0).unwrap(), None);
+        assert_eq!(exchange(&op, &mut parts).unwrap().0, DeltaMode::Certify);
+        let phase1 = phase(&op, &parts);
+        assert!(parts[0].cap_failure(&phase1).is_err());
+        stats(&mut parts).unwrap();
+        let failure = parts[0].cap_failure(&phase1).unwrap();
+        if stationary {
+            assert_eq!(failure, None);
+            assert!(parts[0].seal(&phase1).unwrap().is_some());
+        } else {
+            let failure: DeltaCapFailure = failure.unwrap();
+            assert_eq!(failure.pushes, 0);
+            assert_eq!(failure.max_pushes, 0);
+            assert_eq!(failure.certificate_passes, 1);
+            assert!(failure.residual_l1 > failure.tolerance);
+            assert_eq!(parts[0].seal(&phase1).unwrap_err(), failure.to_string());
+        }
+        usage.cancel().unwrap();
+        assert!(parts[1].cap_failure(&phase1).is_err());
+    }
+}

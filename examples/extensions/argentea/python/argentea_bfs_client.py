@@ -180,7 +180,8 @@ class ArgenteaBfs:
             base = request(vertices_count=count,source=source,method=method,max_levels=max_levels,partitions=partitions,
                            alpha=alpha,beta=beta,max_phase_budget=max_phase_budget,batch_rows=batch_rows)
             with compose_views(self.spark,native_nodes,native_edges,request=base,phases=phases(max_levels),
-                               relation_type=ArgenteaBfsRelation,cancellation=run.cancellation) as composition:
+                               relation_type=ArgenteaBfsRelation,cancellation=run.cancellation,
+                               max_phases=max_phase_budget) as composition:
                 frame = composition.frame
                 plan_bytes = frame._plan.to_proto(self.spark.client).SerializeToString()
                 if self.observer is not None:

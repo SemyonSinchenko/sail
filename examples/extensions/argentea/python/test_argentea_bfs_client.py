@@ -176,3 +176,16 @@ def test_explicit_extended_budget_and_boundary(method):
         client.request(vertices_count=62,source=0,method=method,max_levels=63,max_phase_budget=128)
     with pytest.raises(ValueError):
         client.request(vertices_count=62,source=0,method=method,max_levels=62)
+
+
+@pytest.mark.parametrize('method',client.METHODS)
+def test_public_bfs_explicit_budget_reaches_view_composer(bfs_wrapper,scalar_collect,method):
+    scalar_collect.row=diagnostic_row(phase=63)
+    observed=[];state=bfs_wrapper
+    state.expected_views=128
+    with client.ArgenteaBfs(state.spark,observer=observed.append).bfs(
+            source('v',state.spark),source('e',state.spark),source=-5,method=method,
+            partitions=3,max_levels=62,max_phase_budget=128) as result:
+        assert result.native_phase_count==128
+        assert len(observed[0]['view_registrations'])==128
+        assert state.events.count('write-native-result')==1 and not state.views

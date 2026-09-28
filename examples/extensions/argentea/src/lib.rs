@@ -4,6 +4,8 @@
 //! must establish placement, input completeness, operation cleanup and a real
 //! host memory lease before these primitives can execute remotely.
 mod adjacency;
+mod sssp;
+pub use sssp::{SsspLabel, WeightedAdjacency};
 mod wcc;
 pub use wcc::{
     WccAlgorithm, WccCapFailure, WccCompletion, WccCompletionValues, WccConvergence,

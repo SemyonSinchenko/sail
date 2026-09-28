@@ -243,7 +243,7 @@ def wrapper(monkeypatch, scalar_collect):
 
         def materialize(self, frame, *, expected_rows):
             assert isinstance(frame._plan,Read) and expected_rows==7
-            assert len(state.views)==32  # All views remain alive through materialization.
+            assert len(state.views)==getattr(state,'expected_views',32)  # Exact schedule stays alive through materialization.
             events.append('write-native-result')
             self.write_uncertain = state.uncertain
             if state.cancel_on_write:

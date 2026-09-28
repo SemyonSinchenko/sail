@@ -3,7 +3,7 @@
 Each registration contains one extension envelope and shallow table references.
 Sail resolves/stores its logical plan; native execution starts only when the
 terminal relation is acted on. This uses the ordinary view API and unchanged
-wire guard, with at most 32 registered views per composition.
+wire guard, with32 views by default and an explicit bound of at most128 views.
 """
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -30,7 +30,7 @@ def _cleanup_details(error, errors, uncertain):
 
 
 @contextmanager
-def compose_views(spark, vertices, edges, *, request, phases, relation_type, cancellation):
+def compose_views(spark, vertices, edges, *, request, phases, relation_type, cancellation, max_phases=32):
     """Keep all confirmed views alive until the caller's terminal action ends.
 
     Unique aliases use createTempView, never replacement. Drop only confirmed
@@ -41,8 +41,9 @@ def compose_views(spark, vertices, edges, *, request, phases, relation_type, can
     preserves an existing registration/execution/cancellation error.
     """
     phases = tuple(phases)
-    if not 1 <= len(phases) <= 32 or phases[0] != ('init', 0):
-        raise ValueError('view composition requires 1..32 phases beginning with init0')
+    if (isinstance(max_phases,bool) or not isinstance(max_phases,int) or not 1 <= max_phases <= 128
+            or not 1 <= len(phases) <= max_phases or phases[0] != ('init', 0)):
+        raise ValueError('view composition requires phases within the explicit bound (at most128), beginning with init0')
     prefix = 'argentea_phase_'+uuid.uuid4().hex
     owned, registrations, uncertain = [], [], []
 

@@ -1,0 +1,19 @@
+{
+  "boundary": "Actual decompressed-byte scan, not an exhaustive secret-detection guarantee.",
+  "configured_credential_fields": [
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY"
+  ],
+  "decompressed_files": 678,
+  "matches": [],
+  "outcome": "passed",
+  "patterns": {
+    "anthropic-token": "sk-ant-[A-Za-z0-9_-]{20,}",
+    "aws-access-id": "AKIA[0-9A-Z]{16}",
+    "github-token": "gh[pousr]_[A-Za-z0-9]{30,}",
+    "openai-token": "sk-proj-[A-Za-z0-9_-]{20,}",
+    "private-key": "-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----",
+    "slack-token": "xox[baprs]-[A-Za-z0-9-]{20,}"
+  },
+  "recorded_utc": "2026-09-28T07:37:13.461436+00:00"
+}

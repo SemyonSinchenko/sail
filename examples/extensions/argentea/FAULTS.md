@@ -150,4 +150,6 @@ unwinds. Those counters are not RSS and do not state the refused allocation's
 size. A peer cancellation can still be the first RPC error. Full post-init quota
 qualification must independently require initialized owners, this causal record,
 terminal tasks, cleanup and subsequent quota reuse on the same live workers.
-That formal quota/reuse gate remains outstanding.
+All four WCC/SSSP variants now pass that sequence on two ARM worker processes.
+See [the resource tutorial](GRAPH_RESOURCES.md) and its retained evidence.
+Linux and physical two-host resource qualification remain outstanding.

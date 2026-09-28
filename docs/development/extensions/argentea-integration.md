@@ -484,8 +484,9 @@ and [SSSP adapter](../../../examples/extensions/argentea/SSSP_ADAPTER.md) add
 extension-owned graph stages and no further Sail host hook.
 
 1. Extend the now-passing WCC/SSSP process cancellation and worker-loss controls
-   to physical two-host execution, and finish post-initialization quota/reuse
-   gates. Bind-time refusal does not prove later allocation cleanup. The
+   to physical two-host execution. Post-initialization quota/reuse now passes
+   all four variants on two ARM worker processes; extend those resource gates
+   to Linux and physical hosts. See the [resource tutorial](../../../examples/extensions/argentea/GRAPH_RESOURCES.md). The
    [graph fault evidence](argentea-validation/README.md#graph-algorithm-cancellation-and-worker-loss)
    records the four algorithm variants separately.
 2. Complete Linux and physical WCC/SSSP qualification after the measured

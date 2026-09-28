@@ -307,3 +307,28 @@ and 256 MiB native admission per worker. No additional host change was needed.
 These are two processes on Capitola. Physical two-host faults and post-init
 quota/reuse remain separate gates. See [FAULTS.md](../../../../examples/extensions/argentea/FAULTS.md)
 for commands and the causal-evidence contract.
+
+
+## Graph memory refusal and same-worker reuse
+
+[Graph resource evidence](graph-resource-functional-evidence.tar.gz) preserves
+four clean-source qualifications at `e246f3d26c82728a14e6b1dffd3bf2448e549be0`,
+two development sequences, and six earlier causal diagnostics. The
+[bundle](graph-resource-functional-bundle.json),
+[manifest](graph-resource-functional-manifest.json), and
+[byte scan](graph-resource-functional-scan.json) identify every artifact.
+
+Reference/star WCC and reference/delta-star SSSP each pass warmup, post-init
+native memory refusal, and three successful queries on the same two live workers
+and session. The 32 MiB native quota sits inside a 48 MiB Sail pool: retaining a
+full old reservation would prevent admission of the next. Every initialized
+owner closes, native tasks terminate without replay, prior Parquet outputs remain
+readable, owned views disappear, and final session/process/staging cleanup passes.
+Independent result and stage/task checks accompany the causal native receipts.
+
+The native wheel is built from `5ce69ac89d70eb6e3358add5d346c0a62d2c6fe6`;
+the Sail host is `d9c6381a0effe07ab89ddb87739a0b2003b9664b`. These are ARM
+process-cluster functional checks, not physical two-host, Linux, RSS or timing
+measurements. Earlier peer-cancellation-only and pre-init refusal diagnostics are
+retained as diagnostics, not promoted to successful post-init qualifications.
+See the [reproduction tutorial](../../../../examples/extensions/argentea/GRAPH_RESOURCES.md).

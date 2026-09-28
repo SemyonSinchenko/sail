@@ -1,0 +1,305 @@
+{
+  "archive": "graph-resource-functional-evidence.tar.gz",
+  "boundary": "Functional and diagnostic attempts only; all failed outcomes retained. No performance claim.",
+  "included_files": 678,
+  "outcomes": [
+    {
+      "native": null,
+      "outcome": "expected-memory-refusal",
+      "path": "formal/sssp_delta_star/memory-refusal/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": "5ce69ac89d70eb6e3358add5d346c0a62d2c6fe6",
+      "outcome": "passed",
+      "path": "formal/sssp_delta_star/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "e246f3d26c82728a14e6b1dffd3bf2448e549be0"
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "formal/sssp_delta_star/reuse-1/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "formal/sssp_delta_star/reuse-2/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "formal/sssp_delta_star/reuse-3/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "formal/sssp_delta_star/warmup/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "expected-memory-refusal",
+      "path": "formal/sssp_reference/memory-refusal/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": "5ce69ac89d70eb6e3358add5d346c0a62d2c6fe6",
+      "outcome": "passed",
+      "path": "formal/sssp_reference/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "e246f3d26c82728a14e6b1dffd3bf2448e549be0"
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "formal/sssp_reference/reuse-1/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "formal/sssp_reference/reuse-2/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "formal/sssp_reference/reuse-3/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "formal/sssp_reference/warmup/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "expected-memory-refusal",
+      "path": "formal/wcc_reference/memory-refusal/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": "5ce69ac89d70eb6e3358add5d346c0a62d2c6fe6",
+      "outcome": "passed",
+      "path": "formal/wcc_reference/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "e246f3d26c82728a14e6b1dffd3bf2448e549be0"
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "formal/wcc_reference/reuse-1/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "formal/wcc_reference/reuse-2/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "formal/wcc_reference/reuse-3/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "formal/wcc_reference/warmup/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "expected-memory-refusal",
+      "path": "formal/wcc_star/memory-refusal/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": "5ce69ac89d70eb6e3358add5d346c0a62d2c6fe6",
+      "outcome": "passed",
+      "path": "formal/wcc_star/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "e246f3d26c82728a14e6b1dffd3bf2448e549be0"
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "formal/wcc_star/reuse-1/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "formal/wcc_star/reuse-2/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "formal/wcc_star/reuse-3/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "formal/wcc_star/warmup/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "expected-memory-refusal",
+      "path": "development-sssp/memory-refusal/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": "5ce69ac89d70eb6e3358add5d346c0a62d2c6fe6",
+      "outcome": "passed-development",
+      "path": "development-sssp/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "6c69ace465f196b67ee5219a2db8d1a836acea74"
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "development-sssp/reuse-1/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "development-sssp/reuse-2/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "development-sssp/reuse-3/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "development-sssp/warmup/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "expected-memory-refusal",
+      "path": "development-wcc/memory-refusal/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": "5ce69ac89d70eb6e3358add5d346c0a62d2c6fe6",
+      "outcome": "passed-development",
+      "path": "development-wcc/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "6c69ace465f196b67ee5219a2db8d1a836acea74"
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "development-wcc/reuse-1/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "development-wcc/reuse-2/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "development-wcc/reuse-3/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "passed",
+      "path": "development-wcc/warmup/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "diagnostic-complete-not-qualified",
+      "path": "diagnostic-sssp-delta-768k/receipt.json",
+      "runtime": null,
+      "source": "d03579496d71741bbc672dc4e1e352f0f67b0b0a"
+    },
+    {
+      "native": null,
+      "outcome": "diagnostic-complete-not-qualified",
+      "path": "diagnostic-sssp-delta-3m-control/receipt.json",
+      "runtime": null,
+      "source": "d03579496d71741bbc672dc4e1e352f0f67b0b0a"
+    },
+    {
+      "native": null,
+      "outcome": "diagnostic-complete-not-qualified",
+      "path": "diagnostic-sssp-delta-768k-causal/receipt.json",
+      "runtime": null,
+      "source": "5ce69ac89d70eb6e3358add5d346c0a62d2c6fe6"
+    },
+    {
+      "native": null,
+      "outcome": "diagnostic-complete-not-qualified",
+      "path": "diagnostic-wcc-star-384k-causal/receipt.json",
+      "runtime": null,
+      "source": "5ce69ac89d70eb6e3358add5d346c0a62d2c6fe6"
+    },
+    {
+      "native": null,
+      "outcome": "diagnostic-complete-not-qualified",
+      "path": "diagnostic-wcc-star-768k-causal/receipt.json",
+      "runtime": null,
+      "source": "5ce69ac89d70eb6e3358add5d346c0a62d2c6fe6"
+    },
+    {
+      "native": null,
+      "outcome": "diagnostic-complete-not-qualified",
+      "path": "diagnostic-sssp-delta-32m-pool48m/receipt.json",
+      "runtime": null,
+      "source": "6c69ace465f196b67ee5219a2db8d1a836acea74"
+    }
+  ],
+  "recorded_utc": "2026-09-28T07:37:13.461436+00:00",
+  "sha256": "c0ca084c434192d6a36743674c5f28f1b64760bfc1c16a31fa504cc6c50a8136",
+  "size_bytes": 533153,
+  "source_clean_qualification": "Four frozen ARM process-cluster cases pass: reference/star WCC and reference/delta-star SSSP. Each retains one session and two workers through warmup, genuine post-init memory refusal, and three successful reuse operations. Native quota32MiB, Sail pool48MiB. Independent answers, stage/task identity, no retries, owner closure, process and staging cleanup are audited. Two development sequences and six causal diagnostics remain distinct. The earlier hidden-cause and pre-init refusal diagnostics are not post-init qualifications. These are not physical two-host, Linux, RSS or performance gates."
+}

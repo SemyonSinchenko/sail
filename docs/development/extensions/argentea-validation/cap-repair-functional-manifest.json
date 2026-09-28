@@ -1,0 +1,826 @@
+{
+  "boundary": "Functional and diagnostic attempts only; all failed outcomes retained. No performance claim.",
+  "files": [
+    {
+      "path": "arm-gates/cap-1-controller.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "arm-gates/cap-1/client-plan.pb",
+      "sha256": "73e4b600718ea1ac9c23064bd549039d7114ed29d7af8216b67a0f0e662549c7",
+      "size_bytes": 71
+    },
+    {
+      "path": "arm-gates/cap-1/exercise.json",
+      "sha256": "cc1f6005c13c45ec8980e3a1481572f1c4d348871acfcc265c74108d6e79255c",
+      "size_bytes": 21475
+    },
+    {
+      "path": "arm-gates/cap-1/receipt.json",
+      "sha256": "fdb5573038dd209cac047ad7f1019f9b8af2b935242846cf29430c9f564fc78e",
+      "size_bytes": 110508
+    },
+    {
+      "path": "arm-gates/cap-1/server.log",
+      "sha256": "a0268602ce92bc10c5a4ce7769c5ac9f58bc7d117badb411ba32848694957c2a",
+      "size_bytes": 59104
+    },
+    {
+      "path": "arm-gates/cap-1/terminal-explain.txt",
+      "sha256": "d82b19191df9870dca9fe8f4b1ccc032753e64b9dccae6b94e9457f3ab98982e",
+      "size_bytes": 8725
+    },
+    {
+      "path": "arm-gates/cap-1/view-plan-00.pb",
+      "sha256": "091df7902a37ed002ef6095dd7581200d06fbbe8a63b44dfc4f53fc15bcea96f",
+      "size_bytes": 867
+    },
+    {
+      "path": "arm-gates/cap-1/view-plan-01.pb",
+      "sha256": "868075d9a8d3f1317d67eae8b90fdea77107ea5596770cc0dac7ee9cffd5a6f1",
+      "size_bytes": 501
+    },
+    {
+      "path": "arm-gates/cap-1/view-plan-02.pb",
+      "sha256": "babdb881f5cf56a6cff5c5b31deb0d61290067839111575c565605564984f6ec",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/cap-1/view-plan-03.pb",
+      "sha256": "0be10a56a00560facaae26647ce212286130df4861fef05a68cd045294028064",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/cap-2-controller.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "arm-gates/cap-2/client-plan.pb",
+      "sha256": "e21deeae172c1458eb5435cd99f349fb69dacb967553617c82d293e17882615d",
+      "size_bytes": 71
+    },
+    {
+      "path": "arm-gates/cap-2/exercise.json",
+      "sha256": "4d1809c560befba24f0d474264f4c44e05c7ba88dfe729e6e4ff09a14b84b006",
+      "size_bytes": 21486
+    },
+    {
+      "path": "arm-gates/cap-2/receipt.json",
+      "sha256": "4487c777df71aa68652ee4d8b6ca1f4e0e1835396ed5c496ed3824fc72997dc4",
+      "size_bytes": 110519
+    },
+    {
+      "path": "arm-gates/cap-2/server.log",
+      "sha256": "a0e0dbd6f11393b5b5ec851b1e3fcbfdc095043a713c99691e2249c3a0a50ffc",
+      "size_bytes": 59352
+    },
+    {
+      "path": "arm-gates/cap-2/terminal-explain.txt",
+      "sha256": "7145701ef93b1f73ca23e7e91b2eb9c2c09928f9a4b0b6f7d9fea294ad0f36eb",
+      "size_bytes": 8725
+    },
+    {
+      "path": "arm-gates/cap-2/view-plan-00.pb",
+      "sha256": "f5c117d8756510e819f5adfb0fe44587ad932430c93df0e662fa210dd34a9085",
+      "size_bytes": 867
+    },
+    {
+      "path": "arm-gates/cap-2/view-plan-01.pb",
+      "sha256": "04c6744f8418296a065754f552e9f02a7abeccb83a5b60fab86b95cc9ee16362",
+      "size_bytes": 501
+    },
+    {
+      "path": "arm-gates/cap-2/view-plan-02.pb",
+      "sha256": "316e3e0576fbb6f13cb718465c08464468e87fdd1a80678cd2b03721dec8b9c8",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/cap-2/view-plan-03.pb",
+      "sha256": "e3a4e1031545c46f85e386934e9fa96a16bb926c44d2af9916942b8eab8f67c5",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/cap-3-controller.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "arm-gates/cap-3/client-plan.pb",
+      "sha256": "f597a566959a235fb3d9a81c50497efdc3e71bf9f4bb58e5a0965eee5b91ad5d",
+      "size_bytes": 71
+    },
+    {
+      "path": "arm-gates/cap-3/exercise.json",
+      "sha256": "96e19af006ae04806d3e33cdd83b25a15412bbe1c34fac188f89516909852ca2",
+      "size_bytes": 21486
+    },
+    {
+      "path": "arm-gates/cap-3/receipt.json",
+      "sha256": "b25e3084db52fddd426643d21e643f6e6f56d0b0a65f6c34bc914e34896cceb3",
+      "size_bytes": 110519
+    },
+    {
+      "path": "arm-gates/cap-3/server.log",
+      "sha256": "6a97b38928e3c9cf08bce2524e4c4a8acd44cc205c9fc31547f61f7fa0a09899",
+      "size_bytes": 59230
+    },
+    {
+      "path": "arm-gates/cap-3/terminal-explain.txt",
+      "sha256": "24162dcf43c45ea6f17cd8e890a4150695e30910fbc64c19530da8070dc498f3",
+      "size_bytes": 8725
+    },
+    {
+      "path": "arm-gates/cap-3/view-plan-00.pb",
+      "sha256": "aea6d2f7aa07c87990915362ad91c5d8b233dc5049b8302386ef3e8cd0bbe3eb",
+      "size_bytes": 867
+    },
+    {
+      "path": "arm-gates/cap-3/view-plan-01.pb",
+      "sha256": "1e0805b657fcbd4baddde421f3465d535e8b8b7c721aae9b7007d5f84f428a0f",
+      "size_bytes": 501
+    },
+    {
+      "path": "arm-gates/cap-3/view-plan-02.pb",
+      "sha256": "2c3532dcb0d836ecdae298ac5c9f734c54e251b3eca9e4036299185ccb9e7cb5",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/cap-3/view-plan-03.pb",
+      "sha256": "b07a0494f7ca79fd0743a42775fca7d6c7d6768dc6c80d2dce6f14c17a2d7b55",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/commands.json",
+      "sha256": "26e649ca83be789189d93aa039d8d6508b381f7948193090b8021fb64e9ec258",
+      "size_bytes": 3461
+    },
+    {
+      "path": "arm-gates/qualification-verdict.json",
+      "sha256": "51699f5677418c8403373f68c67a5f29a3c8bf4ad16dd8cff31d566b83009b4f",
+      "size_bytes": 4343
+    },
+    {
+      "path": "arm-gates/residual-controller.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "arm-gates/residual/client-plan.pb",
+      "sha256": "d7c4ec107f552907e5beea77aa8af16bdb2a4fd4caa9dcc4607c3dd8bf336ed5",
+      "size_bytes": 73
+    },
+    {
+      "path": "arm-gates/residual/exercise.json",
+      "sha256": "cbfa6d3c5290238f8c770f8ce772b9e48c7dcc39a50f8e4f202a5a7716337db9",
+      "size_bytes": 78686
+    },
+    {
+      "path": "arm-gates/residual/receipt.json",
+      "sha256": "b5c7a09082dacb80245af0032abca358bde5ca7439986ba97ede056abd33fbbd",
+      "size_bytes": 357087
+    },
+    {
+      "path": "arm-gates/residual/server.log",
+      "sha256": "d919861365a9265aed309938b8b8c2fc2dce5d2df1d1e934117634851f3bcdfa",
+      "size_bytes": 195922
+    },
+    {
+      "path": "arm-gates/residual/terminal-explain.txt",
+      "sha256": "d467f008637ef3850db9ac75882ff1ef17e0d1a703cc90af0c76d079f7c2546b",
+      "size_bytes": 21254
+    },
+    {
+      "path": "arm-gates/residual/view-plan-00.pb",
+      "sha256": "5cfb0f428545f29331822c438d4624eca6526e34ffe6c4b21e860f5b46c5dad4",
+      "size_bytes": 873
+    },
+    {
+      "path": "arm-gates/residual/view-plan-01.pb",
+      "sha256": "5482b236019ece1e79fa969a90a60da040e8aac196ad44fdf3426aae7d87d9ed",
+      "size_bytes": 501
+    },
+    {
+      "path": "arm-gates/residual/view-plan-02.pb",
+      "sha256": "1929415d733e45fa58d43a435100d3ff01b0fc5f23de4364fbd3d639d06e2e1e",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-03.pb",
+      "sha256": "726de55091d72b0e098468e17f7153799b0a1a2b1549eea2758b6ad701c16a35",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-04.pb",
+      "sha256": "d6750edd903590e1ccc3368c366a59c51b9d9aa976d72cc44b5cafa112526f7b",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-05.pb",
+      "sha256": "cd7a69f716dfa244ca03cc37611bfef1bdad629503358065789639e919c71cbe",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-06.pb",
+      "sha256": "44280962cee592b7c3381a90a9677cfb5e03a152f489c3cf3d45ae1aede727bb",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-07.pb",
+      "sha256": "d3ca4c094b41aa994c081771dc324c0b56ef940c31120069b5972b0a7360d787",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-08.pb",
+      "sha256": "e20502af12eaca8ee010e72aaaf6231518ea0f50704ca7bff037c69eed441bbf",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-09.pb",
+      "sha256": "f36ef2ae9e5655d1a685a02a5f3036a78511f587d17a6875f3d0e40472e0fc1f",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-10.pb",
+      "sha256": "9076646a1fe12120a4b91a06fd27bce4862cffc4a65c27e44f31bbf153e25358",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-11.pb",
+      "sha256": "c3519e9b89097253340cfcbc2941d20e59afb1ac0e3baa4d1ed29f776ce5ccf6",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-12.pb",
+      "sha256": "5d2d31b865c6cb6b207e8106a9fe52e0a3a5f5f9eae31b68373078c1667979b9",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-13.pb",
+      "sha256": "7db729776b5a9e31d3620a2351fb8f6ce9ad3691dd1f6d5d523d0152ef97b63a",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-14.pb",
+      "sha256": "be82d5a6df8d04cbabbe87e1a8792796d0d5b52ce330b8cb1aee9a89d0501e59",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-15.pb",
+      "sha256": "5eeece2cc4ea0984a28f4403d9f06a685dcde00915060692c8f7d2dfe0c51c4b",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-16.pb",
+      "sha256": "fff22ea65d3f1f4c42ab814526a3a842d45d9a499a08d8d1b4cefe2d7f70e225",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-17.pb",
+      "sha256": "519747d25943e912131e82cdbd10b0a19ae75a1fd53fd01801a8811ff8292ee2",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-18.pb",
+      "sha256": "e27b883b781e7937011ca7dfa701b21cfa01fcbf2aae98f97d61b1b3163c5487",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-19.pb",
+      "sha256": "98505791fc6a30916c154d507a51ba6fdf92c6a3ac449a3997ff0580ab4e9347",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-20.pb",
+      "sha256": "bf342fad183c5ab3bf67a6f957fbd0dec0a57d8038eebe8562e542493bab6c99",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/residual/view-plan-21.pb",
+      "sha256": "4a7519a59a41d2fe05c430184912dc01f8cb5687b5df865a6935825555c8c907",
+      "size_bytes": 503
+    },
+    {
+      "path": "arm-gates/residual/view-plan-22.pb",
+      "sha256": "6fa96314908b280c686000b2cd05ce97caa39ca7ca6e8a9ea13f562d1e168162",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/residual/view-plan-23.pb",
+      "sha256": "57421c2e599f5d0124d2f49cdfac9dac3ad767f07513e1a3db83bc2c7264a3b9",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/residual/view-plan-24.pb",
+      "sha256": "14ffd04c02de4e325d759e7fa7ff0aa421acc128fdea11c20698d7993060d17b",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/residual/view-plan-25.pb",
+      "sha256": "d98bcef31631ffb8427038d2ebed247592885d01c122f1586f6f079db98ccead",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/residual/view-plan-26.pb",
+      "sha256": "063a9412e776e675603fdacf5a2a7934ee16fa71381155d86ed3f7ba9f3ee4a2",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/residual/view-plan-27.pb",
+      "sha256": "d2b80e95f5586d635be7d37cf2ae4df5c68a4591759810242b115d19330a7e00",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/residual/view-plan-28.pb",
+      "sha256": "9a31d67ce4583b580cc762464f13cf7c245d1fc7021648ae2e505ced953d394e",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/residual/view-plan-29.pb",
+      "sha256": "d5f38893c54202194ab113ab2f32acc29a660751c9a98a3b6db91f5bddfa6e16",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/residual/view-plan-30.pb",
+      "sha256": "71d6523a083236ef2853bb40fcac6c876b66c63e89be087a6dafdf3ea295b829",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/residual/view-plan-31.pb",
+      "sha256": "f0fb67d8d3ad58fc1966c5037272e6c4ac26cc2a16430e68439ae8197c6b41d4",
+      "size_bytes": 506
+    },
+    {
+      "path": "arm-gates/stationary-controller.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "arm-gates/stationary/client-plan.pb",
+      "sha256": "bbf9cac56a13d589c440a5fcb9237a0b032320762fec381fb95dc0c9ac30fcea",
+      "size_bytes": 73
+    },
+    {
+      "path": "arm-gates/stationary/exercise.json",
+      "sha256": "e65018de4a64650f85c309d0bea3e02ff3c55ab70a89be7e0a2e666b49b38eb3",
+      "size_bytes": 78487
+    },
+    {
+      "path": "arm-gates/stationary/receipt.json",
+      "sha256": "79f9e55baa7e1f3b34522ab8756c5854bd04bfdc7dd801133acea31011982e96",
+      "size_bytes": 355613
+    },
+    {
+      "path": "arm-gates/stationary/server.log",
+      "sha256": "9749e2fd1a1934d7ff3acfd6ea100a5efd46b324ace7d8bf1c867bf9e50ef50d",
+      "size_bytes": 195386
+    },
+    {
+      "path": "arm-gates/stationary/terminal-explain.txt",
+      "sha256": "226383dbf1ad14683015f1fc2a1318608c5edb4e87034138bdf70898037d372f",
+      "size_bytes": 21258
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-00.pb",
+      "sha256": "07304a7748d94a740113164d382bc4df5ee97edadcb79ad9babf38a48e419fef",
+      "size_bytes": 877
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-01.pb",
+      "sha256": "9e4bac2e93d9f0ceff637433e3b3a70edd0fe15201c3e4b4214ea9e18ba60ae4",
+      "size_bytes": 501
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-02.pb",
+      "sha256": "8fd5e1c4fa08c6059669f395164b9e4c4b387a4766b4dc8f759d260590fee196",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-03.pb",
+      "sha256": "c5dafe952aac32730069e811bff908f5e103fa9a980e232fca12aa8e6e629f4d",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-04.pb",
+      "sha256": "b4138f08f295ef26c56a68a944cdf5bb7f03a8037272c8579e259543b2b497b0",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-05.pb",
+      "sha256": "a3f55c36279d36cd9dee57a915e5ae2c6f9437f5e885b1653db5b52fa8a437c5",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-06.pb",
+      "sha256": "bcb43927b18ba6e17d38e07aaa326481ae2ba83196a69db12df074a0a3a5fbf4",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-07.pb",
+      "sha256": "9fda5031e4dc611e1301d75e3247105bce7728a79f0e54fca1f12ab2b025f66b",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-08.pb",
+      "sha256": "2b5529a478fdaa8f146903590e0cba63e70ea87ced22d5f9eefa3aa8b75cf635",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-09.pb",
+      "sha256": "199bf5dde49d77e335de675bd4e337efa0c164e41041a9f7827c90d83de85d84",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-10.pb",
+      "sha256": "068e16fc5d9e3f34538dcdfc361b4a43256c8a11e1a513e27d4789d98449ca4a",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-11.pb",
+      "sha256": "5fd95c1ed30776ef69270cf6c4c1eb27b4d83e8b594c5c963d5a027b8f9cac38",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-12.pb",
+      "sha256": "75884913a4c8b671678bfeedd00d892e6d7a1b254609aed158fffdb00e4f7e61",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-13.pb",
+      "sha256": "5cfae1c5d5792db2124c80ab30f8288890c7419c86fda85ed44f6442a45a4f42",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-14.pb",
+      "sha256": "9488f1a967f5df2ac4a1b01101b2dccf6c4ba25445eb34cf5def40e89634a401",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-15.pb",
+      "sha256": "83a26bdb04f73723cdf27844c3801ef411f98cadc9cf93ad8c2f0eff1c2855e4",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-16.pb",
+      "sha256": "0a27a58f9d7b4704da04ea0664d3cab25c10442afd3333d148f4e0cdc97e28bd",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-17.pb",
+      "sha256": "c1554a82c7bdca87c91d5680bc6b4d3f5a0e7a374ad7ed739a5906ecaa5776cf",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-18.pb",
+      "sha256": "30a0065c2eac8d580b916c633d9b7c5f83b8a22835630b24cb9d48e596113646",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-19.pb",
+      "sha256": "34246d4b51acc3170e2e17eac39c866f283db069e1664ecd533ec4a37bc9cb8e",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-20.pb",
+      "sha256": "21fba1f8572140a518ed21452de594155def859863baa05e581fe1bc8bfec673",
+      "size_bytes": 502
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-21.pb",
+      "sha256": "3a1fb63504c74d58873c0ca38c7151fea7624db4f0ecbc0e5c20e3a3676924eb",
+      "size_bytes": 503
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-22.pb",
+      "sha256": "d5f6be79fea3939c28a5fbe927d51f607a6915662a64c4059bb7dea70465e055",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-23.pb",
+      "sha256": "526c85c779bec229991960e6a59bc42ca8e8dfedb0740d7471e82e52ee08fa3f",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-24.pb",
+      "sha256": "5b23a69d93ca1e61ed9c4e9057a398e7cf18509172ab8d410f3e7ca1e0b57010",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-25.pb",
+      "sha256": "f8f6b527e7f958e126c10336429ba71309f5531202644a9f236bd0a7a6c9e07d",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-26.pb",
+      "sha256": "0816147c4371f45d3becf5b2b734ef2df564dd9cc12c6c29cc1c780cee1bd763",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-27.pb",
+      "sha256": "4b97d307eca82ce8808899ca14d62d5d227c0390fbb1be169fe64f89dca92b25",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-28.pb",
+      "sha256": "a31a9f9f285ee83a6c6475fcbf907662d42c734529c9867c748aeb8a05c10e90",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-29.pb",
+      "sha256": "6e2f9691df43736573d4770f397f87f689060e7b44e935d1712219ec77b05bec",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-30.pb",
+      "sha256": "f81c0434d236449e547a6062c1ad3d230b3d1e8827a064aadd1d8d39ffb5dd09",
+      "size_bytes": 504
+    },
+    {
+      "path": "arm-gates/stationary/view-plan-31.pb",
+      "sha256": "86b9ba14d151671f347ea381a79cc3c0630be445f28d1df7fe043662e629020b",
+      "size_bytes": 506
+    },
+    {
+      "path": "provenance/arm-wheel.json",
+      "sha256": "ce489a41bcde5bb66a1b25f294ef8d7bb2e9b014040f02937fe3aab7c46619e7",
+      "size_bytes": 587
+    },
+    {
+      "path": "provenance/combined-copy-manifest.json",
+      "sha256": "0afdcbc4e5bde89a9089ca8afdf04d150b0e6a4a44cd5dc19b721cdbe7483a1f",
+      "size_bytes": 1903
+    },
+    {
+      "path": "provenance/intel-wheel.json",
+      "sha256": "c71cf205d732179ea16ed0aa742830273abba01be02118ed4b75a404295c9443",
+      "size_bytes": 589
+    },
+    {
+      "path": "provenance/native-gates.json",
+      "sha256": "149fc8a6a47bfdc2d0a282dfcb38683405b5d394b2484e078d67e895343ffecd",
+      "size_bytes": 630
+    },
+    {
+      "path": "provenance/native-source.json",
+      "sha256": "5913b0e235189509894cff6195c42db90efc641a12fdbba53461ac913d50c6be",
+      "size_bytes": 1328
+    },
+    {
+      "path": "provenance/transport.json",
+      "sha256": "960e2e59288933ce3ebadeab68a9da2181d08ac3e6c692e66fbb06c67c4c78d9",
+      "size_bytes": 1264
+    },
+    {
+      "path": "two-host-cap/client-plan.pb",
+      "sha256": "4c91c5d1c655aed78f769745ade19777cdf6bb681f1eb7aab27f310d0c840bd6",
+      "size_bytes": 71
+    },
+    {
+      "path": "two-host-cap/exercise.json",
+      "sha256": "810ee951426af8e8f4f7c6bc80500e89d632d2a36bead065858e6a03d757e7fa",
+      "size_bytes": 22468
+    },
+    {
+      "path": "two-host-cap/qualification-verdict.json",
+      "sha256": "4516f79be8802961daba2c203d8af17a0c696cba40722f235b747ffea72df82b",
+      "size_bytes": 945
+    },
+    {
+      "path": "two-host-cap/receipt.json",
+      "sha256": "9b07141e85638b3707ac5441a0b2ac281a1fce1c3a49936f89bca25b87f51802",
+      "size_bytes": 111750
+    },
+    {
+      "path": "two-host-cap/server-and-workers.log",
+      "sha256": "fc4c1f8ad2229c6d1c5eeeab6a9259892b2b69a252acedab2c9c23a8d1f46ea2",
+      "size_bytes": 61681
+    },
+    {
+      "path": "two-host-cap/shared-store-cleanup.json",
+      "sha256": "074b2f5a2dabe7557655de49fdbec2c08c7a7a60412a974093b3401e344616f5",
+      "size_bytes": 313
+    },
+    {
+      "path": "two-host-cap/terminal-explain.txt",
+      "sha256": "c809d647880cf9532aaf90a7a202533b08449ba9629f38efc55caf3a4ed7691a",
+      "size_bytes": 8625
+    },
+    {
+      "path": "two-host-cap/view-plan-00.pb",
+      "sha256": "fd1307c530d96e2683e06fc0f5232e06e1b74abf81f1f0ecd51a6bec7706f0f3",
+      "size_bytes": 791
+    },
+    {
+      "path": "two-host-cap/view-plan-01.pb",
+      "sha256": "1cf3ff8ac439055e054793dc6b82a326f6b5d7052081a1bce74da64da48368c8",
+      "size_bytes": 501
+    },
+    {
+      "path": "two-host-cap/view-plan-02.pb",
+      "sha256": "89c99b5b569091c37d6228523636d14daac4994be925366fa228bda08814fbc6",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-cap/view-plan-03.pb",
+      "sha256": "f4cac0169b124a5857cc512085f7f0ae3c9f8fe9e6422617bcd70bdc299c0e86",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/client-plan.pb",
+      "sha256": "22c29e952dbf2fbd2d9b6e4a955da026a72b3256dc87340f016ebdefce57591a",
+      "size_bytes": 73
+    },
+    {
+      "path": "two-host-residual/exercise.json",
+      "sha256": "0c6848dd181be171821ded9b28005ecf9fa6a443d9132012967e95ba65975734",
+      "size_bytes": 79665
+    },
+    {
+      "path": "two-host-residual/qualification-verdict.json",
+      "sha256": "cf08f2ee8b35e962422219c93406b56b11d88220b9787fec5256a5575138512d",
+      "size_bytes": 1309
+    },
+    {
+      "path": "two-host-residual/receipt.json",
+      "sha256": "9bd46d88254b0a14cef35e2ebc74f3fad333e9d3e91c8cf94c563299ec57de57",
+      "size_bytes": 362926
+    },
+    {
+      "path": "two-host-residual/server-and-workers.log",
+      "sha256": "fba3792800bb2f625593d8ad2d801e192d2e497f1aa58e21bbec5dd613469f1b",
+      "size_bytes": 199404
+    },
+    {
+      "path": "two-host-residual/shared-store-cleanup.json",
+      "sha256": "585438df5b61aa682bf2de817750d6ae0139fcf1d5b605b5d20d1cffdb946838",
+      "size_bytes": 313
+    },
+    {
+      "path": "two-host-residual/terminal-explain.txt",
+      "sha256": "529ea1c874facfd305d43d7b6b24dbf53a82658cf4aec6503d92cf0b3697c12e",
+      "size_bytes": 21148
+    },
+    {
+      "path": "two-host-residual/view-plan-00.pb",
+      "sha256": "ff9a6056d81e5a429fb885cb2e87db04a666b2ceca4515966846e9690bc55a61",
+      "size_bytes": 791
+    },
+    {
+      "path": "two-host-residual/view-plan-01.pb",
+      "sha256": "539a62006602c7c8882d0b6f4907007404427496be6d61e13d435c5e6af58974",
+      "size_bytes": 501
+    },
+    {
+      "path": "two-host-residual/view-plan-02.pb",
+      "sha256": "bc81aa6fb21787a204310f57d326c332f0aeb096d9933ad9d9aedda381b442d5",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-03.pb",
+      "sha256": "e9af06c79347ce9772cd443481c012b1fd672a41e335546796cf5d8721496ab3",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-04.pb",
+      "sha256": "29bacf8bad172636a0fa794db69505fd05c938bca9db81e80085ac75cea02edf",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-05.pb",
+      "sha256": "6aa9b30a4cc1430b97d82487f9cf2b2ad9e18bdc38ada4d72a3aa624d8fa4761",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-06.pb",
+      "sha256": "100fb6c7d9972a42c0d93cae696843cbb2a16a71914290742fb7789a52056ee0",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-07.pb",
+      "sha256": "1c22e718d9f6448f4a4db92b147f1ee2397caea5e63bc26bcf9a45427952d084",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-08.pb",
+      "sha256": "e4927fec63d0c0362bc9804f49f31f4427b1209acdcd4cd530058515717ecfed",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-09.pb",
+      "sha256": "06a4cbc2dfc9ac9e51d9eac4f02e3a49712c76ad3018079682024a0d464a38cc",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-10.pb",
+      "sha256": "830cb52af451ead2f5f0ed457d29546613a2e81b354d0f0eda7d82ec75e9fcdd",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-11.pb",
+      "sha256": "8ba42a37c3c7d16bebf04269746b63ccbc9d57d1ea90951382e3ecea27fca8ab",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-12.pb",
+      "sha256": "9fe4b750011f38b6bf781a310eb796d0d228bc75811e593f521a2fc4ba0b4393",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-13.pb",
+      "sha256": "51ce24182b1b8824457fca395e5ceff2281fb7ae1881695768e3cdd7c84df71b",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-14.pb",
+      "sha256": "473d963352f5cc901a446098378e5979ece18a481bc006d42e0e75cf81a24751",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-15.pb",
+      "sha256": "c6f0a59c5945f1cd068a3ecfda1b06dc661c991f889fb560e966fadd42c9dd7c",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-16.pb",
+      "sha256": "e0673e92ea817f7141fb2a93da1ea348a8d05fc7bfa8cee6a043190ab388f88d",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-17.pb",
+      "sha256": "edf616209cb40969cd1de8efafb9cbc5f961e600e28c791591f557811544b3e4",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-18.pb",
+      "sha256": "f8d0e809d51f80f8e2120959126c2a8c6fece11ea4477fae05a66f4266f13a6a",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-19.pb",
+      "sha256": "6da9362008cb8a408fe285c38bf54f5b46417e9259dfa72fb71876598aa28d11",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-20.pb",
+      "sha256": "67b68ade5645307f15f03374fb47867608c8747c555febe821f529e7cd331e33",
+      "size_bytes": 502
+    },
+    {
+      "path": "two-host-residual/view-plan-21.pb",
+      "sha256": "a43dbf8d243103a17a50a2d5c0d35b0db63452add358057eec1fd1821908e004",
+      "size_bytes": 503
+    },
+    {
+      "path": "two-host-residual/view-plan-22.pb",
+      "sha256": "67f9e9d8f866cd3ef1e683c4e03d43037b7f82ca4b63247e43ea6c4b5014ac19",
+      "size_bytes": 504
+    },
+    {
+      "path": "two-host-residual/view-plan-23.pb",
+      "sha256": "3bfa9838635e6c505ff8e6c80a8446d5d175b4fd0d2bc3745dfc7d5e5ab2a295",
+      "size_bytes": 504
+    },
+    {
+      "path": "two-host-residual/view-plan-24.pb",
+      "sha256": "345c6e2f2d3d1ccfa17825df10282bea41459adc51dfa7b0a3e414fad632d097",
+      "size_bytes": 504
+    },
+    {
+      "path": "two-host-residual/view-plan-25.pb",
+      "sha256": "8bb097be1ff49436688f39d44acbaa91577affa3d7626180311296b1357675da",
+      "size_bytes": 504
+    },
+    {
+      "path": "two-host-residual/view-plan-26.pb",
+      "sha256": "f846941be26671646a03a585c359fff922fa99353d6eeefeafc1f5e4c83d75c7",
+      "size_bytes": 504
+    },
+    {
+      "path": "two-host-residual/view-plan-27.pb",
+      "sha256": "3484ea472b83d1dbcbdc8035f3fdd7e4c059facd1087912b31a1ce918929f732",
+      "size_bytes": 504
+    },
+    {
+      "path": "two-host-residual/view-plan-28.pb",
+      "sha256": "dd4292a74d673bd27f81f82978077765919c342e592a955d9a68d8a571d733c7",
+      "size_bytes": 504
+    },
+    {
+      "path": "two-host-residual/view-plan-29.pb",
+      "sha256": "27b5b897784d8c62efbd7fe1cde269af7ff8f2bc7a7fa8acfce65e06185e0a9c",
+      "size_bytes": 504
+    },
+    {
+      "path": "two-host-residual/view-plan-30.pb",
+      "sha256": "c38257d7194823ab3d8fdb4487cdfbf5262090c5b9e292de683da8cc9ae7e2a7",
+      "size_bytes": 506
+    },
+    {
+      "path": "two-host-residual/view-plan-31.pb",
+      "sha256": "d4fed72b00a2a1a39cc4cb2f888795247a62777d5a8a93ef6a5973c1c8ea0bba",
+      "size_bytes": 506
+    }
+  ],
+  "schema_version": 1
+}

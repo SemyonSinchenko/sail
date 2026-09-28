@@ -434,9 +434,17 @@ zero native events before terminal materialization, and all 32 views removed.
 Its host and native wheel are unchanged. Stationary zero-push/DONE transport
 and local-mode refusal also pass. A cap failure run surfaced cancellation;
 an identical fresh control surfaced the expected push-cap cause. Both attempts
-are retained. Typed native failure evidence is required to distinguish cap
-exhaustion from peer cancellation without depending on which error arrives
-first. Larger phase budgets and performance remain unqualified.
+are retained. The subsequent native repair at `50195d14aafc`, with combined
+client source `277ae341c90c`, records a typed `pagerank_push_cap` cause only after
+the fresh global certificate completes. Three fresh ARM cap cases and the
+physical two-host cap case pass: failed query, residual above tolerance at the
+push cap, no result, no retry, all owners closed and staging removed. One ARM
+case still exposes peer cancellation as its first RPC error; the audited native
+record establishes the cause without promising a global first-error ordering.
+Positive residual and stationary controls also pass with the repaired wheel.
+The [cap repair evidence](argentea-validation/README.md#typed-cap-failure-repair)
+is separate from the unchanged archives of the original attempts. Larger phase
+budgets and performance remain unqualified.
 
 See [the advanced execution plan](argentea-advanced-plan.md) for signed residual
 PageRank, its additional statistics barriers and certificate, and the subsequent
@@ -445,12 +453,15 @@ its own qualification; a bounded reference query does not establish the others.
 
 ## Remaining executable integration gates
 
-1. Qualify typed cap failure evidence and cancellation propagation for residual
-   PageRank, retaining the observed surfaced-error race. Probe larger
+1. Qualify active cancellation propagation for residual PageRank, retaining the
+   observed surfaced-error race and its typed-cause repair. Probe larger
    bounded phase budgets before increasing the initial deployment limit.
 2. Exercise wrong package, incomplete producer, lost worker, cancellation and
    quota refusal. Whole-query failure must close every other partition and leave
-   no retained native lease after final output owners drop.
+   no retained native lease after final output owners drop. A worker-loss probe
+   currently leaves some task status records marked RUNNING after the job has
+   failed and the worker retired; final process and staging cleanup succeeds,
+   but the full worker-loss gate is not accepted while this remains unresolved.
 3. Apply the same correctness, ownership, resource and cleanup gates to BFS,
    WCC and SSSP. Keep reference and advanced variants separately identified.
 4. Run performance comparisons only after functional qualification, with the

@@ -3,7 +3,9 @@
 The traversal branch adds reference and advanced BFS/SSSP to Pecan, Nutmeg Banda
 and Nutmeg Grenada. The existing PageRank/WCC campaign remains frozen under its
 original source identities. This document records functional qualification;
-isolated Linux time/memory comparisons and large capacity runs remain pending.
+Linux functional and CPU-capped stress gates also pass with the native lint
+exception disclosed below. Isolated time/memory comparisons and large capacity
+runs remain pending.
 
 Build and run every method with the
 [traversal tutorial](../../../examples/extensions/benchmarks/TRAVERSAL-TUTORIAL.md).
@@ -62,12 +64,13 @@ Mac functional server uses the unchanged Sail runtime source
 `70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822`; each receipt pins its binary and
 installed native package files separately. Rust tests are native arm64 on
 Capitola. Server/Python integration uses matching x86_64 artifacts through
-Rosetta. These checks do not establish Linux compatibility or performance.
+Rosetta. These Mac checks do not establish Linux compatibility or performance;
+the separately pinned Linux qualification follows below.
 
 | Check | Observed result |
 | --- | --- |
 | Native unit and admission tests | 85 unit tests and one admission integration test passed |
-| Native Clippy | All targets passed with warnings denied |
+| Native graph-core Clippy | All targets passed with warnings denied; this gate covers `nutmeg-graph`, not the wheel adapter |
 | Native release stress | Four idle and 80 targeted runs with ten CPU-saturating processes passed; every load process was cleaned up |
 | Portable traversal, existing reference algorithms and certificate tests | 51 passed locally and 51 with process workers |
 | Full entry-path matrix | 36 passed: eighteen methods in each Sail mode |
@@ -86,6 +89,62 @@ and zero remaining owned staging files were independently rechecked while
 writing this evidence. The artifact deliberately omits unisolated timing and
 memory observations from comparison tables.
 
+## Linux qualification
+
+Source `038c9b9597d3fcf7e0b8c30c1253d7d77563f012` passes the traversal
+functional suite on Morrobay in Linux/Colima. Its Sail executable is a development
+build; the repaired native wheel and stress executables are release builds.
+These runs establish functional behavior, not comparative performance.
+
+- All 36 local/process method combinations and six Graph500 certificate cases
+  pass. A separate audit recomputes all 42 small result vectors with independent
+  queue BFS and heap Dijkstra; maximum absolute distance error is zero.
+- Live traversal/reference/certificate tests pass 51 cases in each Sail mode.
+  Host library gates pass 258 tests; native graph gates pass 85 unit tests, one
+  admission test and five extension FFI tests.
+- Host and native graph-core Clippy pass with warnings denied. Native extension
+  strict Clippy fails on the unchanged `mutation.rs` large-enum finding. The
+  controlled rerun allows only `clippy::large_enum_variant`; the original failure
+  and source-parity evidence remain included. It is not a strict native pass.
+- Five idle and 90 loaded release runs pass with two CPUs, 8 GiB and no swap.
+  Throttling counters confirm the CPU limit applied; every owned load process
+  was reaped. These elapsed times are not benchmark results.
+- Harness tests pass 61 cases plus three later real-generator integrations.
+  The remaining 27 optional tests require external GAP/Parallel-SSSP binaries;
+  their earlier qualification does not become a Linux verdict.
+
+The [summary](traversal-validation/linux-038c-summary.json) pins runtime and
+wheel hashes. The [archive](traversal-validation/linux-038c-evidence.tar.gz)
+contains 321 files, including exact commands, failures, receipts, small Parquet
+inputs/results and an independently runnable vector auditor. Its SHA256 is
+`cd033060b69ec26a93e2ddd46da2befb8322d236394ff5c7a9adbfccff1c5734`;
+the [archive receipt](traversal-validation/linux-038c-archive.json) and
+[decompressed scan](traversal-validation/linux-038c-scan.json) record byte
+verification and the credential-pattern check.
+
+Verify all delivered files without extracting them:
+
+```sh
+python3 - <<'PY'
+import hashlib, json, tarfile
+from pathlib import Path
+root = Path('docs/development/extensions/traversal-validation')
+receipt = json.loads((root / 'linux-038c-archive.json').read_text())
+archive = root / receipt['archive']
+assert hashlib.sha256(archive.read_bytes()).hexdigest() == receipt['sha256']
+with tarfile.open(archive, 'r:gz') as bundle:
+    manifest = json.load(bundle.extractfile('evidence/manifest.json'))
+    names = bundle.getnames()
+    assert len(names) == len(set(names)) == receipt['files']
+    assert set(names) == {'evidence/' + f['path'] for f in manifest['files']} | {'evidence/manifest.json'}
+    for item in manifest['files']:
+        data = bundle.extractfile('evidence/' + item['path']).read()
+        assert len(data) == item['bytes']
+        assert hashlib.sha256(data).hexdigest() == item['sha256']
+print('Linux traversal evidence: all bytes verified')
+PY
+```
+
 ## Large-result validation
 
 The default gate compares every distance with independently generated reference
@@ -103,13 +162,13 @@ into success. Its joins and materializations remain server-side.
 
 ## Remaining qualification
 
-Linux gates, isolated measurements, and
-large Graph500/real-graph capacity runs remain separate requirements. External
+Isolated measurements and large Graph500/real-graph capacity runs remain
+separate requirements. External
 integer controls do not yet cover the official generator's fractional weights;
 those inputs must not be silently quantized for comparison. Native SSSP lacks
 parent output, so these checks do not establish official Graph500 compliance.
 
-Argentea's worker registration, scoped native state, routing, cancellation and
-two-host execution require their own integration gates before any distributed
-native claim. Its source-level scheduler probes and partition-core tests are
-not a substitute for executing native work on both machines.
+Argentea has separate [PageRank integration evidence](argentea-validation/README.md).
+Those results do not qualify distributed native BFS/SSSP. Their worker state,
+routing, cancellation and two-host behavior still require actual execution;
+source-level scheduler probes and partition-core tests are insufficient.

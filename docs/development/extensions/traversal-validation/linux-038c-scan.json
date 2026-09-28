@@ -1,0 +1,19 @@
+{
+  "recorded_utc": "2026-09-28T04:41:49.627812+00:00",
+  "outcome": "passed",
+  "files": 321,
+  "patterns": {
+    "private-key": "-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----",
+    "github-token": "gh[pousr]_[A-Za-z0-9]{30,}",
+    "aws-access-id": "AKIA[0-9A-Z]{16}",
+    "anthropic-token": "sk-ant-[A-Za-z0-9_-]{20,}",
+    "openai-token": "sk-proj-[A-Za-z0-9_-]{20,}",
+    "slack-token": "xox[baprs]-[A-Za-z0-9-]{20,}"
+  },
+  "configured_credential_fields": [
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY"
+  ],
+  "matches": [],
+  "boundary": "Actual decompressed-byte scan including Parquet; not exhaustive secret-detection assurance"
+}

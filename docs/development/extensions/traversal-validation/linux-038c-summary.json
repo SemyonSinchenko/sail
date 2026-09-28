@@ -1,0 +1,38 @@
+{
+  "recorded_utc": "2026-09-28T04:38:19.253487+00:00",
+  "source_sha": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+  "verdict": "functional and stress gates passed, with disclosed preexisting native Clippy exception",
+  "host_profile": "dev/unoptimized",
+  "native_wheel_profile": "release, auditwheel repair",
+  "host_sha256": "fa433bc4ff608399763e8161e3ab1e5cdb87bd6b1528b7af27c86843650b1224",
+  "wheel_sha256": "0086af1beaec92f9797e6224a9e8fd949efc3ae01d24270489d56c26a958ddc3",
+  "host_library_tests": 258,
+  "core_unit_tests": 85,
+  "core_admission_tests": 1,
+  "ffi_tests": 5,
+  "live_tests_each_mode": 51,
+  "full_call_cases": 42,
+  "independent_vectors_audited": 42,
+  "independent_max_absolute_distance_error": 0.0,
+  "initial_harness_tests": {
+    "passed": 61,
+    "skipped": 30
+  },
+  "subsequent_real_generator_tests": 3,
+  "remaining_optional_external_control_tests_skipped": 27,
+  "release_stress": {
+    "idle": 5,
+    "loaded": 90,
+    "cpu_max": "200000 100000",
+    "memory_max": "8589934592",
+    "memory_swap_max": "0",
+    "throttle_periods": 9021,
+    "remaining_yes": 0
+  },
+  "clippy": {
+    "host_three_libraries": "strict -D warnings passed",
+    "vendor_core": "strict -D warnings passed",
+    "native_extension": "strict failed on unchanged mutation.rs large_enum_variant; controlled -D warnings -A clippy::large_enum_variant passed"
+  },
+  "timing_claims": false
+}

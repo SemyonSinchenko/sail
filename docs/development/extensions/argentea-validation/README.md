@@ -102,6 +102,39 @@ cancelled query by itself is insufficient evidence of the intended cap failure.
 Typed native cause evidence is the next repair; this archive is not an overall
 clean qualification verdict for every failure path.
 
+## Typed cap failure repair
+
+The separate [cap repair archive](cap-repair-functional-evidence.tar.gz) contains
+164 unchanged artifacts plus its manifest. SHA256:
+`90a78e0c4311649606fafbcff316d8328bbbfbd9f6087ebbdd9bf7333d629e88`.
+The [manifest](cap-repair-functional-manifest.json),
+[bundle receipt](cap-repair-functional-bundle.json) and
+[decompressed scan](cap-repair-functional-scan.json) record its contents. Both
+earlier archives remain byte-for-byte unchanged.
+
+The host remains `038c9b9597d3fcf7e0b8c30c1253d7d77563f012`. The repaired
+native wheel source is `50195d14aafca6559aace887bf699d2d18c62c6f`; the combined
+client source is `277ae341c90cad66e118a667565c0699ece3d77b`. Wheel build and
+source receipts are under `provenance/`.
+
+| Archive directory | Outcome and coverage |
+| --- | --- |
+| `arm-gates/` | Three fresh cap cases, residual convergence and stationary DONE transport all pass with the repaired wheel. |
+| `two-host-cap/` | Passed negative gate: complete fresh certificate, residual above tolerance, typed cap cause, failed query, no result/retry and all owners closed. |
+| `two-host-residual/` | Passed positive control: 32 phases, six pushes, two certificates, nonempty graph data on both physical hosts and a crossing arc. |
+
+The native `pagerank_push_cap` record is emitted only after the complete fresh
+global certificate establishes nonconvergence at the push limit. The qualifier
+requires that causal record and certificate as well as query failure and
+cleanup. The first ARM cap case still surfaces peer cancellation through the
+RPC; that error alone is not accepted as evidence. This fixes cause attribution
+without asserting deterministic ordering of concurrent RPC failures.
+
+Both physical runs retain independent post-stop listings of their owned storage
+prefixes: empty. All supervised processes are absent. The original SSH/Rosetta
+and bounded functional boundaries still apply. This evidence does not qualify
+injected worker loss, active cancellation, larger graphs or performance.
+
 ## Verify delivered bytes
 
 From the repository root, using Python 3.12 or later:
@@ -112,7 +145,7 @@ import hashlib, json, tarfile
 from pathlib import Path
 
 root = Path("docs/development/extensions/argentea-validation")
-for name in ("reference-functional", "residual-functional"):
+for name in ("reference-functional", "residual-functional", "cap-repair-functional"):
     receipt = json.loads((root / f"{name}-bundle.json").read_text())
     archive = root / receipt["archive"]
     assert hashlib.sha256(archive.read_bytes()).hexdigest() == receipt["sha256"]

@@ -11,7 +11,9 @@ Start with the [reference PageRank tutorial](PYTHON.md) or the
 the Python API and exact-source qualification. The
 [evidence index](../../../docs/development/extensions/argentea-validation/README.md)
 retains successful and failed attempts, including a cap failure whose cause was
-obscured by peer cancellation. A failed query alone does not qualify that cause.
+obscured by peer cancellation. The subsequent typed-cause repair passes fresh
+worker-process and physical two-host checks. A failed query alone does not
+qualify that cause; the native certificate and failure record are also audited.
 The [integration inventory](../../../docs/development/extensions/argentea-integration.md)
 explains each focused host change, its upstream foundation and remaining gates.
 

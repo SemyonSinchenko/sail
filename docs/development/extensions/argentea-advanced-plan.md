@@ -11,10 +11,14 @@ The initial reference wheel is frozen at
 `010b9e065ad2adc33a7169de73191a039ce8d6d0` now pass bounded residual execution
 on actual workers and both physical hosts. Existing lazy temporary views keep
 each client registration shallow while the final materialization runs one
-native job; no host depth-limit increase is needed. Typed cap failure reporting
-remains under repair after one run surfaced peer cancellation. The
+native job; no host depth-limit increase is needed. A subsequent native repair
+at `50195d14aafca6559aace887bf699d2d18c62c6f`, with combined client source
+`277ae341c90cad66e118a667565c0699ece3d77b`, passes typed cap failure checks on
+worker processes and both physical hosts. The first RPC may still surface peer
+cancellation; a completed fresh certificate and typed native failure record
+establish the cap cause. The
 [evidence index](argentea-validation/README.md) retains every outcome.
-BFS core qualification remains separate from native adapter and distributed
+BFS core/adapter qualification remains separate from actual distributed
 qualification; larger phase budgets and performance are not established here.
 
 ## Existing contracts

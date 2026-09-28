@@ -1,0 +1,61 @@
+{
+  "archive": "cap-repair-functional-evidence.tar.gz",
+  "boundary": "Functional and diagnostic attempts only; all failed outcomes retained. No performance claim.",
+  "included_files": 165,
+  "outcomes": [
+    {
+      "native": "50195d14aafca6559aace887bf699d2d18c62c6f",
+      "outcome": "passed",
+      "path": "arm-gates/cap-1/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "277ae341c90cad66e118a667565c0699ece3d77b"
+    },
+    {
+      "native": "50195d14aafca6559aace887bf699d2d18c62c6f",
+      "outcome": "passed",
+      "path": "arm-gates/cap-2/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "277ae341c90cad66e118a667565c0699ece3d77b"
+    },
+    {
+      "native": "50195d14aafca6559aace887bf699d2d18c62c6f",
+      "outcome": "passed",
+      "path": "arm-gates/cap-3/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "277ae341c90cad66e118a667565c0699ece3d77b"
+    },
+    {
+      "native": "50195d14aafca6559aace887bf699d2d18c62c6f",
+      "outcome": "passed",
+      "path": "arm-gates/residual/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "277ae341c90cad66e118a667565c0699ece3d77b"
+    },
+    {
+      "native": "50195d14aafca6559aace887bf699d2d18c62c6f",
+      "outcome": "passed",
+      "path": "arm-gates/stationary/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "277ae341c90cad66e118a667565c0699ece3d77b"
+    },
+    {
+      "native": "50195d14aafca6559aace887bf699d2d18c62c6f",
+      "outcome": "passed",
+      "path": "two-host-cap/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "277ae341c90cad66e118a667565c0699ece3d77b"
+    },
+    {
+      "native": "50195d14aafca6559aace887bf699d2d18c62c6f",
+      "outcome": "passed",
+      "path": "two-host-residual/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "277ae341c90cad66e118a667565c0699ece3d77b"
+    }
+  ],
+  "qualification": "Typed native cap cause, complete fresh certificate, query failure, no result/retry and owner cleanup are all required. The first RPC error may still be peer cancellation. This qualifies bounded cap failure, not worker loss or cancellation injection.",
+  "recorded_utc": "2026-09-28T05:01:14.422148+00:00",
+  "sha256": "90a78e0c4311649606fafbcff316d8328bbbfbd9f6087ebbdd9bf7333d629e88",
+  "size_bytes": 139746,
+  "source_clean_qualification": "Each original receipt pins source and artifacts separately; private diagnostics are explicitly identified."
+}

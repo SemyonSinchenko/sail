@@ -258,7 +258,9 @@ fn restore_worker_routing(plan: Arc<dyn ExecutionPlan>) -> Result<Arc<dyn Execut
                 .zip(&worker.descriptor.input_routing)
                 .map(|(input, routing)| route_input(input.clone(), routing.as_ref()))
                 .collect::<Result<Vec<_>>>()?;
-            Ok(Transformed::yes(node.with_new_children(inputs)?))
+            Ok(Transformed::yes(
+                node.replace_children(inputs, Default::default())?,
+            ))
         })?
         .data)
 }

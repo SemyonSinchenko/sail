@@ -27,7 +27,7 @@ use crate::Request;
 enum Operation {
     Stage {
         nodes: ColumnMapping,
-        edges: ColumnMapping,
+        edges: Box<ColumnMapping>,
     },
     Drop,
 }
@@ -79,7 +79,10 @@ impl MutationTable {
             mutation: Arc::new(Mutation {
                 registry,
                 graph: request.graph,
-                operation: Operation::Stage { nodes, edges },
+                operation: Operation::Stage {
+                    nodes,
+                    edges: Box::new(edges),
+                },
                 schema: Arc::new(Schema::new(vec![
                     Field::new("graph", DataType::Utf8, false),
                     Field::new("nodeCount", DataType::Int64, false),

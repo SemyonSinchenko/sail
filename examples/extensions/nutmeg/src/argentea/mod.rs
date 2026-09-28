@@ -8,6 +8,7 @@ mod plan;
 mod receipt;
 mod request;
 mod state;
+mod wcc;
 
 use datafusion::catalog::TableProvider;
 use datafusion::physical_plan::ExecutionPlan;
@@ -79,6 +80,38 @@ pub fn plan_worker_relation<'py>(
     payload: &[u8],
     inputs: Vec<Bound<'py, PyCapsule>>,
 ) -> PyResult<Bound<'py, PyDict>> {
+    if type_url == wcc::request::TYPE_URL {
+        let request = wcc::request::Request::parse(type_url, payload).map_err(py_error)?;
+        let inputs = import_inputs(inputs)?;
+        request.validate_inputs(&inputs).map_err(py_error)?;
+        let result = PyDict::new(py);
+        result.set_item("operation_id", &request.operation_id)?;
+        result.set_item("partitions", request.partitions)?;
+        let mut routing = Vec::new();
+        for _ in &inputs {
+            let route = PyDict::new(py);
+            route.set_item("kind", "integer_range")?;
+            route.set_item("column", "owner")?;
+            route.set_item(
+                "split_points",
+                (1..request.partitions as i64).collect::<Vec<_>>(),
+            )?;
+            routing.push(route);
+        }
+        result.set_item("input_routing", routing)?;
+        result.set_item(
+            "provider",
+            export_provider(
+                py,
+                wcc::plan::WccTable {
+                    request,
+                    inputs,
+                    state: None,
+                },
+            )?,
+        )?;
+        return Ok(result);
+    }
     if type_url == bfs::request::TYPE_URL {
         let request = bfs::request::Request::parse(type_url, payload).map_err(py_error)?;
         let inputs = import_inputs(inputs)?;
@@ -181,6 +214,7 @@ enum BoundAlgorithm {
     Reference,
     Delta(Arc<delta::state::DeltaState>),
     Bfs(Arc<bfs::state::BfsState>),
+    Wcc(Arc<wcc::state::WccState>),
 }
 #[pyclass]
 pub struct BoundArgentea {
@@ -222,6 +256,37 @@ impl BoundArgentea {
         payload: &[u8],
         inputs: Vec<Bound<'py, PyCapsule>>,
     ) -> PyResult<Bound<'py, PyCapsule>> {
+        if type_url == wcc::request::TYPE_URL {
+            let request = wcc::request::Request::parse(type_url, payload).map_err(py_error)?;
+            let inputs = import_inputs(inputs)?;
+            request.validate_inputs(&inputs).map_err(py_error)?;
+            let state = {
+                let mut algorithm = state::lock(&self.algorithm).map_err(py_error)?;
+                match &*algorithm {
+                    BoundAlgorithm::Reference
+                    | BoundAlgorithm::Delta(_)
+                    | BoundAlgorithm::Bfs(_) => {
+                        return Err(py_error("cannot mix graph algorithms under one operation"));
+                    }
+                    BoundAlgorithm::Wcc(value) => value.clone(),
+                    BoundAlgorithm::Unset => {
+                        let value =
+                            wcc::state::WccState::new(self.state.clone()).map_err(py_error)?;
+                        *algorithm = BoundAlgorithm::Wcc(value.clone());
+                        value
+                    }
+                }
+            };
+            state.configure(&request).map_err(py_error)?;
+            return export_provider(
+                py,
+                wcc::plan::WccTable {
+                    request,
+                    inputs,
+                    state: Some(state),
+                },
+            );
+        }
         if type_url == bfs::request::TYPE_URL {
             let request = bfs::request::Request::parse(type_url, payload).map_err(py_error)?;
             let inputs = import_inputs(inputs)?;
@@ -229,7 +294,9 @@ impl BoundArgentea {
             let state = {
                 let mut algorithm = state::lock(&self.algorithm).map_err(py_error)?;
                 match &*algorithm {
-                    BoundAlgorithm::Reference | BoundAlgorithm::Delta(_) => {
+                    BoundAlgorithm::Reference
+                    | BoundAlgorithm::Delta(_)
+                    | BoundAlgorithm::Wcc(_) => {
                         return Err(py_error("cannot mix BFS and PageRank under one operation"));
                     }
                     BoundAlgorithm::Bfs(value) => value.clone(),
@@ -258,7 +325,7 @@ impl BoundArgentea {
             let state = {
                 let mut algorithm = state::lock(&self.algorithm).map_err(py_error)?;
                 match &*algorithm {
-                    BoundAlgorithm::Reference | BoundAlgorithm::Bfs(_) => {
+                    BoundAlgorithm::Reference | BoundAlgorithm::Bfs(_) | BoundAlgorithm::Wcc(_) => {
                         return Err(py_error(
                             "cannot mix v1 reference and v2 residual under one operation",
                         ));
@@ -289,7 +356,7 @@ impl BoundArgentea {
             let mut algorithm = state::lock(&self.algorithm).map_err(py_error)?;
             if matches!(
                 *algorithm,
-                BoundAlgorithm::Delta(_) | BoundAlgorithm::Bfs(_)
+                BoundAlgorithm::Delta(_) | BoundAlgorithm::Bfs(_) | BoundAlgorithm::Wcc(_)
             ) {
                 return Err(py_error(
                     "cannot mix v2 residual and v1 reference under one operation",
@@ -315,6 +382,7 @@ impl BoundArgentea {
         let second = match algorithm {
             BoundAlgorithm::Delta(value) => value.close(),
             BoundAlgorithm::Bfs(value) => value.close(),
+            BoundAlgorithm::Wcc(value) => value.close(),
             _ => Ok(()),
         };
         first.map_err(py_error)?;

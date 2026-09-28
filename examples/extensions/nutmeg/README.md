@@ -11,6 +11,23 @@ The host discovers `sail_nutmeg:extension`, validates its manifest and calls
 graph store/read log and a default 256 MiB cap prepaid from Sail's memory pool.
 A recycled session ID receives a new store.
 
+The current wheel also registers `sail_nutmeg.argentea_factory:extension`, an
+explicit **worker** relation for the bounded Argentea PageRank prototype.
+It requires the Sail worker-extension runtime on this branch. Older Sail builds
+reject its worker manifest during discovery; installing this wheel into an old
+runtime does not silently fall back to driver execution. Keep previously
+qualified wheels paired with their original runtime. Argentea's deployment and
+qualification commands are in [its tutorial](../argentea/PYTHON.md).
+
+Argentea binds a separate native owner per host job and operation, with a prepaid
+`SAIL_ARGENTEA_MEMORY_BYTES` quota (default 256 MiB) per worker owner. Its required
+idempotent `close()` callback cancels execution and clears native partitions;
+retained Arrow buffers preserve their admission independently. Reference
+PageRank runs a fixed number of full-power iterations, including dangling-mass
+redistribution. It is not the delta/frontier kernel. `SAIL_ARGENTEA_AUDIT_PATH`
+optionally appends native JSON receipts (`{pid}` expands to the process ID);
+the same receipts appear on stderr with the `ARGENTEA_RECEIPT` prefix.
+
 Binding prepares the finite algorithm-schema catalog once per library: reference
 kernels run on an isolated three-node setup graph under a fixed 16 MiB budget;
 the two local optimized kernels declare static schemas. Reference defaults plus

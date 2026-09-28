@@ -1,4 +1,5 @@
 //! Independently compiled Nutmeg Connect extension. No Sail engine dependency.
+mod argentea;
 mod context;
 mod diagnostics;
 mod mutation;
@@ -244,6 +245,8 @@ impl BoundExtension {
 #[pymodule]
 fn _native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<BoundExtension>()?;
+    module.add_class::<argentea::BoundArgentea>()?;
+    module.add_function(wrap_pyfunction!(argentea::plan_worker_relation, module)?)?;
     Ok(())
 }
 

@@ -127,3 +127,110 @@ empty-owner infinity, DONE relays, certification, malformed statistics, wrong
 metadata, cap/quota failure, both pending barriers, origin stability and retained
 Arrow slices after close. These complement the independent dense core tests;
 they do not replace Sail process and two-host qualification.
+
+The separate `python/qualify_delta.py` checks v2 answers and actual native
+execution. Use a clean source checkout, fresh output directories and matching
+installed artifacts. Its first candidate uses native source
+`f11fe6e8a091e4be56a21712850d2a1a205c3e6c` and unchanged host source
+`038c9b9597d3fcf7e0b8c30c1253d7d77563f012`. Use actual build-receipt identities
+for other builds; declaring a source SHA is not proof of binary provenance.
+This functional gate makes no elapsed-time or memory-performance claim.
+
+## Live worker qualification
+
+Set paths and identities for the artifacts being tested, then run:
+
+```bash
+export SAIL_BINARY=/absolute/path/to/sail
+export RUNTIME_SOURCE_SHA=038c9b9597d3fcf7e0b8c30c1253d7d77563f012
+export NATIVE_SOURCE_SHA=f11fe6e8a091e4be56a21712850d2a1a205c3e6c
+
+.venv/bin/python examples/extensions/argentea/python/qualify_delta.py \
+  --mode process-cluster --case residual \
+  --sail-binary "$SAIL_BINARY" \
+  --runtime-source-sha "$RUNTIME_SOURCE_SHA" \
+  --native-source-sha "$NATIVE_SOURCE_SHA" \
+  --output /tmp/argentea-delta-residual
+```
+
+The output directory must not exist. The qualifier starts and stops a fresh
+server and two workers. Defaults are five owners, 32 asynchronous task slots
+per worker, a 2 GiB Sail pool per process and a 256 MiB native allowance per
+worker/job/operation. The pool reservation is not an RSS limit.
+
+The fixture has vertices `0,1,2` and arcs `0→1, 1→1`: vertex 2 is dangling and
+owners 3 and 4 are empty. Uniform initialization requires negative edge and
+dangling residual pushes. The gate uses tolerance `1e-3` and at most seven
+pushes. Its static DAG contains **32 native stages**: initialization, fifteen
+decide/apply pairs and a result stage. Ordinary scan, shuffle and sink stages
+are additional. Actual pushes and certificate passes are recorded separately;
+remaining transport slots relay DONE after convergence. Seven pushes do not
+promise convergence for arbitrary graphs or normal `1e-8` workloads.
+
+A positive result requires every vertex exactly once, nonnegative normalized
+ranks, independently recomputed true fixed-point L1 residual within tolerance,
+agreement with the reported certificate, and a full-vector bound against an
+independent converged power reference. The tiny-fixture roundoff slack is
+`1e-12`. Native receipts must prove one job, all five owners, stable worker/PID
+and adjacency per owner, every statistics/emit phase, a terminal certificate,
+exactly one close per owner and attempt-zero successful native tasks.
+
+### Separate boundary cases
+
+Run each case into a new directory with the same artifact arguments:
+
+```bash
+.venv/bin/python examples/extensions/argentea/python/qualify_delta.py \
+  --mode process-cluster --case stationary --sail-binary "$SAIL_BINARY" \
+  --runtime-source-sha "$RUNTIME_SOURCE_SHA" --native-source-sha "$NATIVE_SOURCE_SHA" \
+  --output /tmp/argentea-delta-stationary
+
+.venv/bin/python examples/extensions/argentea/python/qualify_delta.py \
+  --mode process-cluster --case cap --sail-binary "$SAIL_BINARY" \
+  --runtime-source-sha "$RUNTIME_SOURCE_SHA" --native-source-sha "$NATIVE_SOURCE_SHA" \
+  --output /tmp/argentea-delta-cap
+
+.venv/bin/python examples/extensions/argentea/python/qualify_delta.py \
+  --mode local --case residual --sail-binary "$SAIL_BINARY" \
+  --runtime-source-sha "$RUNTIME_SOURCE_SHA" --native-source-sha "$NATIVE_SOURCE_SHA" \
+  --output /tmp/argentea-delta-local-refusal
+```
+
+`stationary` is the directed cycle `0→1→2→0`: it must certify with zero pushes
+and one certificate pass, while still completing the planned DONE transports.
+`cap` uses the nonstationary fixture with zero allowed pushes and tolerance
+`1e-12`. Passing this negative gate means an explicit native `push cap` error
+after all owner initializations, no result receipts, no native retry and owner
+cleanup. The failed write remains session-owned until teardown. The local-only
+gate must reject worker-native execution explicitly; it is not a local fallback.
+
+### Two physical hosts
+
+Follow the [v1 shared-storage and supervisor setup](PYTHON.md#4-run-across-two-physical-hosts).
+Every participant needs identical clean source, Sail binary and v2 wheel bytes.
+Private storage credentials remain in host-local configuration files.
+
+```bash
+.venv/bin/python examples/extensions/argentea/python/qualify_delta.py \
+  --mode two-host --case residual --partitions 5 \
+  --two-host-config /absolute/path/to/argentea-two-host.json \
+  --runtime-source-sha "$RUNTIME_SOURCE_SHA" --native-source-sha "$NATIVE_SOURCE_SHA" \
+  --output /tmp/argentea-delta-two-host
+```
+
+The positive gate additionally maps validated rank rows through supervised
+worker/PID identities to actual hostnames. Both physical hosts must hold
+nonempty graph vertices and at least one arc must cross hosts; empty-owner
+participation alone is insufficient. Any SSH forwarding must be disclosed as
+such, rather than represented as a direct LAN or network-performance result.
+The cap case has no rank output and therefore does not establish this nonempty
+host-graph proof. Verify that the dedicated shared staging prefix is empty after
+the supervised server/session shutdown; retain that storage check with the run.
+
+`receipt.json`, `exercise.json`, `client-plan.pb`, native receipts, actual stage
+inventories, task statuses and server logs preserve the evidence. A top-level
+pass for a negative case retains `expected-cap` or `expected-local-rejection`
+in `checks.outcome`. Unexpected errors remain failures. Result context exit
+removes owned Parquet, session teardown handles uncertain writes, and process
+group cleanup is checked separately. Retained Parquet is not a cross-job native
+handle or evidence that all process memory returned to zero.

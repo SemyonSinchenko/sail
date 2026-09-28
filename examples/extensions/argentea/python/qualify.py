@@ -40,7 +40,7 @@ def audit(receipt, log, *, minimum_workers, required_hosts=()):
             check['rows'],check['edges'],supervisors,required_hosts=required_hosts)
 
 
-def two_hosts(args, receipt):
+def two_hosts(args, receipt, *, exercise_fn=None, audit_fn=None):
     configuration = json.loads(args.two_host_config.read_text())
     driver, workers = configuration['driver'], configuration['workers']
     if len(workers) != 2:
@@ -75,14 +75,15 @@ def two_hosts(args, receipt):
         process = launch(driver, [driver['sail'], 'spark', 'server', '--ip', '0.0.0.0', '--port', str(driver['connect_port'])], env, stdout=log)
         try:
             wait_server(process, driver['advertise'], driver['connect_port'])
-            receipt['checks'] = exercise(f"sc://{driver['advertise']}:{driver['connect_port']}", args.output,
-                                         iterations=args.iterations, partitions=args.partitions)
+            endpoint = f"sc://{driver['advertise']}:{driver['connect_port']}"
+            receipt['checks'] = (exercise(endpoint, args.output, iterations=args.iterations, partitions=args.partitions)
+                                 if exercise_fn is None else exercise_fn(endpoint, args))
         finally:
             stop(process)
             receipt['driver_supervisor_returncode'] = process.returncode
             log.flush()
             receipt['process_cleanup'] = process_cleanup([driver, *workers], inventories, log_path)
-    audit(receipt, log_path.read_text(), minimum_workers=2, required_hosts=hostnames)
+    (audit if audit_fn is None else audit_fn)(receipt, log_path.read_text(), minimum_workers=2, required_hosts=hostnames)
     assert not any(row['alive'] for rows in receipt['process_cleanup'].values() for row in rows), 'supervised Sail process remained alive'
     assert receipt['driver_supervisor_returncode'] == 0, 'driver shutdown failed'
 

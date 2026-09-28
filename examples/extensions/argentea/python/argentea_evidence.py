@@ -71,7 +71,16 @@ def parse_worker_tasks(text):
     return tasks
 
 
-def validate_native_stages(stages, task_statuses, *, session, job, owners, iterations, partitions):
+def validate_native_stages(stages, task_statuses, *, session, job, owners, partitions,
+                           iterations=None, expected_native_phases=None):
+    if expected_native_phases is None:
+        assert isinstance(iterations, int) and not isinstance(iterations, bool) and iterations > 0
+        expected_native_phases = iterations + 1  # Version-1 reference default.
+    else:
+        assert iterations is None, 'specify native phases or reference iterations, not both'
+        assert (isinstance(expected_native_phases, int) and not isinstance(expected_native_phases, bool)
+                and expected_native_phases > 0)
+
     job_stages = [stage for stage in stages if stage.get('session_id') == session and stage['job_id'] == job]
     assert job_stages, 'native job has no retained stage inventory'
     assert all('slot_group' in stage and 'mode' in stage for stage in job_stages), 'stage group/mode evidence is missing'
@@ -80,7 +89,7 @@ def validate_native_stages(stages, task_statuses, *, session, job, owners, itera
     # stages containing WorkerExtensionExec; ordinary scans/sinks may have P=1.
     native = [stage for stage in job_stages if stage['slot_group'].startswith('worker-extension:')]
     ordinary = [stage for stage in job_stages if stage not in native]
-    assert len(native) == iterations + 1, 'native init/round/result stage count differs'
+    assert len(native) == expected_native_phases, 'native phase stage count differs'
     assert len({stage['slot_group'] for stage in native}) == 1, 'native phases use different slot-sharing groups'
     assert all(stage['partitions'] == partitions for stage in native), 'native stage has wrong owner width'
     assert all(stage['placement'] == 'Worker' for stage in native), 'native stage is not placed on workers'

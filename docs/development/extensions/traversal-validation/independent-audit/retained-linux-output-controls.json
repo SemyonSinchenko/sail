@@ -1,0 +1,150 @@
+{
+  "recorded_utc": "2026-09-28T09:58:01.969784+00:00",
+  "cases": [
+    {
+      "cell": "imported-reference-pecan-bfs-push_pull",
+      "vertices": 65536,
+      "reached": 65536,
+      "edges": 523817,
+      "exact": true,
+      "weight_domain": "integers 1..16; distances < 2**52",
+      "input_edges": 523817,
+      "result_files": 4,
+      "input_files": 4,
+      "receipt_metadata_outcome": "passed"
+    },
+    {
+      "cell": "imported-reference-pecan-sssp-delta_star",
+      "vertices": 65536,
+      "reached": 65536,
+      "edges": 523817,
+      "exact": true,
+      "weight_domain": "integers 1..16; distances < 2**52",
+      "input_edges": 523817,
+      "result_files": 4,
+      "input_files": 4,
+      "receipt_metadata_outcome": "passed"
+    },
+    {
+      "cell": "imported-reference-nutmeg-native-bfs-push_pull",
+      "vertices": 65536,
+      "reached": 65536,
+      "edges": 523817,
+      "exact": true,
+      "weight_domain": "integers 1..16; distances < 2**52",
+      "input_edges": 523817,
+      "result_files": 4,
+      "input_files": 4,
+      "receipt_metadata_outcome": "passed"
+    },
+    {
+      "cell": "imported-reference-nutmeg-native-sssp-delta_star",
+      "vertices": 65536,
+      "reached": 65536,
+      "edges": 523817,
+      "exact": true,
+      "weight_domain": "integers 1..16; distances < 2**52",
+      "input_edges": 523817,
+      "result_files": 4,
+      "input_files": 4,
+      "receipt_metadata_outcome": "passed"
+    },
+    {
+      "cell": "imported-reference-nutmeg-datafusion-bfs-push_pull",
+      "vertices": 65536,
+      "reached": 65536,
+      "edges": 523817,
+      "exact": true,
+      "weight_domain": "integers 1..16; distances < 2**52",
+      "input_edges": 523817,
+      "result_files": 4,
+      "input_files": 4,
+      "receipt_metadata_outcome": "passed"
+    },
+    {
+      "cell": "imported-reference-nutmeg-datafusion-sssp-delta_star",
+      "vertices": 65536,
+      "reached": 65536,
+      "edges": 523817,
+      "exact": true,
+      "weight_domain": "integers 1..16; distances < 2**52",
+      "input_edges": 523817,
+      "result_files": 4,
+      "input_files": 4,
+      "receipt_metadata_outcome": "passed"
+    },
+    {
+      "cell": "imported-certificate-pecan-bfs-push_pull",
+      "vertices": 65536,
+      "reached": 65536,
+      "edges": 523817,
+      "exact": true,
+      "weight_domain": "integers 1..16; distances < 2**52",
+      "input_edges": 523817,
+      "result_files": 4,
+      "input_files": 4,
+      "receipt_metadata_outcome": "passed"
+    },
+    {
+      "cell": "imported-certificate-pecan-sssp-delta_star",
+      "vertices": 65536,
+      "reached": 65536,
+      "edges": 523817,
+      "exact": true,
+      "weight_domain": "integers 1..16; distances < 2**52",
+      "input_edges": 523817,
+      "result_files": 4,
+      "input_files": 4,
+      "receipt_metadata_outcome": "passed"
+    },
+    {
+      "cell": "imported-certificate-nutmeg-native-bfs-push_pull",
+      "vertices": 65536,
+      "reached": 65536,
+      "edges": 523817,
+      "exact": true,
+      "weight_domain": "integers 1..16; distances < 2**52",
+      "input_edges": 523817,
+      "result_files": 4,
+      "input_files": 4,
+      "receipt_metadata_outcome": "passed"
+    },
+    {
+      "cell": "imported-certificate-nutmeg-native-sssp-delta_star",
+      "vertices": 65536,
+      "reached": 65536,
+      "edges": 523817,
+      "exact": true,
+      "weight_domain": "integers 1..16; distances < 2**52",
+      "input_edges": 523817,
+      "result_files": 4,
+      "input_files": 4,
+      "receipt_metadata_outcome": "passed"
+    },
+    {
+      "cell": "imported-certificate-nutmeg-datafusion-bfs-push_pull",
+      "vertices": 65536,
+      "reached": 65536,
+      "edges": 523817,
+      "exact": true,
+      "weight_domain": "integers 1..16; distances < 2**52",
+      "input_edges": 523817,
+      "result_files": 4,
+      "input_files": 4,
+      "receipt_metadata_outcome": "passed"
+    },
+    {
+      "cell": "imported-certificate-nutmeg-datafusion-sssp-delta_star",
+      "vertices": 65536,
+      "reached": 65536,
+      "edges": 523817,
+      "exact": true,
+      "weight_domain": "integers 1..16; distances < 2**52",
+      "input_edges": 523817,
+      "result_files": 4,
+      "input_files": 4,
+      "receipt_metadata_outcome": "passed"
+    }
+  ],
+  "scope": "Independent hash and positive-integer certificate audit of retained Linux full-output controls; not large campaign results"
+}

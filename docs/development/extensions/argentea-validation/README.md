@@ -332,3 +332,25 @@ process-cluster functional checks, not physical two-host, Linux, RSS or timing
 measurements. Earlier peer-cancellation-only and pre-init refusal diagnostics are
 retained as diagnostics, not promoted to successful post-init qualifications.
 See the [reproduction tutorial](../../../../examples/extensions/argentea/GRAPH_RESOURCES.md).
+
+
+## Extended BFS phase budget
+
+[BFS128 evidence](bfs128-functional-evidence.tar.gz) contains six passing ARM
+process-cluster cases and six retained pre-execution failures. The
+[bundle](bfs128-functional-bundle.json), [manifest](bfs128-functional-manifest.json),
+and [byte scan](bfs128-functional-scan.json) pin all 838 files.
+
+Reference, frontier and direction BFS each pass a 62-vertex chain requiring
+62 expansions and the standard graph converging after four. Every case executes
+a 128-stage native plan with five owners and two workers; exact answers,
+owner identity, task placement, no replay, phase views, process and storage
+cleanup are audited. The client source is
+`b1173b1d61fa621286f4861ffccd259e8d735a1e`; native wheel source is recorded in the
+bundle's build receipt. The host remains the focused failed-task cleanup build.
+
+The earlier attempts failed because the client omitted the explicit view-composer
+budget. A public-client regression test reproduces that failure, then passes with
+the forwarding fix. Defaults stay at14 levels/32 stages; callers opt into the
+larger budget. Linux and physical two-host execution at128 stages remain pending.
+See [BFS reproduction commands](../../../../examples/extensions/argentea/BFS.md#extended-128-stage-qualification).

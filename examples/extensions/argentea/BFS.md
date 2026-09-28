@@ -16,8 +16,8 @@ has passed distributed qualification. These examples make no performance claim.
 
 Use the current reviewed source candidate and the [source build and installation
 instructions](PYTHON.md). Build Sail, install Pecan, and build/install the combined
-Nutmeg wheel on every participating machine. All participants must use identical
-wheel bytes. A v1/v2-only wheel does not contain BFS. Check the installed manifest:
+Nutmeg wheel on every participating machine. All participants must use matching source and protocol versions; record the
+wheel hash for each platform (ARM and Intel wheels have different bytes). A v1/v2-only wheel does not contain BFS. Check the installed manifest:
 
 ```bash
 .venv/bin/python - <<'PY'
@@ -101,8 +101,9 @@ in directed mode source 10 reaches only itself.
 
 A maximum depth D needs D+1 expansions: the last proves the next frontier is
 empty. Even an isolated source needs one expansion. `max_levels=0` therefore
-fails after topology setup; it never returns partial distances. The initial
-bound is `max_levels<=14` and `2*max_levels+4<=max_phase_budget<=32`.
+fails after topology setup; it never returns partial distances. The bound is `max_levels<=62` and
+`2*max_levels+4<=max_phase_budget<=128`. Defaults remain 14 levels and 32 stages;
+larger calls must explicitly set `max_phase_budget=128`.
 
 One native query contains init, `K+1` decide/apply pairs, and result: `2K+4` native
 stages. The phase-zero pair validates every normalized arc and constructs incoming
@@ -189,3 +190,31 @@ choices, task attempts, view absence, and process/storage cleanup. The client
 collects only scalar diagnostics; the qualifier collects its small known fixture
 to check every answer. No claimed RSS-zero or large-graph performance result
 follows from this functional gate.
+
+
+## Extended 128-stage qualification
+
+The `chain-62` case reaches all 62 vertices and needs 62 expansions, including
+the final empty-frontier proof. `graph-62` converges after four expansions and
+relays DONE through the unused phases. Both cases pass all three methods on
+two ARM worker processes, with five owners and 512 asynchronous task slots per
+worker. This does not establish Linux or physical two-host qualification at the
+expanded bound. The original 32-stage physical two-host evidence remains separate.
+
+```bash
+for case in chain-62 graph-62; do
+  for method in reference frontier direction; do
+    .venv/bin/python examples/extensions/argentea/python/qualify_bfs.py \
+      --case "$case" --method "$method" --worker-task-slots 512 \
+      --sail-binary "$SAIL_BINARY" \
+      --runtime-source-sha "$RUNTIME_SOURCE_SHA" \
+      --native-source-sha "$NATIVE_SOURCE_SHA" \
+      --output "/tmp/argentea-bfs128-$case-$method"
+  done
+done
+```
+
+[Retained evidence](../../../docs/development/extensions/argentea-validation/README.md#extended-bfs-phase-budget)
+includes six passing cases and the six earlier pre-execution failures that exposed
+missing budget forwarding in the client. No Sail scheduler or wire-guard change
+was needed.

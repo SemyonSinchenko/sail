@@ -494,7 +494,9 @@ extension-owned graph stages and no further Sail host hook.
    both SSSP methods,124-stage star WCC, signed extrema, isolates, SSSP skew,
    scheduler placement, typed caps and local-mode rejection.
 3. Apply the same correctness, ownership, resource and cleanup gates to WCC and
-   SSSP, and qualify larger BFS phase budgets. Keep reference and advanced
+   SSSP across the remaining platforms. BFS now passes128-stage ARM process
+   checks for all three methods, including62 actual expansions; extend that
+   larger bound to Linux and physical two-host execution. Keep reference and advanced
    variants separately identified.
 4. Run performance comparisons only after functional qualification, with the
    same graph, semantics and disclosed resource envelope. Report per-host and

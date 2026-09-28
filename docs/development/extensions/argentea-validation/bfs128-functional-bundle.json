@@ -1,0 +1,95 @@
+{
+  "archive": "bfs128-functional-evidence.tar.gz",
+  "boundary": "Functional and diagnostic attempts only; all failed outcomes retained. No performance claim.",
+  "included_files": 838,
+  "outcomes": [
+    {
+      "native": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33",
+      "outcome": "failed",
+      "path": "failed-before-composer-fix/chain-62-direction/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33"
+    },
+    {
+      "native": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33",
+      "outcome": "failed",
+      "path": "failed-before-composer-fix/chain-62-frontier/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33"
+    },
+    {
+      "native": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33",
+      "outcome": "failed",
+      "path": "failed-before-composer-fix/chain-62-reference/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33"
+    },
+    {
+      "native": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33",
+      "outcome": "failed",
+      "path": "failed-before-composer-fix/graph-62-direction/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33"
+    },
+    {
+      "native": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33",
+      "outcome": "failed",
+      "path": "failed-before-composer-fix/graph-62-frontier/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33"
+    },
+    {
+      "native": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33",
+      "outcome": "failed",
+      "path": "failed-before-composer-fix/graph-62-reference/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33"
+    },
+    {
+      "native": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33",
+      "outcome": "passed",
+      "path": "formal/chain-62-direction/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "b1173b1d61fa621286f4861ffccd259e8d735a1e"
+    },
+    {
+      "native": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33",
+      "outcome": "passed",
+      "path": "formal/chain-62-frontier/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "b1173b1d61fa621286f4861ffccd259e8d735a1e"
+    },
+    {
+      "native": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33",
+      "outcome": "passed",
+      "path": "formal/chain-62-reference/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "b1173b1d61fa621286f4861ffccd259e8d735a1e"
+    },
+    {
+      "native": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33",
+      "outcome": "passed",
+      "path": "formal/graph-62-direction/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "b1173b1d61fa621286f4861ffccd259e8d735a1e"
+    },
+    {
+      "native": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33",
+      "outcome": "passed",
+      "path": "formal/graph-62-frontier/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "b1173b1d61fa621286f4861ffccd259e8d735a1e"
+    },
+    {
+      "native": "81fc3efdb2cd17f98a0a7c4f1a19e0b19a4fae33",
+      "outcome": "passed",
+      "path": "formal/graph-62-reference/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "b1173b1d61fa621286f4861ffccd259e8d735a1e"
+    }
+  ],
+  "recorded_utc": "2026-09-28T07:44:42.393741+00:00",
+  "sha256": "339b3587476c1cbfa3f32a4eaaac8f9b31decf288805c40483c7cdd579f3938d",
+  "size_bytes": 600477,
+  "source_clean_qualification": "Six clean-source ARM process-cluster cases pass: reference, frontier and direction BFS on a62-vertex chain requiring62 expansions and the standard graph converging after4 expansions. Every case audits128 native stages, exact answers, stable owner identity, task placement, no retries, views and final cleanup. Six earlier attempts failed before native execution because the caller did not forward the explicit budget to the view composer; all retained. No Linux, physical two-host or performance qualification at the expanded bound."
+}

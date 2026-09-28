@@ -23,7 +23,7 @@ The strict JSON object contains `version:3`, `algorithm` (`bfs_reference`,
 `max_levels`, `alpha`, `beta`, `max_phase_budget`, `phase`, and `batch_rows`.
 Source IDs are signed 64-bit integers. Counts are nonnegative integers; alpha and
 beta must be positive. Unknown fields and incompatible repeated operation
-parameters are rejected. The first adapter guard is at most 32 native phases,
+parameters are rejected. The adapter guard is at most 128 native phases,
 P<=64, and 1<=batch_rows<=65,536. These are qualification bounds, not new Sail or
 algorithm limits.
 
@@ -38,7 +38,7 @@ init(0, vertices, source-owned directed arcs)
   -> result(K+1)
 ```
 
-This is 2K+4 native stages, so the first guard permits K<=14. The client composes
+This is 2K+4 native stages, so the guard permits K<=62. Defaults retain K=14 and a32-stage budget. The client composes
 these through existing lazy temporary views to keep each protobuf plan shallow;
 the graph and iteration state still belong to one Sail job. There is no action
 per level. Early convergence relays DONE through the remaining static phases;

@@ -79,8 +79,12 @@ The client reduces diagnostics from the stored result into one scalar row;
 that is an additional ordinary Sail job, not another native iteration job.
 
 To test the cap, run the same nonstationary fixture with `max_pushes=0` and
-`tolerance=1e-12`. The expected native failure contains `push cap`. A different
-error is a different outcome. A stationary cycle or all-dangling graph can pass
+`tolerance=1e-12`. The native failure is a failed fresh certificate at the push cap. Parallel
+peer cancellation may reach the client before that cause, so the functional
+qualifier requires a typed `pagerank_push_cap` native failure receipt, the
+complete failing global-certificate barrier, a failed query, no result or retry,
+and owner cleanup. A cancellation or quota error without that cause is a
+different outcome. A stationary cycle or all-dangling graph can pass
 its initial certificate with zero pushes.
 
 ## What the bound means
@@ -225,9 +229,12 @@ Run each case into a new directory with the same artifact arguments:
 `stationary` is the directed cycle `0→1→2→0`: it must certify with zero pushes
 and one certificate pass, while still completing the planned DONE transports.
 `cap` uses the nonstationary fixture with zero allowed pushes and tolerance
-`1e-12`. Passing this negative gate means an explicit native `push cap` error
-after all owner initializations, no result receipts, no native retry and owner
-cleanup. The failed write remains session-owned until teardown. The local-only
+`1e-12`. Passing this negative gate requires a failed query and an actual native
+`failure` receipt with code `pagerank_push_cap`, outcome `nonconverged`, matching
+operation/phase/counters and a fresh global residual above tolerance. The audit
+checks the complete certificate barrier after all owner initializations, no
+result receipts, no native retry and owner cleanup. The observed RPC error is
+retained separately; a generic cancellation alone cannot pass. The failed write remains session-owned until teardown. The local-only
 gate must reject worker-native execution explicitly; it is not a local fallback.
 
 ### Two physical hosts

@@ -126,14 +126,54 @@ def test_v2_phase_owner_and_task_defects_never_become_a_pass(fault):
     with pytest.raises(AssertionError): audit_fixture((req,rows,records,stages,tasks,endpoints,supervisors,edges))
 
 
-def test_cap_failure_needs_post_init_close_and_no_native_retry_or_result():
+def cap_fixture():
     req,_,records,stages,tasks,_,_,_=fixture()
     req['max_pushes']=0
-    records=[r for r in records if r['event'] in ('init','close')]
+    records=[r for r in records if r['event'] in ('init','close') or
+             r['event']=='statistics' and r['output_phase']==1]
+    for record in records:
+        if record['event']=='close': record['phase']=1
+        if record['event']=='statistics': record['residual_l1']=.2
+    base=next(r for r in records if r['event']=='init')
+    records.append(dict(base,event='failure',phase=1,code='pagerank_push_cap',outcome='nonconverged',
+                        pushes=0,max_pushes=0,certificate_passes=1,residual_l1=1.,tolerance=req['tolerance']))
     stages=stages[:4]
     tasks=[t for t in tasks if t['stage']<4]
     tasks[-1]['status']='FAILED'
-    result=validate_cap(records,req,stages=stages,task_statuses=tasks)
+    return req,records,stages,tasks
+
+
+def test_cap_failure_needs_actual_cause_complete_barrier_query_failure_and_owner_cleanup():
+    req,records,stages,tasks=cap_fixture()
+    result=validate_cap(records,req,stages=stages,task_statuses=tasks,query_failed=True)
     assert result['post_init_cap'] and result['no_result'] and result['native_phases']==4
-    tasks[0]['attempt']=1
-    with pytest.raises(AssertionError): validate_cap(records,req,stages=stages,task_statuses=tasks)
+    assert result['native_cause']=='pagerank_push_cap' and result['global_certificate_residual']==1.
+    assert result['query_failed'] and len(result['cap_failures'])==1
+
+
+@pytest.mark.parametrize('fault',['no_cause','wrong_code','wrong_outcome','stale_phase','uncertified',
+    'cap_not_reached','within_tolerance','wrong_tolerance','missing_barrier','stale_barrier','wrong_sum',
+    'missing_close','wrong_identity','duplicate_cause','retry','query_success','result'])
+def test_cancellation_or_unrelated_failure_never_counts_as_native_cap(fault):
+    req,records,stages,tasks=cap_fixture()
+    cause=next(r for r in records if r['event']=='failure')
+    query_failed=True
+    if fault=='no_cause':records.remove(cause)
+    if fault=='wrong_code':cause['code']='cancelled'
+    if fault=='wrong_outcome':cause['outcome']='quota_exceeded'
+    if fault=='stale_phase':cause['phase']=0
+    if fault=='uncertified':cause['certificate_passes']=0
+    if fault=='cap_not_reached':cause['max_pushes']=1
+    if fault=='within_tolerance':cause['residual_l1']=req['tolerance']
+    if fault=='wrong_tolerance':cause['tolerance']=.5
+    if fault=='missing_barrier':records.remove(next(r for r in records if r['event']=='statistics'))
+    if fault=='stale_barrier':next(r for r in records if r['event']=='statistics')['mode']=1
+    if fault=='wrong_sum':cause['residual_l1']=2.
+    if fault=='missing_close':records.remove(next(r for r in records if r['event']=='close'))
+    if fault=='wrong_identity':cause['snapshot_id']='other'
+    if fault=='duplicate_cause':records.append(dict(cause))
+    if fault=='retry':tasks[0]['attempt']=1
+    if fault=='query_success':query_failed=False
+    if fault=='result':records.append(dict(cause,event='result'))
+    with pytest.raises(AssertionError):
+        validate_cap(records,req,stages=stages,task_statuses=tasks,query_failed=query_failed)

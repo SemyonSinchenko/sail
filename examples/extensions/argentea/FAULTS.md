@@ -61,6 +61,24 @@ attempt zero, fixed worker/adjacency identity, and whole-job failure. It retains
 all task outcomes and the original error. Session shutdown and process-group
 shutdown must remove every observed worker and every staging file.
 
+The receipt names the first RPC error path as `scheduler_failure` or
+`bare_h2_transport`. Sail's `driver/output.rs::forward_job_output` forwards an
+observed stream error unchanged, then requests failed-job cleanup. The separate
+`job_scheduler/core.rs::refresh_job` failure action adds the text "automatic
+retry disabled". Either can reach the caller first; that phrase is not a
+guaranteed property of the transport error. The bare branch accepts only the
+observed `SparkRuntimeException` with the exact HTTP/2 body-read error. Unrelated
+errors remain failures.
+
+Both worker-loss paths require an authoritative `FAILED` job, the exact killed
+native owner matched to the supervised worker and held process window, SIGKILL
+evidence, every job task terminal on attempt zero, and the complete native
+stage/owner audit. Client retries must be disabled. No result, duplicate init,
+replayed native job, missing survivor close, or failed final cleanup is accepted.
+This proves the no-replay behavior independently of which error arrived first.
+The earlier frozen qualifier's bare-HTTP/2 failure remains failed evidence; a
+new qualifier source and fresh runtime attempt are required for this audit.
+
 ## Bind-time quota refusal
 
 `quota` uses three vertices and a one-byte native quota. The native worker bind

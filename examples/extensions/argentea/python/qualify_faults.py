@@ -64,7 +64,8 @@ def exercise(endpoint, args, driver, check):
     spark.client.set_retry_policies([DefaultPolicy(max_retries=0, initial_backoff=100, max_backoff=100, jitter=0)])
     token, controller = CancellationToken(), None
     log = args.output/'server.log'
-    check.update(case=args.case, native_quota=args.native_quota, query_failed=False, cleanup_errors=[])
+    check.update(case=args.case, native_quota=args.native_quota, query_failed=False, cleanup_errors=[],
+                 connect_max_retries=0)
     try:
         wait_for_workers(spark, evidence=check)
         workers = workers_from_log(read_complete_log(log), driver)

@@ -1,0 +1,110 @@
+{
+  "archive": "wcc-functional-evidence.tar.gz",
+  "boundary": "Functional and diagnostic attempts only; all failed outcomes retained. No performance claim.",
+  "included_files": 956,
+  "outcomes": [
+    {
+      "native": "b831464ea4ee1bd75619ca06e4de118f4cd93bdf",
+      "outcome": "passed",
+      "path": "formal-positive/reference-14-graph-local/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "605a42299c3512de7914d33d1272b819a32ac2b3"
+    },
+    {
+      "native": "b831464ea4ee1bd75619ca06e4de118f4cd93bdf",
+      "outcome": "passed",
+      "path": "formal-positive/reference-62-graph-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "605a42299c3512de7914d33d1272b819a32ac2b3"
+    },
+    {
+      "native": "b831464ea4ee1bd75619ca06e4de118f4cd93bdf",
+      "outcome": "passed",
+      "path": "formal-positive/star-0-isolates-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "605a42299c3512de7914d33d1272b819a32ac2b3"
+    },
+    {
+      "native": "b831464ea4ee1bd75619ca06e4de118f4cd93bdf",
+      "outcome": "passed",
+      "path": "formal-positive/star-14-extremes-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "605a42299c3512de7914d33d1272b819a32ac2b3"
+    },
+    {
+      "native": "b831464ea4ee1bd75619ca06e4de118f4cd93bdf",
+      "outcome": "passed",
+      "path": "formal-positive/star-19-graph-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "605a42299c3512de7914d33d1272b819a32ac2b3"
+    },
+    {
+      "native": "b831464ea4ee1bd75619ca06e4de118f4cd93bdf",
+      "outcome": "passed",
+      "path": "formal-cap/reference-0-graph-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "c063649ae58d9fbf8ba8a4f7dba320718a23a1f1"
+    },
+    {
+      "native": "b831464ea4ee1bd75619ca06e4de118f4cd93bdf",
+      "outcome": "passed",
+      "path": "formal-cap/star-0-graph-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "c063649ae58d9fbf8ba8a4f7dba320718a23a1f1"
+    },
+    {
+      "native": "b831464ea4ee1bd75619ca06e4de118f4cd93bdf",
+      "outcome": "passed",
+      "path": "formal-cap/star-14-graph-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "c063649ae58d9fbf8ba8a4f7dba320718a23a1f1"
+    },
+    {
+      "native": "b831464ea4ee1bd75619ca06e4de118f4cd93bdf",
+      "outcome": "passed",
+      "path": "formal-cap/star-3-graph-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "c063649ae58d9fbf8ba8a4f7dba320718a23a1f1"
+    },
+    {
+      "native": null,
+      "outcome": "answers-and-cleanup-passed-awaiting-independent-stage-audit",
+      "path": "initial-probes/reference-14/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "answers-and-cleanup-passed-awaiting-independent-stage-audit",
+      "path": "initial-probes/reference-62/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "answers-and-cleanup-passed-awaiting-independent-stage-audit",
+      "path": "initial-probes/star-14/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "failed",
+      "path": "initial-probes/star-19/receipt.json",
+      "runtime": null,
+      "source": null
+    },
+    {
+      "native": null,
+      "outcome": "answers-and-cleanup-passed-awaiting-independent-stage-audit",
+      "path": "fresh-star19-control/star-19/receipt.json",
+      "runtime": null,
+      "source": null
+    }
+  ],
+  "qualification": "Reference and seeded star WCC pass bounded ARM process-cluster execution, complete scheduler/event/owner audits, signed extrema, isolates, local-mode refusal and typed cap failures.128 reference and124 star stages are qualified under the disclosed512-slot envelope. Initial probe client-thread-pool failure remains failed. No physical two-host WCC or performance claim.",
+  "recorded_utc": "2026-09-28T06:10:05.405448+00:00",
+  "sha256": "217db37a0d21dc9add39b20a210843929fe3a3be74c3e93e752d1a026fd40783",
+  "size_bytes": 697537,
+  "source_clean_qualification": "Each original receipt pins source and artifacts separately; private diagnostics are explicitly identified."
+}

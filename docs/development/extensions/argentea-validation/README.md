@@ -203,3 +203,44 @@ and configured credential fields checked across all decompressed files, with
 zero matches. Credential values are not included. This scan is not a guarantee
 of exhaustive secret detection. Source gates and new runtime attempts must
 produce their own receipts; validating these bytes does not rerun the tests.
+
+## WCC process-cluster and cap qualification
+
+[wcc-functional-bundle.json](wcc-functional-bundle.json) pins
+[wcc-functional-evidence.tar.gz](wcc-functional-evidence.tar.gz), its956 files,
+source/artifact identities and all14 recorded attempts. The
+[manifest](wcc-functional-manifest.json) hashes decompressed bytes; the
+[scan](wcc-functional-scan.json) records the credential/token checks.
+
+The five frozen positive/refusal cases at `605a42299` and four cap/control cases
+at `c063649ae` passed against host `d9c6381a` and the ARM Nutmeg wheel from
+`b831464ea`. Reference WCC uses synchronous min-label propagation; advanced WCC
+uses seeded head/tail star contraction with retained original adjacency. It is
+not Banda/Pecan's GF64 contraction and makes no equivalent-work claim.
+
+The positive gates cover128 native reference stages,124 star stages, signed
+BIGINT extrema, disconnected vertices, empty owners and local-mode rejection.
+Every phase is audited for P-wide worker placement, a shared task-slot group,
+complete owner/task inventory, attempt zero, fixed worker/adjacency identity,
+message conservation, minimum-ID components against independent union-find, and
+view, staging and process cleanup. The test envelope is512 worker task slots,
+2GiB Sail pool and256MiB native admission per worker, with five owners. These are
+development-profile functional results, not performance or physical two-host
+WCC evidence.
+
+Three expected failures require the typed `wcc_round_cap` cause and a complete
+pre-cap barrier. Reference K=0 reports an unattempted certificate and measured
+change count0. Star K=0 reports14 crossing arcs; star K=3 reports8. No partial
+components return. All stored job tasks are terminal at attempt zero and every
+owner closes. The original positive star fixture converges in five rounds.
+
+The initial multi-case probe retains its failed fourth attempt: the PySpark
+client raised a thread-pool shutdown error during worker readiness before WCC
+execution. The same star19 case passed in a fresh client process. Formal cases
+use one fresh Python process each; the failure was not reclassified. Native
+adapter development logs also retain earlier launch, fixture and Clippy failures.
+
+See [WCC execution and qualification](../../../../examples/extensions/argentea/WCC_ADAPTER.md)
+for commands and the bounded-plan contract. Physical two-host qualification,
+algorithm-specific post-initialization quota/skew and fault controls, and
+performance measurements remain separate gates.

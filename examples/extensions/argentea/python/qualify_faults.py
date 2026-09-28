@@ -65,7 +65,7 @@ def exercise(endpoint, args, driver, check):
     token, controller = CancellationToken(), None
     log = args.output/'server.log'
     check.update(case=args.case, native_quota=args.native_quota, query_failed=False, cleanup_errors=[],
-                 connect_max_retries=0)
+                 connect_max_retries=0, requested_victim_owner=args.victim_owner)
     try:
         wait_for_workers(spark, evidence=check)
         workers = workers_from_log(read_complete_log(log), driver)
@@ -84,7 +84,7 @@ def exercise(endpoint, args, driver, check):
             assert not operation_records(read_complete_log(log), check['request'])
             if args.case != 'quota':
                 controller = FaultController(args.case, log, check['request'], workers, driver, token,
-                                             check.setdefault('injection', {}))
+                                             check.setdefault('injection', {}), args.victim_owner)
                 controller.thread.start()
         # All 524288 arcs cross owners. The fresh certificate must emit them in
         # one-row batches; this fixture actually enters native work before the
@@ -151,8 +151,12 @@ def main():
     p.add_argument('--runtime-source-sha', required=True)
     p.add_argument('--native-source-sha', required=True)
     p.add_argument('--case', choices=('cancel', 'worker-loss', 'quota'), required=True)
+    p.add_argument('--victim-owner', type=int, choices=(0, 1),
+                   help='worker-loss only: select this initialized native owner; default keeps lowest worker ID')
     p.add_argument('--allow-working-tree', action='store_true')
     args = p.parse_args()
+    if args.victim_owner is not None and args.case != 'worker-loss':
+        p.error('--victim-owner requires --case worker-loss')
     args.mode, args.partitions, args.threads, args.worker_task_slots = 'process-cluster', 2, 4, 32
     args.sail_pool_bytes = 2 << 30
     # Bound fault detection through the existing worker-pool configuration;

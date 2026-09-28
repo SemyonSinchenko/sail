@@ -22,6 +22,14 @@ for case in cancel worker-loss quota; do
 done
 ```
 
+For explicit placement coverage, repeat `worker-loss` in new output directories
+with `--victim-owner 0` and `--victim-owner 1`. Selection resolves the initialized
+native owner to the already supervised worker; it never signals a PID from a
+native receipt alone. Omitting this option retains the lowest-worker-ID default.
+Receipts retain requested/selected owner and supervised identity, and independently
+record the final output stage's task placement. Neither owner is assumed to
+guarantee a particular first-error path; keep every attempt and its observed path.
+
 Require exit status zero and `outcome: passed` for each receipt. A failed case
 remains failed evidence; use a new output directory for any subsequent control.
 `--allow-working-tree` marks a development check and is not the final source gate.

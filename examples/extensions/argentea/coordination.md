@@ -15,3 +15,5 @@
 2026-09-28T04:49:22.411544+00:00 ACK graph500_prep: implement isolated ARM live cancellation, worker-loss and quota-refusal qualifier on parent277a, host038c/native501. Preserve first failures and use native-init receipts plus confirmed POSIX stop state; no host/native edits or Morrobay benchmark.
 
 2026-09-28T05:32:45.039187+00:00 ACK graph500_prep: qualify both documented first-error orderings after host task-state repair; retain frozen9a7 bare-h2 failure. Add explicit supervised-window, all-job terminal/attempt-zero and typed error-path predicates; no host/native changes or Morrobay performance.
+
+2026-09-28T05:46:07.094974+00:00 ACK graph500_prep: add explicit victim-owner coverage after ten frozen a37 loss attempts all observed scheduler_failure; preserve every prior receipt and default selection, record final output placement independently, and assert no guaranteed RPC error order. Capitola only; Morrobay reserved for216 measured cells.

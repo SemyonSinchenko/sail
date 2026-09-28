@@ -191,7 +191,27 @@ fn ordinary_jobs_keep_mixed_widths_and_blocking_regions() -> ExecutionResult<()>
     for blocking in [false, true] {
         let plan = exchange(exchange(empty(2), 1)?, 3)?;
         let graph = graph(plan, blocking)?;
-        assert_eq!(graph.stages().len(), 3);
+        let widths = graph
+            .stages()
+            .iter()
+            .map(|stage| stage.plan.output_partitioning().partition_count())
+            .collect::<Vec<_>>();
+        // Storage adds a blocking collector after each exchange; pin those
+        // real extra stages instead of assuming the Flight fixture's shape.
+        let expected = if blocking {
+            vec![2, 1, 1, 3, 3]
+        } else {
+            vec![2, 1, 3]
+        };
+        assert_eq!(widths, expected);
+        assert_eq!(
+            graph
+                .stages()
+                .iter()
+                .filter(|stage| matches!(stage.mode, OutputMode::Blocking))
+                .count(),
+            if blocking { 2 } else { 0 }
+        );
         validate_graph(&graph)?;
     }
     Ok(())

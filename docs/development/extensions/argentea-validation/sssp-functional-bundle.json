@@ -1,0 +1,96 @@
+{
+  "archive": "sssp-functional-evidence.tar.gz",
+  "boundary": "Functional and diagnostic attempts only; all failed outcomes retained. No performance claim.",
+  "included_files": 545,
+  "outcomes": [
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/delta_star-0-graph-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "00ebb7ac96eefcb66d52c4364104e95579eacd4e"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/delta_star-1-graph-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "00ebb7ac96eefcb66d52c4364104e95579eacd4e"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/delta_star-14-extremes-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "00ebb7ac96eefcb66d52c4364104e95579eacd4e"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/delta_star-14-skew-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "00ebb7ac96eefcb66d52c4364104e95579eacd4e"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/delta_star-62-graph-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "00ebb7ac96eefcb66d52c4364104e95579eacd4e"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/reference-0-graph-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "00ebb7ac96eefcb66d52c4364104e95579eacd4e"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/reference-14-extremes-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "00ebb7ac96eefcb66d52c4364104e95579eacd4e"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/reference-14-graph-local/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "00ebb7ac96eefcb66d52c4364104e95579eacd4e"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/reference-14-isolates-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "00ebb7ac96eefcb66d52c4364104e95579eacd4e"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/reference-62-graph-process-cluster/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "00ebb7ac96eefcb66d52c4364104e95579eacd4e"
+    },
+    {
+      "native": null,
+      "outcome": "answers-and-cleanup-passed-awaiting-independent-stage-audit",
+      "path": "reference-probe/reference-14/receipt.json",
+      "runtime": null,
+      "source": "7c2770130f392f1a48865dee34716a1eb9ed5d6f"
+    },
+    {
+      "native": null,
+      "outcome": "answers-and-cleanup-passed-awaiting-independent-stage-audit",
+      "path": "delta-star-probe/delta_star-14/receipt.json",
+      "runtime": null,
+      "source": "7c2770130f392f1a48865dee34716a1eb9ed5d6f"
+    }
+  ],
+  "qualification": "Reference Bellman-Ford and all-edge delta-star SSSP pass bounded ARM process-cluster execution, full vectors against independent Dijkstra, complete scheduler/event/owner audits, signed extrema, skew with empty owners, isolates, local-mode refusal and measured cap failures. Both128-stage boundaries are qualified under the disclosed512-slot envelope. Earlier positive probes have a narrower native-event/answer/cleanup boundary. No physical two-host SSSP, Linux SSSP or performance claim.",
+  "recorded_utc": "2026-09-28T07:04:17.458294+00:00",
+  "sha256": "ae28a2ee31ece5408aebb54783e0b250a74f6a5ce556bd6151517528c8dbef27",
+  "size_bytes": 501255,
+  "source_clean_qualification": "Each original receipt pins source and artifacts separately; private diagnostics are explicitly identified."
+}

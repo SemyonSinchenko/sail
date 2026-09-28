@@ -10,7 +10,9 @@ and physical two-host tests, including actual Pull and typed cap failure.
 
 Start with the [reference PageRank tutorial](PYTHON.md) or the
 [certified residual PageRank tutorial](DELTA.md), then the [BFS tutorial](BFS.md).
-They describe build commands,
+[WCC](WCC_ADAPTER.md) and [weighted SSSP](SSSP_ADAPTER.md) additionally pass
+process-cluster qualification; their physical two-host gates remain.
+These tutorials describe build commands,
 the Python API and exact-source qualification. The
 [evidence index](../../../docs/development/extensions/argentea-validation/README.md)
 retains successful and failed attempts, including a cap failure whose cause was

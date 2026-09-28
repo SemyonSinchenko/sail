@@ -180,7 +180,7 @@ import hashlib, json, tarfile
 from pathlib import Path
 
 root = Path("docs/development/extensions/argentea-validation")
-for name in ("reference-functional", "residual-functional", "cap-repair-functional", "bfs-functional"):
+for name in ("reference-functional", "residual-functional", "cap-repair-functional", "bfs-functional", "wcc-functional", "sssp-functional"):
     receipt = json.loads((root / f"{name}-bundle.json").read_text())
     archive = root / receipt["archive"]
     assert hashlib.sha256(archive.read_bytes()).hexdigest() == receipt["sha256"]
@@ -244,3 +244,38 @@ See [WCC execution and qualification](../../../../examples/extensions/argentea/W
 for commands and the bounded-plan contract. Physical two-host qualification,
 algorithm-specific post-initialization quota/skew and fault controls, and
 performance measurements remain separate gates.
+
+
+## SSSP process-cluster and cap qualification
+
+[sssp-functional-bundle.json](sssp-functional-bundle.json) pins the
+[archive](sssp-functional-evidence.tar.gz), its 545 files and all 12 attempts:
+ten formal cases from `00ebb7ac9` and two earlier positive probes from
+`7c2770130`. The [manifest](sssp-functional-manifest.json) hashes every included
+file; the [scan](sssp-functional-scan.json) records the decompressed-byte scan.
+The probes retain their narrower answer/native-event/cleanup boundary.
+
+All ten formal cases passed against host `d9c6381a` with the ARM development
+wheel built from `00ebb7ac9`. Reference is synchronous Bellman–Ford; advanced is
+all-edge delta-star. The latter selects the globally smallest active bucket,
+including repeated same-bucket work; it is not classical light/heavy
+stepping. Both 128-stage plans pass complete independent Dijkstra vector and
+predecessor checks, native event/barrier/message audits and Sail stage/task
+placement audits. Signed extrema, isolates and a skew fixture with all vertices
+on one of five owners also pass. Worker/CSR identities stay fixed, and views,
+staging and supervised processes are absent after cleanup.
+
+Zero-round caps for both methods finish topology, report one active source and
+return no partial distances. The one-round delta-star cap reports two active
+vertices and three reached vertices. Each cap has a typed `sssp_round_cap`
+cause, complete pre-cap barriers, a FAILED job, terminal stored task records,
+no native retry and all owners closed. Local execution is explicitly rejected.
+The positive graph takes four relaxation rounds for either method; the skew
+case takes five delta-star rounds, and isolates take one reference round.
+
+The disclosed envelope is five owners, 512 worker task slots, a 2 GiB Sail pool
+and 256 MiB native admission per worker. These are functional results. Linux,
+physical two-host execution, SSSP-specific post-initialization quota/fault gates
+and time/memory comparisons remain separate requirements. See the
+[SSSP tutorial](../../../../examples/extensions/argentea/SSSP_ADAPTER.md) for
+build context, API examples and exact-source qualification commands.

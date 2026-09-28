@@ -9,7 +9,8 @@ explicit SSH-forwarded Sail connections. Certified residual PageRank also
 passes bounded worker-process and physical two-host tests using existing
 temporary views. BFS passes physical two-host qualification. Worker-loss and
 active-cancellation controls pass on two Capitola worker processes after a focused
-failed-job task-state cleanup repair; WCC passes process-cluster qualification. This is a functional result,
+failed-job task-state cleanup repair; WCC and weighted SSSP pass process-cluster
+qualification. This is a functional result,
 not a distributed performance measurement.
 This is the gap inventory for [the Argentea scope](argentea-plan.md), with an
 initial route that reuses Sail's stage grouping for worker placement.
@@ -479,14 +480,16 @@ RUNNING-state failure and the repaired-host outcomes. The change terminates task
 records before unassignment for failed/canceled jobs, without changing success
 ordering. Both observed first-error paths pass the same no-replay and cleanup
 requirements. The [WCC adapter](../../../examples/extensions/argentea/WCC_ADAPTER.md)
-adds extension-owned component stages and no further Sail host hook.
+and [SSSP adapter](../../../examples/extensions/argentea/SSSP_ADAPTER.md) add
+extension-owned graph stages and no further Sail host hook.
 
 1. Extend active-cancellation, worker-loss and post-initialization quota controls
    to each additional algorithm and to physical two-host execution. Bind-time
    refusal does not prove post-initialization allocation cleanup.
-2. Complete physical WCC qualification after the measured Morrobay campaign.
-   Process-cluster gates cover128-stage reference and124-stage star plans,
-   signed extrema, isolates, scheduler placement and local-mode rejection.
+2. Complete Linux and physical WCC/SSSP qualification after the measured
+   Morrobay campaign. Process-cluster gates cover128-stage reference WCC and
+   both SSSP methods,124-stage star WCC, signed extrema, isolates, SSSP skew,
+   scheduler placement, typed caps and local-mode rejection.
 3. Apply the same correctness, ownership, resource and cleanup gates to WCC and
    SSSP, and qualify larger BFS phase budgets. Keep reference and advanced
    variants separately identified.

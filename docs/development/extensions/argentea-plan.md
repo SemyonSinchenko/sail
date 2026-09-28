@@ -114,9 +114,11 @@ membership and checkpoint restart are outside the first implementation.
    `argentea`. Publish standalone build/run instructions and raw evidence.
 
 PageRank is the first acceptance milestone, not a claim that the whole path is
-finished. WCC/SSSP remain explicit later milestones in the same goal. Finish the
-frozen large PageRank/WCC campaign and its audit before loading Morrobay with new
-builds or experiments. Keep existing traversal work and experiment identities.
+finished. WCC and SSSP now have cores, adapters, clients and process-cluster
+qualification; their physical, additional resource/fault and measurement gates
+remain in the same goal. Finish the active frozen large traversal campaign and
+its audit before loading Morrobay with new builds or experiments. Keep existing
+traversal work and experiment identities.
 
 ## Acceptance and comparison
 

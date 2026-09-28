@@ -4,7 +4,8 @@ SSSP uses the existing job-bound worker factory, integer owner routing,
 producer-complete barriers and admitted native storage. It adds no host transport,
 graph scheduler or general iteration engine. The implemented core includes weighted CSR, path candidate ordering and the
 producer-complete distributed state machine. The [Arrow adapter and Python client](SSSP_ADAPTER.md) are implemented; Sail
-runtime qualification is still pending. Core tests exchange
+process-cluster qualification passes; Linux and physical two-host gates remain.
+Core tests exchange
 messages between partition objects in one process; they are not evidence of
 multiworker or two-host execution.
 

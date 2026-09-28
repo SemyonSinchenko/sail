@@ -6,9 +6,12 @@ integer range routing, task-group placement, shared memory admission and
 close/cancel callbacks used by Argentea PageRank, BFS and WCC. No additional Sail
 host change is required. The Python client is `python/argentea_sssp_client.py`.
 
-The adapter and client have in-process tests. SSSP has **not yet been qualified
-in a Sail process cluster, on Linux, or across two physical hosts**. The commands
-below describe the implemented interface, not completed deployment evidence.
+Both methods pass bounded ARM Sail process-cluster qualification, including
+the 128-stage boundary, signed IDs, isolates, skew with empty owners, typed cap
+failures and local-mode rejection. [Archived evidence](../../../docs/development/extensions/argentea-validation/README.md#sssp-process-cluster-and-cap-qualification)
+pins the source, wheel, native events, scheduler tasks and cleanup. Linux and
+physical two-host SSSP qualification remain outstanding. These are functional
+results, not performance measurements.
 
 ## Input and algorithm contract
 
@@ -117,3 +120,40 @@ invalid weights and strict statistics encoding. Client tests check serialization
 shallow views, weighted snapshot columns, directed/symmetrized construction,
 scalar diagnostics and cleanup. These are functional checks, not benchmark or
 physical deployment results.
+
+## Reproducing the process-cluster qualification
+
+Run each case in a fresh Python process and a new evidence directory after
+building the branch and installing its wheels as above:
+
+```sh
+python examples/extensions/argentea/python/qualify_sssp.py \
+  --mode process-cluster --method delta_star --max-rounds 62 --case graph \
+  --partitions 5 --worker-task-slots 512 \
+  --sail-binary /absolute/path/to/sail \
+  --runtime-source-sha "$SAIL_SOURCE_SHA" \
+  --native-source-sha "$NUTMEG_SOURCE_SHA" \
+  --output /absolute/path/to/new-sssp-evidence
+```
+
+Use `--method reference` for the other 128-stage boundary. Other fixtures are
+`--case extremes`, `--case skew`, and `--case isolates`; use `--max-rounds 14`
+for these. The skew fixture puts every vertex on one owner at five partitions,
+so four empty owners must still complete every barrier. Expected cap controls
+use `--case graph --max-rounds 0 --expect-cap` for either method, and
+`--method delta_star --max-rounds 1 --expect-cap`. The zero-round cases still
+finish topology and report one active source; the one-round case reports two
+active vertices and three reached vertices. Caps return no result rows.
+
+The qualifier uses an independent Dijkstra oracle and checks complete weighted
+vectors, predecessor witnesses, the globally selected bucket, expected edge
+relaxation counts, every producer barrier, fixed worker/CSR identity, P-wide
+worker stages in one slot group, attempt-zero task placement, owned views,
+staging and process cleanup. Failed-cap audits require a FAILED job, the typed
+cause with measured work, and terminal stored tasks for every native stage and
+owner. A generic query error does not qualify the cap.
+
+The frozen ARM cases use the development-profile wheel from `00ebb7ac9`, host
+`d9c6381a`, five owners, 512 worker task slots, a 2 GiB Sail pool and a 256 MiB
+native admission per worker. This deliberately generous functional envelope
+must not silently become a performance-comparison envelope.

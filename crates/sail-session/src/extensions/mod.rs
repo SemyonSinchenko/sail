@@ -353,8 +353,7 @@ pub(crate) fn load_worker_extensions(
 ) -> Result<()> {
     let registry = Arc::new(WorkerExtensionRegistry::default());
     let resources = Arc::new(NativeResourceTracker::default());
-    config.set_extension(registry.clone());
-    config.set_extension(resources.clone());
+    let mut has_worker_relations = false;
     graph_utils::register_worker_functions()?;
     Python::attach(|py| {
         let kwargs = PyDict::new(py);
@@ -388,6 +387,7 @@ pub(crate) fn load_worker_extensions(
             let identity = package_identity(py, &entry, &metadata)?;
             retain_package(py, identity.clone(), &factory)?;
             if manifest.placement == "worker" {
+                has_worker_relations = true;
                 registry.register(
                     identity.clone(),
                     Arc::new(worker::PythonWorkerFactory::new(
@@ -446,6 +446,13 @@ pub(crate) fn load_worker_extensions(
                 }
             }
         }
-        Ok(())
-    })
+        Ok::<(), DataFusionError>(())
+    })?;
+    // Preserve the original task-context path for existing scalar/driver-only
+    // deployments. Worker job scopes are needed only for an opted-in package.
+    if has_worker_relations {
+        config.set_extension(registry);
+        config.set_extension(resources);
+    }
+    Ok(())
 }

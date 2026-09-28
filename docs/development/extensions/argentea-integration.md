@@ -53,7 +53,17 @@ messages travel through Sail's shuffle, not a new network protocol. Existing
 `Partitioning::Range` / `OutputDistribution::Range` can internally express routing on an
 explicit destination-owner column with split points 1 through P−1. The worker relation bootstrap must request this routing explicitly; the host
 constructs its own visible range repartition around partition-preserving child
-plans. A foreign FFI repartition is not automatically visible to Sail's planner.
+plans. This uses Sail's existing `ExplicitRepartitionExec`: protocol routing
+must survive physical optimization before `RewriteExplicitRepartition` lowers
+it to the ordinary DataFusion exchange. A focused experiment on host candidate
+`866d84903fa03abe6c8fa8c4b044ed27929dd96f` showed that DataFusion's
+`EnsureRequirements` removes an ordinary `RepartitionExec` beneath the worker
+wrapper, changing its input from two partitions to one. The regression runs
+the complete Sail physical optimizer sequence with target width eight and
+protocol width three, then checks exact owner routing and an empty channel.
+The source fix and regression still require the combined host gate. No new
+optimizer rule is introduced. A foreign FFI repartition is not automatically
+visible to Sail's planner.
 Qualification must execute the real `BatchPartitioner` and shuffled plan for boundary values,
 empty channels and duplicates. Hashing an owner column is **not** equivalent to
 routing owner p to task partition p.
@@ -62,7 +72,7 @@ The extension core checks operation, package, session, snapshot, generation and
 round identity; sequence numbers; exactly one completion per producer; valid
 owned destination IDs; and complete input before rank publication. Emission
 failure poisons the round. These checks detect replay/truncation at the typed
-boundary, but the Sail adapter must authenticate identities, preserve each
+boundary, but the Sail adapter must check identities against host-issued scope, preserve each
 producer's order and invalidate the whole operation on any failure. A valid
 marker must be emitted only after successful upstream exhaustion.
 
@@ -77,8 +87,8 @@ passing isolated tests does not close its runtime qualification requirement.
 | --- | --- | --- |
 | Worker native relation decoding | `extensions/mod.rs::register_extensions` rejects distributed non-driver relations. `load_worker_extensions` installs scalar functions only. `proto/codec.rs::RemoteExecutionCodec` handles `DriverExtensionExec` and built-ins, with no package worker relation decoder. | Add one generic serializable worker-native wrapper and an identity-checked worker factory registry. Reuse the existing entry point, pinned manifest checks, Python binding and DataFusion FFI plan capsules. Test local/remote decode, absent package, wrong identity/version, child schema/arity, and that no driver pointer is serialized. |
 | Worker native admission | `session_factory/worker.rs::WorkerSessionFactory` already has an explicit shared `MemoryResourceDomain`; the manifest permits `memory_bytes` only for driver placement. | Admit a worker operation quota from the exact worker runtime pool and pass the existing `MemoryLease` capsule through `bind_with_resources`. Reuse `NativeResourceTracker`; do not introduce a second allocator ABI. Test contention with a DataFusion allocation and final-owner release. |
-| Job-owned native state | `TaskRunnerActor::handle_close_job` cancels task streams and removes local shuffle streams; it has no callback for extension-retained partitions. | Give the worker factory a registry scoped to host-issued job/session identity and a job-local operation label, attach it to existing job close/cancellation/shutdown, and release native state after active readers finish. No cross-job persistence is needed in the first spike. Test cancellation during build/round, worker disconnect, output retention and final quota release. |
-| Retry safety | `JobScheduler::update_task_regions` forces one attempt only for regions containing `DriverExtensionExec`; ordinary worker tasks use configured retries. | Extend the existing no-retry marker to worker-native state mutations. A lost acknowledgement aborts the whole job. Test that a configured retry count above one does not replay an Argentea round, while ordinary tasks retain current behavior. |
+| Job-owned native state | `TaskRunnerActor::handle_close_job` cancels task streams and removes local shuffle streams; it has no callback for extension-retained partitions. | Give the worker factory a registry scoped to host-issued job/session identity and a job-local operation label, attach it to existing job close/cancellation/shutdown, and call the bound owner's required `close()` method before dropping registry references. Active readers retain admitted storage until final release. No cross-job persistence is needed in the first spike. Test cancellation during build/round, worker disconnect, output retention and final quota release. |
+| Retry safety | `JobScheduler::update_task_regions` forces one attempt only for regions containing `DriverExtensionExec`; ordinary worker tasks use configured retries. | Disable retries for every region of a job containing worker-native state, including ordinary upstream regions that could otherwise replay its input. A lost acknowledgement aborts the whole job. Test that a configured retry count above one does not replay an Argentea round, while jobs without worker-native state retain current behavior. |
 | Placement validation | `TaskPlacement` supports only Driver/Worker; `TaskSlotAssigner::next` balances available slots. Equal-width one-region task grouping can avoid new affinity machinery for the first spike. | Validate the completed Argentea job topology before execution: one pipelined region, identical partition width/group/placement for stateful stages, no rebind after worker loss. Add a narrowly scoped affinity hook only if the real plan cannot satisfy these existing conditions. |
 
 The new `sail-common-datafusion::worker_extension` module contains the generic
@@ -90,6 +100,21 @@ jobs before invoking factory cleanup; the factory must also reject publication
 that races with closure. Five isolated boundary tests cover malformed descriptors,
 wrong package identity, authoritative scope, output schema/partition mismatches
 and a delayed-materialization/close race. Full Sail gates are still required.
+
+Worker-role bindings must provide a callable, idempotent `close()` method. Job
+closure first tombstones the job and removes its owners under the registry
+mutex, then calls every owner outside that mutex. The callback cancels producers
+and wakes pending work; it must not invalidate retained Arrow buffers. Errors
+are logged with package, job and operation identity while other owners are
+still closed. Repeated job closure does not invoke a removed owner twice.
+Dropping registry references alone is insufficient because a live plan or
+stream can retain the owner. Lifecycle tests hold a foreign plan, stream and
+Arrow output across closure, observe the callback before their release, and
+check that the final Arrow owner returns the quota. A separate test covers a
+failing callback alongside another operation. These additions await the
+combined host runtime gate; they do not establish two-worker cancellation.
+Existing driver/scalar owner finalization is unchanged. Worker task scope and
+its registry are installed only when the session has worker-role relations.
 
 The worker wrapper exposes ordinary host children for Sail stage planning
 and rebuild its native region only after `TaskPreparation::rewrite_shuffle`

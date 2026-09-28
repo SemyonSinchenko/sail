@@ -12,6 +12,8 @@ use tokio::sync::Notify;
 use super::*;
 use crate::extensions::manifest::RelationType;
 
+mod lifecycle;
+
 fn manifest() -> Manifest {
     Manifest {
         name: "worker-fixture".into(),
@@ -58,19 +60,33 @@ fn python_factory(provider: Option<Arc<dyn TableProvider>>) -> Result<Arc<Python
             py,
             c"
 class Bound:
-    def __init__(self, resource, provider):
-        self.resource, self.provider = resource, provider
+    def __init__(self, resource, factory, operation):
+        self.resource, self.provider = resource, factory.provider
+        self.factory, self.operation = factory, operation
+        self.close_calls = 0
+        self.fail_close = False
     def scalar_udfs(self):
         return []
     def plan_relation(self, type_url, payload, inputs):
         return self.provider
+    def close(self):
+        self.close_calls += 1
+        self.factory.closed_operations.append(self.operation)
+        if self.fail_close:
+            raise RuntimeError('fixture close failure')
 class Factory:
     def __init__(self):
         self.provider = None
         self.calls = 0
+        self.closed_operations = []
+        self.noncallable_close = False
     def bind_with_resources(self, incarnation, quota, resource):
+        import json
         self.calls += 1
-        return Bound(resource, self.provider)
+        bound = Bound(resource, self, json.loads(incarnation)['operation_id'])
+        if self.noncallable_close:
+            bound.close = None
+        return bound
 ",
             c"worker_fixture.py",
             c"worker_fixture",
@@ -325,7 +341,11 @@ async fn package_and_relation_mismatch_are_rejected_before_native_binding() -> R
 
 #[tokio::test]
 async fn integer_owner_routes_to_exact_partition_and_keeps_empty_channels() -> Result<()> {
-    let context = SessionContext::new();
+    use sail_physical_optimizer::{PhysicalOptimizerOptions, get_physical_optimizers};
+
+    // The session width intentionally differs from the protocol's three owners.
+    let context =
+        SessionContext::new_with_config(SessionConfig::default().with_target_partitions(8));
     let schema = Arc::new(Schema::new(vec![Field::new(
         "owner",
         DataType::Int64,
@@ -337,8 +357,32 @@ async fn integer_owner_routes_to_exact_partition_and_keeps_empty_channels() -> R
         column: "owner".into(),
         split_points: vec![1, 2],
     };
-    let plan = route_input(input, Some(&routing))?;
-    let partitions = collect_partitioned(plan, context.task_ctx()).await?;
+    let schema = input.schema().as_ref().clone();
+    let routed = route_input(input, Some(&routing))?;
+    let mut worker_descriptor = descriptor();
+    worker_descriptor.input_names = vec!["owners".into()];
+    worker_descriptor.input_schemas = vec![schema.clone()];
+    worker_descriptor.input_routing = vec![Some(routing)];
+    worker_descriptor.output_schema = schema;
+    worker_descriptor.partitions = 3;
+    let mut plan: Arc<dyn ExecutionPlan> =
+        Arc::new(WorkerExtensionExec::new(worker_descriptor, vec![routed])?);
+    for optimizer in get_physical_optimizers(PhysicalOptimizerOptions::default()) {
+        plan = optimizer.optimize(plan, context.copied_config().options())?;
+    }
+    fn worker_input(plan: &Arc<dyn ExecutionPlan>) -> Option<Arc<dyn ExecutionPlan>> {
+        if let Some(worker) = plan.downcast_ref::<WorkerExtensionExec>() {
+            return worker.children().first().map(|input| Arc::clone(input));
+        }
+        plan.children().into_iter().find_map(worker_input)
+    }
+    let input = worker_input(&plan).ok_or_else(|| py_error("worker node disappeared"))?;
+    assert_eq!(input.properties().partitioning.partition_count(), 3);
+    assert!(matches!(
+        input.properties().partitioning,
+        Partitioning::Range(_)
+    ));
+    let partitions = collect_partitioned(input, context.task_ctx()).await?;
     assert_eq!(partitions.len(), 3);
     let mut counts = [0; 3];
     for (partition, batches) in partitions.iter().enumerate() {
@@ -365,7 +409,6 @@ async fn integer_owner_routes_to_exact_partition_and_keeps_empty_channels() -> R
 async fn foreign_arrow_output_retains_quota_after_job_stream_and_plan_close() -> Result<()> {
     use datafusion::arrow::buffer::{Buffer, ScalarBuffer};
     use datafusion::datasource::empty::EmptyTable;
-    use datafusion::physical_plan::common::collect;
     use datafusion_datasource::memory::MemorySourceConfig;
     use datafusion_ffi::execution_plan::ForeignExecutionPlan;
     use sail_common_datafusion::native_resource::MemoryLease;
@@ -384,6 +427,7 @@ async fn foreign_arrow_output_retains_quota_after_job_stream_and_plan_close() ->
         Arc::new(NativeResourceTracker::default()),
     )?;
     let owner = factory.owner(&scope(1), "operation")?;
+    let observer = owner.clone();
     let lease = Python::attach(|py| -> Result<_> {
         let resource = owner
             .bind(py)
@@ -422,8 +466,27 @@ async fn foreign_arrow_output_retains_quota_after_job_stream_and_plan_close() ->
     let ffi = FFI_ExecutionPlan::new(plan, Some(tokio::runtime::Handle::current()));
     // Force Arrow's foreign stream path, bypassing the same-library shortcut.
     let foreign = ForeignExecutionPlan::try_from(ffi)?;
-    let retained = collect(foreign.execute(0, Arc::new(TaskContext::default()))?).await?;
+    let mut stream = foreign.execute(0, Arc::new(TaskContext::default()))?;
+    let retained = stream
+        .next()
+        .await
+        .ok_or_else(|| py_error("missing output"))??;
     factory.close_job(&scope(1).job);
+    Python::attach(|py| -> Result<()> {
+        assert_eq!(
+            observer
+                .bind(py)
+                .map_err(py_error)?
+                .getattr("close_calls")
+                .and_then(|value| value.extract::<usize>())
+                .map_err(py_error)?,
+            1,
+            "CloseJob cancels the owner while the foreign plan and stream remain alive"
+        );
+        Ok(())
+    })?;
+    drop(observer);
+    drop(stream);
     drop(foreign);
     assert_eq!(
         pool.reserved(),
@@ -431,7 +494,7 @@ async fn foreign_arrow_output_retains_quota_after_job_stream_and_plan_close() ->
         "retained Arrow output alone still owns the quota"
     );
     assert_eq!(
-        retained[0]
+        retained
             .column(0)
             .as_any()
             .downcast_ref::<Int64Array>()

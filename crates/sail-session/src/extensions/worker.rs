@@ -14,7 +14,6 @@ use datafusion::physical_expr::{
     Partitioning, PhysicalExpr, PhysicalSortExpr, RangePartitioning, SplitPoint,
 };
 use datafusion::physical_plan::projection::ProjectionExec;
-use datafusion::physical_plan::repartition::RepartitionExec;
 use datafusion::physical_plan::stream::RecordBatchStreamAdapter;
 use datafusion::physical_plan::{DisplayAs, DisplayFormatType, ExecutionPlan, PlanProperties};
 use datafusion::prelude::SessionContext;
@@ -33,6 +32,7 @@ use sail_common_datafusion::worker_extension::{
     WorkerDescriptor, WorkerExtensionExec, WorkerExtensionFactory, WorkerInputRouting,
     WorkerJobIdentity, WorkerTaskScope,
 };
+use sail_physical_plan::repartition::ExplicitRepartitionExec;
 use serde::Deserialize;
 
 use super::driver::InputPlaceholder;
@@ -258,10 +258,13 @@ fn route_input(
         .map(|&point| SplitPoint::new(vec![ScalarValue::Int64(Some(point))]))
         .collect();
     let partitioning = RangePartitioning::try_new(ordering, splits)?;
-    Ok(Arc::new(RepartitionExec::try_new(
+    // This is protocol routing, rather than an optimizer-selected distribution.
+    // Sail's existing explicit node preserves it through EnsureRequirements and
+    // is lowered to DataFusion's range exchange by RewriteExplicitRepartition.
+    Ok(Arc::new(ExplicitRepartitionExec::new(
         input,
         Partitioning::Range(partitioning),
-    )?))
+    )))
 }
 
 #[derive(Default)]
@@ -345,6 +348,12 @@ impl PythonWorkerFactory {
                 .map_err(py_error)?
                 .call_method1("bind_with_resources", (incarnation, bytes, capsule))
                 .map_err(py_error)?;
+            if !bound
+                .getattr("close")
+                .is_ok_and(|callback| callback.is_callable())
+            {
+                return plan_err!("worker bound extension must provide callable close()");
+            }
             let functions = bound.call_method0("scalar_udfs").map_err(py_error)?;
             if functions.try_iter().map_err(py_error)?.next().is_some() {
                 return plan_err!(
@@ -466,12 +475,23 @@ impl WorkerExtensionFactory for PythonWorkerFactory {
                 .cloned()
                 .collect::<Vec<_>>();
             keys.into_iter()
-                .filter_map(|key| state.owners.remove(&key))
+                .filter_map(|key| state.owners.remove(&key).map(|owner| (key.1, owner)))
                 .collect::<Vec<_>>()
         };
-        // Python finalizers run outside the registry lock. Streams/Arrow owners
-        // can retain native resources until their final drop after job close.
-        drop(removed);
+        // Cancel producers even when live plans or streams still own the bound
+        // object. The callback must be idempotent and preserve retained Arrow
+        // buffers. Both callbacks and finalizers run outside the registry lock.
+        // One failing callback must not prevent cleanup of another operation.
+        for (operation, owner) in removed {
+            let result = Python::attach(|py| owner.bind(py)?.call_method0("close").map(|_| ()));
+            if let Err(error) = result {
+                log::warn!(
+                    "worker extension {} close failed for job {:?}, operation {operation}: {error}",
+                    self.identity,
+                    job
+                );
+            }
+        }
     }
 }
 

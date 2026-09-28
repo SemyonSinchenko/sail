@@ -8,6 +8,7 @@ import pytest
 from google.protobuf import descriptor_pb2, descriptor_pool, message_factory
 from pyspark.sql.connect import proto
 from pyspark.sql.connect.dataframe import DataFrame
+from pyspark.sql.connect.plan import Read
 from pyspark.sql.types import DoubleType, LongType, StructField, StructType
 from sail_nutmeg.client import ENVELOPE_TYPE_URL, ExtensionRelation
 
@@ -211,7 +212,26 @@ def wrapper(monkeypatch, scalar_collect):
     events = []
     spark = SimpleNamespace(client=None, addTag=lambda tag:events.append('tag-add'),
                             removeTag=lambda tag:events.append('tag-remove'), interruptTag=lambda tag:None)
-    state = SimpleNamespace(events=events, spark=spark, failure=None, uncertain=False, stored=Stored(scalar_collect.row))
+    state = SimpleNamespace(events=events, spark=spark, failure=None, uncertain=False,
+                            stored=Stored(scalar_collect.row), views={}, registrations=[], drops=[],
+                            create_failure=None, drop_failure=None, cancel_on_write=False)
+    def create(frame, name):
+        assert name not in state.views
+        if state.create_failure is not None:
+            raise state.create_failure
+        state.views[name] = frame
+        state.registrations.append(name)
+        events.append('register-view')
+    def drop(name):
+        if state.drop_failure is not None:
+            raise state.drop_failure
+        del state.views[name]
+        state.drops.append(name)
+        events.append('drop-view')
+        return True
+    monkeypatch.setattr(DataFrame,'createTempView',create)
+    spark.table = lambda name:DataFrame(Read(name),spark)
+    spark.catalog = SimpleNamespace(dropTempView=drop)
 
     class Run:
         def __init__(self, session, utils, cancellation, partitions):
@@ -222,9 +242,12 @@ def wrapper(monkeypatch, scalar_collect):
             events.append('allocate')
 
         def materialize(self, frame, *, expected_rows):
-            assert isinstance(frame._plan,client.ArgenteaDeltaRelation) and expected_rows==7
+            assert isinstance(frame._plan,Read) and expected_rows==7
+            assert len(state.views)==32  # All views remain alive through materialization.
             events.append('write-native-result')
             self.write_uncertain = state.uncertain
+            if state.cancel_on_write:
+                self.cancellation.cancel()
             if state.failure:
                 raise state.failure
             return self.path+'/result',state.stored
@@ -261,6 +284,8 @@ def test_public_wrapper_uses_owned_lifecycle_and_actual_counters(wrapper, scalar
         source('v',wrapper.spark),source('e',wrapper.spark),partitions=3)
     assert wrapper.events[:4]==['check-input-schema','tag-add','allocate','snapshot-validate']
     assert len(observed)==1 and observed[0]['native_phase_count']==32
+    assert len(observed[0]['view_registrations'])==32
+    assert not wrapper.views and wrapper.drops==list(reversed(wrapper.registrations))
     assert observed[0]['request']['version']==2 and observed[0]['plan_bytes']
     assert result.pushes==result.iterations==2 and result.certificate_passes==2
     assert result.native_phase_count==32 and result.phase==15 and result.converged is True
@@ -284,6 +309,8 @@ def test_native_cap_failure_propagates_with_existing_uncertain_write_ownership(w
         client.ArgenteaDelta(wrapper.spark).pagerank(source('v'),source('e'),partitions=3)
     assert caught.value is cap and cap.cleanup_deferred is True and cap.run_path=='owned/run'
     assert not wrapper.run.closed and 'close' not in wrapper.events
+    assert not wrapper.views and wrapper.drops==list(reversed(wrapper.registrations))
+    assert cap.view_cleanup_deferred is False
     assert not any(isinstance(e,tuple) and e[0]=='finish' for e in wrapper.events)
 
 
@@ -301,6 +328,7 @@ def test_observer_cancellation_prevents_terminal_write(wrapper):
         client.ArgenteaDelta(wrapper.spark,observer=lambda event:token.cancel()).pagerank(
             source('v'),source('e'),partitions=3,cancellation=token)
     assert wrapper.run.closed and 'write-native-result' not in wrapper.events
+    assert not wrapper.views and len(wrapper.drops)==32
 
 
 def test_rank_export_delegates_to_caller_path_without_transferring_owned_result(wrapper):
@@ -314,3 +342,34 @@ def test_rank_export_delegates_to_caller_path_without_transferring_owned_result(
     with pytest.raises(RuntimeError,match='closed'):
         result.write_parquet('caller/late')
     assert len(wrapper.stored.exports)==1
+
+
+def test_registration_failure_closes_staging_without_terminal_write(wrapper):
+    failure = RuntimeError('registration failed')
+    wrapper.create_failure = failure
+    with pytest.raises(RuntimeError) as caught:
+        client.ArgenteaDelta(wrapper.spark).pagerank(source('v'),source('e'),partitions=3)
+    assert caught.value is failure and wrapper.run.closed
+    assert 'write-native-result' not in wrapper.events
+    assert failure.view_cleanup_deferred and len(failure.uncertain_view_names)==1
+    assert failure.cleanup_deferred is False  # No uncertain Parquet write.
+
+
+def test_cleanup_failure_prevents_retaining_a_successful_materialization(wrapper):
+    wrapper.drop_failure = RuntimeError('drop transport failed')
+    with pytest.raises(RuntimeError,match='cleanup is deferred') as caught:
+        client.ArgenteaDelta(wrapper.spark).pagerank(source('v'),source('e'),partitions=3)
+    assert len(caught.value.view_cleanup_errors)==32 and wrapper.run.closed
+    assert not any(isinstance(e,tuple) and e[0]=='finish' for e in wrapper.events)
+
+
+def test_cancellation_wrapper_preserves_view_and_write_cleanup_diagnostics(wrapper):
+    failure = RuntimeError('interrupted native write')
+    wrapper.failure,wrapper.uncertain,wrapper.cancel_on_write = failure,True,True
+    wrapper.drop_failure = RuntimeError('drop transport failed')
+    with pytest.raises(GraphCancelledError) as caught:
+        client.ArgenteaDelta(wrapper.spark).pagerank(source('v'),source('e'),partitions=3)
+    assert caught.value.__cause__ is failure
+    assert caught.value.cleanup_deferred and caught.value.run_path=='owned/run'
+    assert caught.value.view_cleanup_deferred and len(caught.value.view_cleanup_errors)==32
+    assert not wrapper.run.closed

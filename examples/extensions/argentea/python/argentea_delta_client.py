@@ -64,17 +64,9 @@ class ArgenteaDeltaRelation(LogicalPlan):
         return relation
 
 
-def build_plan(spark, vertices, edges, *, vertices_count, max_pushes=7, partitions=2,
-               reset_probability=0.15, tolerance=1e-8, max_phase_budget=32,
-               batch_rows=4096, operation_id=None, snapshot_id=None, generation=1):
-    """Build exactly 4K+4 native stages without executing a Spark action.
-
-    Inputs are already validated snapshots: vertices(id,owner), edges(src,dst,
-    owner), all BIGINT. Init emits statistics 0; each j in 0..2K has decide(j)
-    and apply(j); result consumes statistics 2K+1. Converged owners relay DONE
-    through remaining slots, retaining their certified snapshot. Host scan,
-    exchange and sink stages are additional to the native-stage budget.
-    """
+def _request(*, vertices_count, max_pushes=7, partitions=2,
+             reset_probability=0.15, tolerance=1e-8, max_phase_budget=32,
+             batch_rows=4096, operation_id=None, snapshot_id=None, generation=1):
     options(max_pushes=max_pushes, partitions=partitions, reset_probability=reset_probability,
             tolerance=tolerance, max_phase_budget=max_phase_budget, batch_rows=batch_rows)
     _integer(vertices_count, 'vertices_count (nonempty graph required)', 1, (1 << 63)-1)
@@ -88,6 +80,27 @@ def build_plan(spark, vertices, edges, *, vertices_count, max_pushes=7, partitio
     for name in ('operation_id', 'snapshot_id'):
         if not isinstance(base[name], str) or str(uuid.UUID(base[name])) != base[name]:
             raise ValueError(f'{name} must be a canonical UUID string')
+    return base
+
+
+def build_plan(spark, vertices, edges, *, vertices_count, max_pushes=7, partitions=2,
+               reset_probability=0.15, tolerance=1e-8, max_phase_budget=32,
+               batch_rows=4096, operation_id=None, snapshot_id=None, generation=1):
+    """Describe the raw nested 4K+4-stage DAG without executing a Spark action.
+
+    This serialization/reference helper can exceed the host protobuf nesting
+    limit at larger K. The public client composes bounded session views instead;
+    neither helper raises or bypasses the host wire guard.
+
+    Inputs are already validated snapshots: vertices(id,owner), edges(src,dst,
+    owner), all BIGINT. Init emits statistics 0; each j in 0..2K has decide(j)
+    and apply(j); result consumes statistics 2K+1. Converged owners relay DONE
+    through remaining slots, retaining their certified snapshot. Host scan,
+    exchange and sink stages are additional to the native-stage budget.
+    """
+    base = _request(vertices_count=vertices_count, max_pushes=max_pushes, partitions=partitions,
+                    reset_probability=reset_probability, tolerance=tolerance, max_phase_budget=max_phase_budget,
+                    batch_rows=batch_rows, operation_id=operation_id, snapshot_id=snapshot_id, generation=generation)
     frame = DataFrame(ArgenteaDeltaRelation(dict(base, verb='init', phase=0), (vertices, edges)), spark)
     for phase in range(2 * max_pushes + 1):
         frame = DataFrame(ArgenteaDeltaRelation(dict(base, verb='decide', phase=phase), (frame,)), spark)
@@ -167,32 +180,47 @@ class ArgenteaDelta:
         return capped rows. Seven pushes cannot certify arbitrary graphs at 1e-8.
 
         Requires worker-mode Sail and the v2 Nutmeg wheel on every participant.
-        Native phases run in one job. Pecan validates separate input snapshots;
+        UUID-named session views register each native phase lazily; the terminal
+        materialization runs all native phases in one job. Confirmed views are
+        dropped before returning; uncertain registration/drop failures expose
+        view_cleanup_deferred and remain session-owned. The raw build_plan
+        helper is for reference and may exceed the host wire nesting limit.
+        Pecan validates separate input snapshots;
         materialization checks and the scalar diagnostic read use ordinary jobs.
         This is no cross-job native handle or atomic two-table snapshot. Failed
         writes retain Pecan's uncertain-write/session-cleanup policy.
         """
         options(max_pushes=max_pushes, partitions=partitions, reset_probability=reset_probability,
                 tolerance=tolerance, max_phase_budget=max_phase_budget, batch_rows=batch_rows)
-        from pyspark_pecan import GraphAlgorithms
+        from pyspark_pecan import GraphAlgorithms, GraphCancelledError
+        from argentea_delta_views import compose_plan
 
         def body(run, nodes, links, count):
             native_nodes = nodes.select('id', F.pmod(F.col('id'), F.lit(partitions)).cast('long').alias('owner'))
             native_edges = links.select('src', 'dst', F.pmod(F.col('src'), F.lit(partitions)).cast('long').alias('owner'))
-            frame, request = build_plan(self.spark, native_nodes, native_edges,
+            with compose_plan(self.spark, native_nodes, native_edges, cancellation=run.cancellation,
                 vertices_count=count, max_pushes=max_pushes, partitions=partitions,
                 reset_probability=reset_probability, tolerance=tolerance,
-                max_phase_budget=max_phase_budget, batch_rows=batch_rows)
-            plan_bytes = frame._plan.to_proto(self.spark.client).SerializeToString()
-            if self.observer is not None:
-                self.observer(dict(kind='native_plan', request=dict(request),
-                                   native_phase_count=4*max_pushes+4,
-                                   plan_bytes=plan_bytes, frame=frame))
-            run.cancellation.check()
-            path, stored = run.materialize(frame, expected_rows=count)
-            diagnostics = _read_diagnostics(stored, request, run.cancellation)
+                max_phase_budget=max_phase_budget, batch_rows=batch_rows) as composition:
+                frame, request = composition.frame, composition.request
+                plan_bytes = frame._plan.to_proto(self.spark.client).SerializeToString()
+                if self.observer is not None:
+                    self.observer(dict(kind='native_plan', request=dict(request),
+                                       native_phase_count=4*max_pushes+4, plan_bytes=plan_bytes,
+                                       frame=frame, view_registrations=composition.registrations))
+                run.cancellation.check()
+                path, stored = run.materialize(frame, expected_rows=count)
+                diagnostics = _read_diagnostics(stored, request, run.cancellation)
             retained = run.finish(path, stored, algorithm='argentea-pagerank-delta',
                                   iterations=diagnostics['pushes'], converged=True)
             return ArgenteaDeltaResult(retained, request, plan_bytes, diagnostics)
 
-        return GraphAlgorithms(self.spark)._run(vertices, edges, partitions, cancellation, body)
+        try:
+            return GraphAlgorithms(self.spark)._run(vertices, edges, partitions, cancellation, body)
+        except GraphCancelledError as error:
+            # Pecan may wrap a failed RPC after cancellation. Keep view cleanup
+            # diagnostics directly available on that public cancellation error.
+            for name in ('view_cleanup_deferred', 'view_cleanup_errors', 'uncertain_view_names'):
+                if not hasattr(error, name) and hasattr(error.__cause__, name):
+                    setattr(error, name, getattr(error.__cause__, name))
+            raise

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Functional Argentea v2 certificates and worker-phase qualification; no timings."""
 import argparse
+import contextlib
+import io
 import datetime
 import json
 from pathlib import Path
@@ -15,7 +17,7 @@ from runtime import git, group_exists, native_package_identity, package_versions
 from argentea_delta_client import ArgenteaDelta, options
 from argentea_delta_evidence import validate_audit, validate_cap, validate_rows
 from argentea_evidence import parse_log, parse_worker_tasks
-from argentea_resource_evidence import live_pids
+from argentea_resource_evidence import live_pids, read_complete_log
 from argentea_runtime import local_server
 from qualify import two_hosts
 from qualify_resources import inventory, validate_source_identities, wait_empty
@@ -46,10 +48,34 @@ def exercise(endpoint,args):
     evidence = dict(case=args.case,ids=IDS,edges=case['edges'],partitions=args.partitions,
                     max_pushes=case['max_pushes'],tolerance=case['tolerance'],outcome='running')
     try:
+        if args.mode != 'local':
+            from argentea_readiness import wait_for_workers
+            wait_for_workers(spark, evidence=evidence)
         def observe(event):
             evidence['request'] = dict(event['request'])
             evidence['planned_native_phases'] = event['native_phase_count']
             (args.output/'client-plan.pb').write_bytes(event['plan_bytes'])
+            registrations = []
+            for index, registration in enumerate(event.get('view_registrations', ())):
+                item = {k:v for k,v in registration.items() if k!='plan_bytes'}
+                path = args.output/f'view-plan-{index:02d}.pb'
+                path.write_bytes(registration['plan_bytes'])
+                item['plan_file'] = path.name
+                registrations.append(item)
+            evidence['view_registrations'] = registrations
+            capture = io.StringIO()
+            with contextlib.redirect_stdout(capture):
+                event['frame'].explain(mode='extended')
+            (args.output/'terminal-explain.txt').write_text(capture.getvalue())
+            log_path = args.output/('server-and-workers.log' if args.mode=='two-host' else 'server.log')
+            before, _ = parse_log(read_complete_log(log_path))
+            evidence['native_receipts_before_terminal'] = len(before)
+            assert not before, 'native work executed during view registration or explain'
+        def check_view_cleanup():
+            observed = [dict(alias=item['alias'],exists=spark.catalog.tableExists(item['alias']))
+                        for item in evidence.get('view_registrations', ())]
+            evidence['view_cleanup'] = observed
+            assert not any(item['exists'] for item in observed), 'owned phase view remains after operation'
         nodes = spark.createDataFrame([(node,) for node in IDS],'id long')
         edges = spark.createDataFrame(case['edges'],'src long, dst long')
         try:
@@ -58,16 +84,20 @@ def exercise(endpoint,args):
                 max_phase_budget=32,batch_rows=args.batch_rows)
         except Exception as error:
             evidence.update(error=str(error),error_type=type(error).__name__,
-                run_path=getattr(error,'run_path',None),cleanup_deferred=getattr(error,'cleanup_deferred',None))
+                run_path=getattr(error,'run_path',None),cleanup_deferred=getattr(error,'cleanup_deferred',None),
+                view_cleanup_deferred=getattr(error,'view_cleanup_deferred',None),
+                uncertain_view_names=getattr(error,'uncertain_view_names',()))
             if args.mode=='local' and 'requires distributed Sail execution' in str(error):
                 evidence['outcome'] = 'expected-local-rejection'
                 return evidence
             if args.case=='cap' and args.mode!='local' and 'push cap' in str(error):
                 evidence['outcome'] = 'expected-cap'
+                check_view_cleanup()
                 evidence['worker_endpoints'],evidence['stages'] = inventory(spark)
                 return evidence
             raise
         with result:
+            check_view_cleanup()
             assert args.mode!='local' and args.case!='cap', 'expected refusal unexpectedly returned ranks'
             rows = [row.asDict() for row in result.native_frame.collect()]
             evidence.update(rows=rows,result_validation=validate_rows(rows,IDS,case['edges'],result.request),

@@ -93,7 +93,31 @@ real-worker capacity and live-buffer gates before this guard or default changes.
 Seven pushes do not make general PageRank converge at `1e-8`; failure at that cap
 is expected on many graphs. This is not yet a general large-graph benchmark API.
 
-One lazy query contains initialization, `2K+1` decide/apply pairs, and result:
+The public client registers each phase in its own UUID-named session temporary
+view using `createTempView`, without replacing existing views. Each registration
+contains one extension envelope and shallow references to earlier views. Sail
+stores the resolved logical plan; registration performs no native graph work.
+The final materialization expands those views into one native query/job. This
+keeps every protobuf request within the existing nesting guard, without changing
+Sail or introducing a cross-job native handle. There are at most 32 view
+registrations and corresponding catalog cleanup commands; these are additional
+client/server operations, not additional native iterations.
+
+All confirmed views stay alive through terminal materialization and are dropped
+before the result is returned. Cleanup attempts every confirmed alias after
+errors or cancellation. A failed registration can have an uncertain server
+outcome; deleting its alias could remove a preexisting view. Such an alias is
+left session-owned and exposed as `uncertain_view_names` on the original error.
+Failed drops are exposed as `view_cleanup_errors`; either sets
+`view_cleanup_deferred=True`. Session teardown is the fallback. This is separate
+from Pecan's uncertain-write cleanup of result files.
+
+The raw `build_plan` helper still describes a nested DAG for serialization and
+protocol tests. Larger K can exceed the host protobuf nesting limit when that
+raw frame is submitted directly; production callers should use
+`ArgenteaDelta.pagerank`. No guard is disabled or increased.
+
+One lazy native query contains initialization, `2K+1` decide/apply pairs, and result:
 `4K+4` native stages. Initialization performs no push. The initial certificate,
 K pushes and up to K later certificates fit the reserved slots. Convergence
 switches remaining slots to validated DONE relays, which preserve the result
@@ -154,7 +178,9 @@ export NATIVE_SOURCE_SHA=f11fe6e8a091e4be56a21712850d2a1a205c3e6c
 ```
 
 The output directory must not exist. The qualifier starts and stops a fresh
-server and two workers. Defaults are five owners, 32 asynchronous task slots
+server and two workers. A same-session readiness check waits for two distinct
+running worker endpoints before the graph starts; physical placement is still
+audited after native execution. Defaults are five owners, 32 asynchronous task slots
 per worker, a 2 GiB Sail pool per process and a 256 MiB native allowance per
 worker/job/operation. The pool reservation is not an RSS limit.
 
@@ -227,10 +253,12 @@ The cap case has no rank output and therefore does not establish this nonempty
 host-graph proof. Verify that the dedicated shared staging prefix is empty after
 the supervised server/session shutdown; retain that storage check with the run.
 
-`receipt.json`, `exercise.json`, `client-plan.pb`, native receipts, actual stage
+`receipt.json`, `exercise.json`, the shallow terminal `client-plan.pb`, individual
+`view-plan-NN.pb` registration plans and aliases, native receipts, actual stage
 inventories, task statuses and server logs preserve the evidence. A top-level
 pass for a negative case retains `expected-cap` or `expected-local-rejection`
 in `checks.outcome`. Unexpected errors remain failures. Result context exit
-removes owned Parquet, session teardown handles uncertain writes, and process
+removes owned Parquet, phase-view absence is checked, session teardown handles
+uncertain registrations/writes, and process
 group cleanup is checked separately. Retained Parquet is not a cross-job native
 handle or evidence that all process memory returned to zero.

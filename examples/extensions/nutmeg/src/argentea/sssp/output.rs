@@ -326,12 +326,12 @@ impl Output {
                     } else {
                         "apply"
                     },
-                    serde_json::json!({"output_phase":report.phase.number,"mode":wire::mode_name(v.completed),"vertices":v.vertices,"reached":v.reached,"active":v.active,"bucket":v.bucket,"bucket_edges":v.bucket_edges,"rounds":v.rounds,"examined_edges":self.work.examined_edges,"examined_vertices":self.work.examined_vertices,"emitted_messages":self.work.emitted_messages,"received_messages":self.work.received_messages}),
+                    serde_json::json!({"output_phase":report.phase.number,"mode":wire::mode_name(v.completed),"vertices":v.vertices,"arcs":v.arcs,"source_count":v.source_count,"reachable_edges":v.reachable_edges,"reached":v.reached,"active":v.active,"bucket":v.bucket,"bucket_edges":v.bucket_edges,"rounds":v.rounds,"examined_edges":self.work.examined_edges,"examined_vertices":self.work.examined_vertices,"emitted_messages":self.work.emitted_messages,"received_messages":self.work.received_messages}),
                 )
             }
-            Rows::Updates { .. } => (
+            Rows::Updates { completion, .. } => (
                 "decide",
-                serde_json::json!({"mode":wire::mode_name(self.mode),"rounds":self.rounds}),
+                serde_json::json!({"mode":wire::mode_name(self.mode),"rounds":self.rounds,"bucket":completion.as_ref().expect("completed emission").bucket}),
             ),
             Rows::Results { certificate, .. } => (
                 "result",

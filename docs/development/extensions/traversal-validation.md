@@ -179,3 +179,33 @@ Argentea has separate [PageRank integration evidence](argentea-validation/README
 Those results do not qualify distributed native BFS/SSSP. Their worker state,
 routing, cancellation and two-host behavior still require actual execution;
 source-level scheduler probes and partition-core tests are insufficient.
+
+
+## Linux release qualification and campaign preparation
+
+The [release evidence archive](traversal-validation/linux-release-538b-evidence.tar.gz)
+and [archive receipt](traversal-validation/linux-release-538b-archive.json) preserve
+54 successful functional cases with runtime/native source
+`038c9b9597d3fcf7e0b8c30c1253d7d77563f012` and harness source
+`538b94cbb99298f94667cde29e94b3e4cefe60fc`. The archive records the release binary
+and platform wheel hashes independently of the source revisions.
+
+The suite includes 36 local/process-cluster traversal combinations, six Graph500
+certificate controls, and twelve imported-topology controls. A fresh audit of
+the retained outputs checked 787,968 rows and 135 input/output hashes; all distance
+errors were zero. The 400-file archive has 399 hashed payloads plus its manifest.
+Its included auditor reconstructs the 64-vertex certificate fixture's distances
+and compares the other cases with retained independent reference vectors.
+
+This release environment also executed Sedona distance queries with all 17
+expected rows in both local and process modes. Traversal server logs record
+native Sedona and Nutmeg registration. These observations add co-loading evidence
+that the earlier development archive did not establish; that archive remains
+unchanged.
+
+The qualification ran in four-CPU, 20-GiB containers on a shared outer host.
+Its cell timings are functional diagnostics, not publishable performance results.
+The archive also retains four weighted Graph Kernels dataset manifests and the
+216-cell measured-campaign configuration. Preparation is not execution: this
+archive contains no completed large-campaign verdict and does not qualify
+Argentea. The measured campaign's outcomes require their own final audit.

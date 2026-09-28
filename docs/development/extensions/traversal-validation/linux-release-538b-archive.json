@@ -1,0 +1,15 @@
+{
+  "recorded_utc": "2026-09-28T08:33:04.829438+00:00",
+  "archive": "linux-release-538b-evidence.tar.gz",
+  "sha256": "5ee921f49bfefc9d4bfa0d5ae6d74a5378db64709166cd4685f7a01eb277d783",
+  "bytes": 8553478,
+  "files": 400,
+  "manifest_hashes_verified": 399,
+  "runtime_and_native_source": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+  "harness_source": "538b94cbb99298f94667cde29e94b3e4cefe60fc",
+  "profile": "release",
+  "qualification_cells": 54,
+  "full_vector_rows_rechecked": 787968,
+  "private_value_scan": "no configured credential values found in decompressed payloads",
+  "scope": "functional qualification and campaign preparation only; no measured large-campaign outcomes; not Argentea qualification"
+}

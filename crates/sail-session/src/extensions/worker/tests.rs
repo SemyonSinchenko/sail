@@ -13,6 +13,7 @@ use super::*;
 use crate::extensions::manifest::RelationType;
 
 mod lifecycle;
+mod routing;
 
 fn manifest() -> Manifest {
     Manifest {

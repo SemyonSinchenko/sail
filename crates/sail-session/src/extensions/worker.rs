@@ -7,6 +7,7 @@ use std::sync::{Arc, Mutex};
 use arrow_schema::SchemaRef;
 use async_trait::async_trait;
 use datafusion::catalog::{Session, TableProvider};
+use datafusion::common::tree_node::{Transformed, TreeNode};
 use datafusion::execution::runtime_env::RuntimeEnv;
 use datafusion::execution::{SendableRecordBatchStream, TaskContext};
 use datafusion::physical_expr::expressions::Column;
@@ -14,6 +15,7 @@ use datafusion::physical_expr::{
     Partitioning, PhysicalExpr, PhysicalSortExpr, RangePartitioning, SplitPoint,
 };
 use datafusion::physical_plan::projection::ProjectionExec;
+use datafusion::physical_plan::repartition::RepartitionExec;
 use datafusion::physical_plan::stream::RecordBatchStreamAdapter;
 use datafusion::physical_plan::{DisplayAs, DisplayFormatType, ExecutionPlan, PlanProperties};
 use datafusion::prelude::SessionContext;
@@ -209,7 +211,9 @@ impl TableProvider for WorkerTableProvider {
             .inputs
             .iter()
             .zip(&self.descriptor.input_routing)
-            .map(|(input, routing)| route_input(input.clone(), routing.as_ref()))
+            .map(|(input, routing)| {
+                route_input(restore_worker_routing(input.clone())?, routing.as_ref())
+            })
             .collect::<Result<Vec<_>>>()?;
         let mut plan: Arc<dyn ExecutionPlan> =
             Arc::new(WorkerExtensionExec::new(self.descriptor.clone(), inputs)?);
@@ -239,6 +243,26 @@ impl TableProvider for WorkerTableProvider {
     }
 }
 
+/// Child Connect relations may already have completed physical optimization.
+/// Re-establish all declared routes before the enclosing relation is optimized:
+/// otherwise EnsureRequirements can remove a previously lowered range exchange.
+fn restore_worker_routing(plan: Arc<dyn ExecutionPlan>) -> Result<Arc<dyn ExecutionPlan>> {
+    Ok(plan
+        .transform_up(|node| {
+            let Some(worker) = node.downcast_ref::<WorkerExtensionExec>() else {
+                return Ok(Transformed::no(node));
+            };
+            let inputs = worker
+                .children()
+                .into_iter()
+                .zip(&worker.descriptor.input_routing)
+                .map(|(input, routing)| route_input(input.clone(), routing.as_ref()))
+                .collect::<Result<Vec<_>>>()?;
+            Ok(Transformed::yes(node.with_new_children(inputs)?))
+        })?
+        .data)
+}
+
 fn route_input(
     input: Arc<dyn ExecutionPlan>,
     routing: Option<&WorkerInputRouting>,
@@ -257,14 +281,22 @@ fn route_input(
         .iter()
         .map(|&point| SplitPoint::new(vec![ScalarValue::Int64(Some(point))]))
         .collect();
-    let partitioning = RangePartitioning::try_new(ordering, splits)?;
+    let partitioning = Partitioning::Range(RangePartitioning::try_new(ordering, splits)?);
+    if input.is::<ExplicitRepartitionExec>() && input.properties().partitioning == partitioning {
+        return Ok(input);
+    }
+    // Replace an already-lowered matching exchange instead of stacking another
+    // one around it on every nested provider scan.
+    let input = match input.downcast_ref::<RepartitionExec>() {
+        Some(exchange) if exchange.properties().partitioning == partitioning => {
+            exchange.input().clone()
+        }
+        _ => input,
+    };
     // This is protocol routing, rather than an optimizer-selected distribution.
     // Sail's existing explicit node preserves it through EnsureRequirements and
     // is lowered to DataFusion's range exchange by RewriteExplicitRepartition.
-    Ok(Arc::new(ExplicitRepartitionExec::new(
-        input,
-        Partitioning::Range(partitioning),
-    )))
+    Ok(Arc::new(ExplicitRepartitionExec::new(input, partitioning)))
 }
 
 #[derive(Default)]

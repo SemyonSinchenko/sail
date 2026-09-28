@@ -46,6 +46,10 @@ use crate::task::scheduling::{
 #[path = "worker_topology.rs"]
 mod worker_topology;
 
+#[cfg(test)]
+#[path = "cleanup_tests.rs"]
+mod cleanup_tests;
+
 impl JobScheduler {
     fn next_job_id(&mut self) -> ExecutionResult<JobId> {
         self.job_id_generator.generate()
@@ -621,10 +625,26 @@ impl JobScheduler {
             return vec![];
         };
         let mut actions = vec![];
-        for (s, stage) in job.stages.iter().enumerate() {
-            for (t, task) in stage.tasks.iter().enumerate() {
-                for (a, attempt) in task.attempts.iter().enumerate() {
+        for (s, stage) in job.stages.iter_mut().enumerate() {
+            for (t, task) in stage.tasks.iter_mut().enumerate() {
+                for (a, attempt) in task.attempts.iter_mut().enumerate() {
                     if !attempt.state.is_terminal() {
+                        // Cancellation unassigns the task before a lost-worker probe can
+                        // find it. Record the terminal state without waiting for an RPC
+                        // from a worker that may already be gone. Successful output can
+                        // precede its final task-status RPC, so preserve that late success.
+                        if !matches!(outcome, JobOutputOutcome::Completed) {
+                            attempt.state = TaskState::Canceled;
+                            event_reporter.report(SystemEvent::TaskUpdated {
+                                session_id: session_id.clone(),
+                                job_id: u64::from(job_id),
+                                stage: s as u64,
+                                partition: t as u64,
+                                attempt: a as u64,
+                                status: attempt.state.status().to_string(),
+                                updated_at: Utc::now(),
+                            });
+                        }
                         actions.push(JobAction::CancelTask {
                             key: TaskKey {
                                 job_id,

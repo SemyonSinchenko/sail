@@ -52,6 +52,10 @@ indexmap = { workspace = true }
 chrono = { workspace = true }
 bytes = { workspace = true }
 
+[dev-dependencies]
+opentelemetry = { workspace = true }
+opentelemetry_sdk = { workspace = true }
+
 [build-dependencies]
 prost-build = { workspace = true }
 tonic-prost-build = { workspace = true }

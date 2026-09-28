@@ -14,6 +14,7 @@ use sail_common_datafusion::driver_extension::{
     contains_driver_extension, release_driver_extensions,
 };
 use sail_common_datafusion::error::CommonErrorCause;
+use sail_common_datafusion::worker_extension::contains_worker_extension;
 use sail_python_udf::error::PyErrExtractor;
 use sail_system_store::SystemEvent;
 use sail_telemetry::events::SystemEventReporter;
@@ -215,6 +216,15 @@ impl JobScheduler {
                 CommonErrorCause::Execution(format!(
                     "driver extension task failed; automatic retry disabled; an unacknowledged mutation outcome is indeterminate: {cause}"
                 ))
+            } else if job
+                .graph
+                .stages()
+                .iter()
+                .any(|stage| contains_worker_extension(&stage.plan))
+            {
+                CommonErrorCause::Execution(format!(
+                    "worker extension job failed; automatic retry disabled: {cause}"
+                ))
             } else {
                 cause
             };
@@ -262,14 +272,23 @@ impl JobScheduler {
     }
 
     fn update_task_regions(job: &mut JobDescriptor, options: &JobSchedulerOptions) {
+        // A stateful worker operation can already hold input from an upstream
+        // region. Retrying even that non-native region could deliver it twice.
+        // Fail the complete job until extensions define a recovery protocol.
+        let worker_stateful = job
+            .graph
+            .stages()
+            .iter()
+            .any(|stage| contains_worker_extension(&stage.plan));
         for (r, region) in job.topology.regions.iter().enumerate() {
             // A lost acknowledgement cannot distinguish a committed native
             // mutation from one canceled before publication. Never re-execute
             // a region containing a driver-resident native operation.
-            let max_attempts = if region
-                .tasks
-                .iter()
-                .any(|task| contains_driver_extension(&job.graph.stages()[task.stage].plan))
+            let max_attempts = if worker_stateful
+                || region
+                    .tasks
+                    .iter()
+                    .any(|task| contains_driver_extension(&job.graph.stages()[task.stage].plan))
             {
                 1
             } else {
@@ -1140,6 +1159,10 @@ impl StageGroup {
 #[cfg(test)]
 #[path = "native_retry_tests.rs"]
 mod native_retry_tests;
+
+#[cfg(test)]
+#[path = "worker_retry_tests.rs"]
+mod worker_retry_tests;
 
 #[cfg(test)]
 mod tests {

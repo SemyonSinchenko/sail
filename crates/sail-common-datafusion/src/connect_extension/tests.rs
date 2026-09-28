@@ -224,3 +224,43 @@ fn host_input_preserves_runtime_when_replaced_and_polled_on_a_foreign_thread() -
     assert_eq!(executions.load(Ordering::SeqCst), 2);
     Ok(())
 }
+
+#[tokio::test]
+async fn partitioned_host_input_preserves_selection_context_and_replacement() -> Result<()> {
+    let host = SessionContext::new().task_ctx();
+    let foreign = SessionContext::new().task_ctx();
+    let executions = Arc::new(AtomicUsize::new(0));
+    let schema = Arc::new(Schema::new(vec![Field::new("id", DataType::Int64, false)]));
+    let probe: Arc<dyn ExecutionPlan> = Arc::new(ContextProbeExec {
+        expected: host.clone(),
+        properties: Arc::new(PlanProperties::new(
+            EquivalenceProperties::new(schema),
+            Partitioning::UnknownPartitioning(3),
+            EmissionType::Incremental,
+            Boundedness::Bounded,
+        )),
+        executions: executions.clone(),
+        runtime: Handle::current().id(),
+    });
+    let gathered = HostInputExec::new(probe.clone(), host.clone(), Handle::current());
+    assert!(Arc::ptr_eq(&gathered.partitioned_input(), &probe));
+    let input = Arc::new(HostInputExec::new_partitioned(
+        gathered.partitioned_input(),
+        host,
+        Handle::current(),
+    ));
+    assert_eq!(input.properties().partitioning.partition_count(), 3);
+    let batches = collect(input.execute(2, foreign.clone())?).await?;
+    assert_eq!(batches.iter().map(RecordBatch::num_rows).sum::<usize>(), 1);
+    assert_eq!(executions.load(Ordering::SeqCst), 1);
+    assert!(input.execute(3, foreign.clone()).is_err());
+    #[expect(deprecated)]
+    let replaced = input.clone().with_new_children(vec![probe.clone()])?;
+    let batches = collect(replaced.execute(1, foreign)?).await?;
+    assert_eq!(batches.iter().map(RecordBatch::num_rows).sum::<usize>(), 0);
+    assert_eq!(executions.load(Ordering::SeqCst), 2);
+    #[expect(deprecated)]
+    let changed = input.with_new_children(vec![Arc::new(CoalescePartitionsExec::new(probe))]);
+    assert!(changed.is_err());
+    Ok(())
+}

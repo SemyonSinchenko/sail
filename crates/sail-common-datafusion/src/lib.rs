@@ -26,3 +26,5 @@ pub mod variant;
 pub mod driver_extension;
 pub mod native_resource;
 pub mod native_scalar;
+
+pub mod worker_extension;

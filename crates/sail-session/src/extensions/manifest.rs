@@ -4,7 +4,7 @@ use datafusion_common::{Result, plan_err};
 use serde::Deserialize;
 
 /// Python metadata is checked before touching any native capsule layout.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Manifest {
     pub name: String,
@@ -13,13 +13,13 @@ pub(super) struct Manifest {
     pub datafusion_version: String,
     pub arrow_version: String,
     pub placement: String,
-    /// A driver-native session quota prepaid from the host's DataFusion pool.
+    /// A native session/job quota prepaid from the executing host's pool.
     #[serde(default)]
     pub memory_bytes: Option<usize>,
     pub relation_types: Vec<RelationType>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct RelationType {
     pub type_url: String,
@@ -45,7 +45,7 @@ impl Manifest {
                 self.arrow_version
             );
         }
-        if !matches!(self.placement.as_str(), "driver" | "any") {
+        if !matches!(self.placement.as_str(), "driver" | "worker" | "any") {
             return plan_err!(
                 "extension {} has unsupported placement {}",
                 self.name,
@@ -53,10 +53,18 @@ impl Manifest {
             );
         }
         if let Some(bytes) = self.memory_bytes
-            && (bytes == 0 || self.placement != "driver")
+            && (bytes == 0 || !matches!(self.placement.as_str(), "driver" | "worker"))
         {
             return plan_err!(
-                "extension {} memory_bytes must be positive and placement must be driver",
+                "extension {} memory_bytes must be positive and placement must be driver or worker",
+                self.name
+            );
+        }
+        if self.placement == "worker"
+            && (self.memory_bytes.is_none() || self.relation_types.is_empty())
+        {
+            return plan_err!(
+                "worker extension {} requires a native quota and at least one relation type",
                 self.name
             );
         }
@@ -119,7 +127,7 @@ mod tests {
     }
 
     #[test]
-    fn native_session_quota_requires_a_positive_driver_only_cap() {
+    fn native_quota_requires_positive_bytes_and_explicit_placement() {
         let mut manifest = valid();
         manifest.memory_bytes = Some(64);
         assert!(manifest.validate().is_ok());
@@ -127,6 +135,24 @@ mod tests {
         assert!(manifest.validate().is_err());
         manifest.memory_bytes = Some(64);
         manifest.placement = "any".into();
+        assert!(manifest.validate().is_err());
+    }
+
+    #[test]
+    fn worker_relations_require_an_explicit_quota_and_role() {
+        let mut manifest = valid();
+        manifest.placement = "worker".into();
+        assert!(manifest.validate().is_err());
+        manifest.memory_bytes = Some(64);
+        assert!(manifest.validate().is_err());
+        manifest.relation_types.push(RelationType {
+            type_url: "worker.fixture".into(),
+            accepts_bare: true,
+            min_inputs: 0,
+            max_inputs: 2,
+        });
+        assert!(manifest.validate().is_ok());
+        manifest.memory_bytes = Some(0);
         assert!(manifest.validate().is_err());
     }
 }

@@ -10,12 +10,14 @@ pub use options::{TaskRunnerComponents, TaskRunnerExtensions, TaskRunnerPlacemen
 use tokio::sync::oneshot;
 
 use crate::id::TaskKey;
+use crate::task_runner::extension_scope::ExtensionJobs;
 use crate::task_runner::registry::TaskRegistry;
 
 pub struct TaskRunnerActor {
     session_id: String,
     signals: HashMap<TaskKey, oneshot::Sender<()>>,
     tasks: TaskRegistry,
+    extension_jobs: ExtensionJobs,
     extensions: TaskRunnerExtensions,
     placement: TaskRunnerPlacement,
 }

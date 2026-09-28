@@ -62,6 +62,7 @@ impl TaskRunnerActor {
         let proto = Arc::new(PhysicalPlanNode::decode(definition.plan.as_ref()).map_err(
             |error| ExecutionError::InvalidArgument(format!("invalid physical plan: {error}")),
         )?);
+        self.extension_jobs.admit(job_id, &context)?;
         self.tasks.record_batch(job_id, stage, &tasks);
         for task in tasks {
             let key = task.task_key(job_id, stage);
@@ -69,6 +70,10 @@ impl TaskRunnerActor {
                 session_id: self.session_id.clone(),
                 handle: ctx.handle().clone(),
                 celeborn: self.extensions.celeborn_streams.is_some(),
+                worker_id: match &self.placement {
+                    TaskRunnerPlacement::Worker { worker_id, .. } => Some(u64::from(*worker_id)),
+                    TaskRunnerPlacement::Driver { .. } => None,
+                },
             }
             .stream(
                 key.clone(),
@@ -93,6 +98,7 @@ impl TaskRunnerActor {
 
     pub(super) fn handle_close_job(&mut self, job_id: JobId) -> ActorAction {
         self.tasks.close_job(job_id);
+        self.extension_jobs.close_job(&self.session_id, job_id);
         self.extensions.local_streams.remove_streams(job_id, None);
         self.signals.retain(|key, _| key.job_id != job_id);
         ActorAction::Continue

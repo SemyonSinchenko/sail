@@ -20,6 +20,7 @@ impl Actor for TaskRunnerActor {
             session_id,
             signals: Default::default(),
             tasks: Default::default(),
+            extension_jobs: Default::default(),
             extensions,
             placement,
         }
@@ -117,7 +118,9 @@ impl Actor for TaskRunnerActor {
         }
     }
 
-    async fn stop(self, _ctx: &mut ActorContext<Self>) {
+    async fn stop(mut self, _ctx: &mut ActorContext<Self>) {
+        self.extension_jobs.close_all(&self.session_id);
+        self.signals.clear();
         if let Some(streams) = self.extensions.celeborn_streams {
             streams.stop().await;
         }

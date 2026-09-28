@@ -97,6 +97,7 @@ use sail_common_datafusion::catalog::{
 use sail_common_datafusion::datasource::PhysicalSinkMode;
 use sail_common_datafusion::driver_extension::{DRIVER_CODEC_PREFIX, DriverExtensionExec};
 use sail_common_datafusion::native_scalar::{decode_scalar, encode_scalar};
+use sail_common_datafusion::worker_extension::{WORKER_CODEC_PREFIX, WorkerExtensionExec};
 use sail_common_datafusion::schema_evolution::{
     SchemaEvolutionCastColumnExpr, SchemaEvolutionDefaultExpr,
     SchemaEvolutionPhysicalExprAdapterFactoryWithMatching, SchemaEvolutionTimezoneMode,
@@ -354,6 +355,9 @@ impl PhysicalExtensionCodec for RemoteExecutionCodec {
         ctx: &TaskContext,
         proto_converter: &dyn PhysicalProtoConverterExtension,
     ) -> Result<Arc<dyn ExecutionPlan>> {
+        if buf.starts_with(WORKER_CODEC_PREFIX) {
+            return WorkerExtensionExec::decode(buf, inputs, ctx);
+        }
         if buf.starts_with(DRIVER_CODEC_PREFIX) {
             return DriverExtensionExec::decode(buf, inputs, ctx);
         }
@@ -1909,6 +1913,9 @@ impl PhysicalExtensionCodec for RemoteExecutionCodec {
         buf: &mut Vec<u8>,
         proto_converter: &dyn PhysicalProtoConverterExtension,
     ) -> Result<()> {
+        if let Some(native) = node.downcast_ref::<WorkerExtensionExec>() {
+            return native.encode(buf);
+        }
         if let Some(native) = node.downcast_ref::<DriverExtensionExec>() {
             return native.encode(buf);
         }

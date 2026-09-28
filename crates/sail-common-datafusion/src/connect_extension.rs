@@ -126,12 +126,15 @@ impl SessionExtension for ConnectExtensionRegistry {
 ///
 /// DataFusion 55's foreign TaskContext reconstruction does not preserve Sail's
 /// RuntimeEnv. A foreign consumer therefore receives this wrapper, whose execute
-/// ignores the reconstructed context. Coalescing happens on the host and consumes
-/// every partition. The host runtime is retained and entered for execution and
+/// ignores the reconstructed context. Local/driver adapters gather every input
+/// partition; worker adapters preserve the prepared partitioning explicitly.
+/// The host runtime is retained and entered for execution and
 /// stream polls: FFI child replacement can discard the FFI wrapper's runtime.
 /// This is a local-mode bridge, not a serializable remote node.
 pub struct HostInputExec {
     input: Arc<dyn ExecutionPlan>,
+    original: Arc<dyn ExecutionPlan>,
+    gathered: bool,
     context: Arc<TaskContext>,
     runtime: Handle,
 }
@@ -141,9 +144,33 @@ impl HostInputExec {
         self.input.clone()
     }
 
+    /// Remove only the gathering introduced by this adapter. An explicit
+    /// coalescer already present in the caller's plan remains part of the input.
+    pub fn partitioned_input(&self) -> Arc<dyn ExecutionPlan> {
+        self.original.clone()
+    }
+
     pub fn new(input: Arc<dyn ExecutionPlan>, context: Arc<TaskContext>, runtime: Handle) -> Self {
         Self {
-            input: Arc::new(CoalescePartitionsExec::new(input)),
+            input: Arc::new(CoalescePartitionsExec::new(input.clone())),
+            original: input,
+            gathered: true,
+            context,
+            runtime,
+        }
+    }
+
+    /// Preserve prepared worker partitions while retaining the host runtime and
+    /// task context across FFI. Driver/local callers keep using `new` above.
+    pub fn new_partitioned(
+        input: Arc<dyn ExecutionPlan>,
+        context: Arc<TaskContext>,
+        runtime: Handle,
+    ) -> Self {
+        Self {
+            input: input.clone(),
+            original: input,
+            gathered: false,
             context,
             runtime,
         }
@@ -162,7 +189,9 @@ impl DisplayAs for HostInputExec {
     fn fmt_as(&self, _t: DisplayFormatType, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "HostInputExec: local, host_context=true, host_runtime=true, partitions=1"
+            "HostInputExec: host_context=true, host_runtime=true, partitions={}, gathered={}",
+            self.input.properties().partitioning.partition_count(),
+            self.gathered
         )
     }
 }
@@ -206,13 +235,26 @@ impl ExecutionPlan for HostInputExec {
         if children[0].schema() != self.input.schema() {
             return plan_err!("HostInputExec replacement child has a different schema");
         }
-        // Re-establish the single-partition contract even after foreign child
-        // replacement, which cannot carry required_input_distribution over FFI.
-        Ok(Arc::new(Self::new(
-            children.remove(0),
-            Arc::clone(&self.context),
-            self.runtime.clone(),
-        )))
+        if self.gathered {
+            // Re-establish the original single-partition contract after FFI
+            // replacement, which does not carry all input requirements.
+            Ok(Arc::new(Self::new(
+                children.remove(0),
+                self.context.clone(),
+                self.runtime.clone(),
+            )))
+        } else {
+            if children[0].properties().partitioning.partition_count()
+                != self.input.properties().partitioning.partition_count()
+            {
+                return plan_err!("partitioned host input replacement changes partition count");
+            }
+            Ok(Arc::new(Self::new_partitioned(
+                children.remove(0),
+                self.context.clone(),
+                self.runtime.clone(),
+            )))
+        }
     }
 
     fn execute(
@@ -220,11 +262,13 @@ impl ExecutionPlan for HostInputExec {
         partition: usize,
         _foreign_context: Arc<TaskContext>,
     ) -> Result<SendableRecordBatchStream> {
-        if partition != 0 {
-            return exec_err!("HostInputExec only supports partition 0, received {partition}");
+        if partition >= self.input.properties().partitioning.partition_count() {
+            return exec_err!(
+                "HostInputExec partition {partition} is outside the advertised input"
+            );
         }
         let _guard = self.runtime.enter();
-        let inner = self.input.execute(0, Arc::clone(&self.context))?;
+        let inner = self.input.execute(partition, Arc::clone(&self.context))?;
         Ok(Box::pin(HostInputStream {
             inner,
             runtime: self.runtime.clone(),

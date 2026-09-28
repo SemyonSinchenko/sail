@@ -1,4 +1,4 @@
-//! Experimental, exact-build native packages for local Sail sessions.
+//! Experimental, exact-build native packages for Sail sessions and worker jobs.
 //!
 //! Python metadata is the bootstrap protocol; native objects use DataFusion's
 //! named capsules. This is deliberately not a promise of a stable Sail C ABI.
@@ -9,6 +9,7 @@ mod plan;
 mod python_owner;
 #[cfg(test)]
 mod resource_tests;
+mod worker;
 
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex, OnceLock};
@@ -32,6 +33,7 @@ use sail_common_datafusion::connect_extension::{
 use sail_common_datafusion::driver_extension::DriverExtensionRegistry;
 use sail_common_datafusion::native_resource::{MEMORY_LEASE_CAPSULE, NativeResourceTracker};
 use sail_common_datafusion::native_scalar::{OwnedScalar, retain_scalar};
+use sail_common_datafusion::worker_extension::WorkerExtensionRegistry;
 use sail_plan::function::is_built_in_function_name;
 
 use self::driver::{DriverTableProvider, InputPlaceholder};
@@ -214,8 +216,7 @@ pub(crate) fn register_extensions(
                 .map_err(py_error)?;
             let manifest: Manifest = serde_json::from_str(&json).map_err(py_error)?;
             manifest.validate()?;
-            if distributed && manifest.placement != "driver" && !manifest.relation_types.is_empty()
-            {
+            if distributed && manifest.placement == "any" && !manifest.relation_types.is_empty() {
                 return plan_err!(
                     "extension {} requires a worker relation codec; only driver-resident relations are supported",
                     manifest.name
@@ -229,6 +230,16 @@ pub(crate) fn register_extensions(
             }
             let identity = package_identity(py, &entry, &metadata)?;
             retain_package(py, identity.clone(), &factory)?;
+            if manifest.placement == "worker" {
+                worker::register_relations(
+                    &mut registry,
+                    &manifest,
+                    identity,
+                    Arc::new(PythonOwner::new(factory.unbind())),
+                    distributed,
+                )?;
+                continue;
+            }
             let bound = if let Some(bytes) = manifest.memory_bytes {
                 let lease = resources.reserve(&runtime.memory_pool, &identity, bytes)?;
                 let capsule =
@@ -332,11 +343,18 @@ pub(crate) fn register_extensions(
     Ok(config)
 }
 
-/// Load scalar implementations on an execution worker before it decodes a
-/// distributed physical plan. The worker does not install relation handlers or
-/// mutate the driver catalog; the codec resolves native scalar descriptors from
-/// the process-local registry populated here.
-pub(crate) fn load_worker_extensions() -> Result<()> {
+/// Load independently validated scalar implementations and worker-relation
+/// factories before decoding a distributed plan. Job state is bound lazily from
+/// the worker runtime pool; loading does not allocate a native graph or mutate
+/// the driver catalog.
+pub(crate) fn load_worker_extensions(
+    config: &mut SessionConfig,
+    runtime: &Arc<RuntimeEnv>,
+) -> Result<()> {
+    let registry = Arc::new(WorkerExtensionRegistry::default());
+    let resources = Arc::new(NativeResourceTracker::default());
+    config.set_extension(registry.clone());
+    config.set_extension(resources.clone());
     graph_utils::register_worker_functions()?;
     Python::attach(|py| {
         let kwargs = PyDict::new(py);
@@ -369,6 +387,19 @@ pub(crate) fn load_worker_extensions() -> Result<()> {
             }
             let identity = package_identity(py, &entry, &metadata)?;
             retain_package(py, identity.clone(), &factory)?;
+            if manifest.placement == "worker" {
+                registry.register(
+                    identity.clone(),
+                    Arc::new(worker::PythonWorkerFactory::new(
+                        identity,
+                        manifest,
+                        Arc::new(PythonOwner::new(factory.unbind())),
+                        runtime.clone(),
+                        resources.clone(),
+                    )?),
+                )?;
+                continue;
+            }
             log::info!(
                 "worker loaded native extension {identity}, pid={}",
                 std::process::id()

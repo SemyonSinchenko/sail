@@ -16,6 +16,9 @@ use futures::TryStreamExt;
 use log::debug;
 use sail_common::actor::ActorHandle;
 use sail_common_datafusion::schema_evolution::SchemaEvolutionPhysicalExprAdapterFactory;
+use sail_common_datafusion::worker_extension::{
+    WorkerExtensionRegistry, WorkerJobIdentity, WorkerTaskScope,
+};
 use sail_telemetry::telemetry::global_metrics;
 use sail_telemetry::{TracingExecOptions, trace_execution_plan};
 use tokio_util::sync::CancellationToken;
@@ -32,6 +35,7 @@ pub(super) struct TaskPreparation {
     pub session_id: String,
     pub handle: ActorHandle<TaskRunnerActor>,
     pub celeborn: bool,
+    pub worker_id: Option<u64>,
 }
 
 impl TaskPreparation {
@@ -56,6 +60,29 @@ impl TaskPreparation {
         canceled: &CancellationToken,
         context: Arc<TaskContext>,
     ) -> ExecutionResult<SendableRecordBatchStream> {
+        let context = match self.worker_id {
+            Some(worker_id)
+                if context
+                    .session_config()
+                    .get_extension::<WorkerExtensionRegistry>()
+                    .is_some() =>
+            {
+                super::extension_scope::scoped_context(
+                    &context,
+                    WorkerTaskScope {
+                        job: WorkerJobIdentity {
+                            session_id: self.session_id.clone(),
+                            job_id: key.job_id.into(),
+                        },
+                        worker_id,
+                        stage: key.stage,
+                        partition: key.partition,
+                        attempt: key.attempt,
+                    },
+                )
+            }
+            _ => context,
+        };
         let plan = proto_to_physical_plan(&context, &RemoteExecutionCodec, proto)?;
         let plan = self.rewrite_file_scans(plan)?;
         let plan = self.rewrite_shuffle(

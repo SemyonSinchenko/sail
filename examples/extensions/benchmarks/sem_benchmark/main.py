@@ -55,6 +55,24 @@ logger = logging.getLogger("sem_benchmark")
 ENGINES = ("pregel", "nutmeg")
 
 
+def dataset_info(name: str) -> dict:
+    """Catalog metadata for `name`, or a permissive stub for uncataloged graphs.
+
+    LDBC Graphalytics parquet links are uniform
+    (`<BASE_URL>/<name>-{v,e}.parquet`), so any dataset published there can be
+    benchmarked; only the size class / counters then stay unknown.
+    """
+    if name in datasets.CATALOG:
+        return datasets.info(name)
+    logger.warning(
+        "%s is not in the local catalog; assuming %s/%s-{v,e}.parquet "
+        "(size class and vertex/edge counts unknown)",
+        name, datasets.BASE_URL, name,
+    )
+    return {"name": name, "scale": "-", "nodes_str": "?", "edges_str": "?",
+            "size": "?", "vertices": None, "edges": None}
+
+
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description="Benchmark nutmeg pagerank vs gfrs-poc pregel pagerank on Sail.",
@@ -331,7 +349,7 @@ def environment_info() -> dict:
 
 
 def benchmark_engine(engine: str, args: argparse.Namespace) -> None:
-    ds_info = datasets.info(args.dataset)
+    ds_info = dataset_info(args.dataset)
     join = "smj" if args.use_smj else "hash"
     run_dir = (
         Path(args.results_dir) / engine / ds_info["scale"] / args.dataset
@@ -472,8 +490,6 @@ def benchmark_engine(engine: str, args: argparse.Namespace) -> None:
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
     args = parse_args()
-    if args.dataset not in datasets.CATALOG:
-        raise SystemExit(f"unknown dataset {args.dataset!r}")
     engines: list[str] = []
     for part in args.engine.split(","):
         part = part.strip()
@@ -499,7 +515,7 @@ def main() -> None:
                 f"--max-memory ({args.max_memory})"
             )
 
-    info = datasets.info(args.dataset)
+    info = dataset_info(args.dataset)
     logger.info("dataset: %s (%s, %s nodes, %s edges, %s)", args.dataset, info["scale"],
                 info["nodes_str"], info["edges_str"], info["size"])
     datasets.ensure_dataset(args.dataset, Path(args.data_dir))

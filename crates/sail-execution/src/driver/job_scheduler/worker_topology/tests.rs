@@ -165,7 +165,7 @@ fn every_nested_occurrence_must_match_the_enclosing_stage_width() -> ExecutionRe
     assert_eq!(nested.stages().len(), 1);
     assert!(validate_graph(&nested).is_err());
 
-    let union = Arc::new(UnionExec::try_new(vec![first, empty(2)])?);
+    let union = UnionExec::try_new(vec![first, empty(2)])?;
     assert!(validate_graph(&graph(union, false)?).is_err());
     Ok(())
 }

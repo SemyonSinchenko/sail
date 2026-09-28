@@ -388,3 +388,34 @@ alongside the successful run after installing it.
 This is functional Linux ARM64 evidence on Capitola's Docker Desktop VM. It
 covers the native core, not the full Sail process matrix or physical two-host
 execution. Durations in the logs are not published benchmark measurements.
+
+## Linux ARM64 process-cluster qualification
+
+The [functional archive](linux-arm64-functional-8154357.tar.gz) and
+[index](linux-arm64-functional-8154357.json) preserve 41 passing cases:
+
+- Six 128-phase BFS cases: reference, frontier, and direction-optimizing BFS on
+  the 62-vertex chain and the graph fixture.
+- Eight WCC cases: reference and seeded star contraction, with graph, signed-ID
+  extremes, isolates, and expected cap refusal.
+- Ten SSSP cases: reference and delta-star, with graph, signed-ID extremes,
+  isolates, owner skew, and expected cap refusal.
+- Thirteen fault cases: PageRank-delta cancellation, then cancellation and loss
+  of either native owner for each WCC/SSSP variant.
+- Four resource cases: warmup, post-initialization native memory refusal, and
+  three same-session reuse operations for each WCC/SSSP variant.
+
+All 41 complete logs were re-audited. All 41 teardown receipts report absent
+supervised processes and empty owned staging. The archive includes 3,153 files
+plus the manifest, build and runner scripts, exact commands, image and binary
+hashes, and original receipts. The native wheel built and installed successfully;
+Pecan's initial installation then failed because setuptools tried to write into
+the read-only checkout. That log is retained, along with the successful install
+from a byte-verified writable copy.
+
+The host and native extension were built from
+`8154357553af2147e16fdea650e013379b0af2cf` in the development profile with debug
+information disabled. Runs used Linux ARM64 under Docker Desktop on Capitola,
+three container CPUs and a 10 GiB container memory limit without swap. These are
+functional results, not release-profile performance measurements. They do not
+replace physical Capitola/Morrobay qualification.

@@ -1,0 +1,179 @@
+{
+  "recorded_utc": "2026-09-28T09:35:50.298345+00:00",
+  "cases": [
+    {
+      "name": "bfs-reference-chain-62",
+      "outcome": "passed"
+    },
+    {
+      "name": "bfs-reference-graph-62",
+      "outcome": "passed"
+    },
+    {
+      "name": "bfs-frontier-chain-62",
+      "outcome": "passed"
+    },
+    {
+      "name": "bfs-frontier-graph-62",
+      "outcome": "passed"
+    },
+    {
+      "name": "bfs-direction-chain-62",
+      "outcome": "passed"
+    },
+    {
+      "name": "bfs-direction-graph-62",
+      "outcome": "passed"
+    },
+    {
+      "name": "wcc-reference-graph",
+      "outcome": "passed"
+    },
+    {
+      "name": "wcc-reference-extremes",
+      "outcome": "passed"
+    },
+    {
+      "name": "wcc-reference-isolates",
+      "outcome": "passed"
+    },
+    {
+      "name": "wcc-reference-cap",
+      "outcome": "passed"
+    },
+    {
+      "name": "wcc-star-graph",
+      "outcome": "passed"
+    },
+    {
+      "name": "wcc-star-extremes",
+      "outcome": "passed"
+    },
+    {
+      "name": "wcc-star-isolates",
+      "outcome": "passed"
+    },
+    {
+      "name": "wcc-star-cap",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp-reference-graph",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp-reference-extremes",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp-reference-isolates",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp-reference-skew",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp-reference-cap",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp-delta_star-graph",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp-delta_star-extremes",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp-delta_star-isolates",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp-delta_star-skew",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp-delta_star-cap",
+      "outcome": "passed"
+    },
+    {
+      "name": "pagerank-delta-cancel",
+      "outcome": "passed"
+    },
+    {
+      "name": "wcc_reference-cancel",
+      "outcome": "passed"
+    },
+    {
+      "name": "wcc_reference-loss-0",
+      "outcome": "passed"
+    },
+    {
+      "name": "wcc_reference-loss-1",
+      "outcome": "passed"
+    },
+    {
+      "name": "wcc_reference-reuse",
+      "outcome": "passed"
+    },
+    {
+      "name": "wcc_star-cancel",
+      "outcome": "passed"
+    },
+    {
+      "name": "wcc_star-loss-0",
+      "outcome": "passed"
+    },
+    {
+      "name": "wcc_star-loss-1",
+      "outcome": "passed"
+    },
+    {
+      "name": "wcc_star-reuse",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp_reference-cancel",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp_reference-loss-0",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp_reference-loss-1",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp_reference-reuse",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp_delta_star-cancel",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp_delta_star-loss-0",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp_delta_star-loss-1",
+      "outcome": "passed"
+    },
+    {
+      "name": "sssp_delta_star-reuse",
+      "outcome": "passed"
+    }
+  ],
+  "source_commit": "8154357553af2147e16fdea650e013379b0af2cf",
+  "image_id": "sha256:2567b1ad52071176e253f0e162fc2404542b8a446a3ee445ab9d572ec0308391",
+  "binary_sha256": "0e70e5d843d66114cdaa0d97325df6e1dc3661d93ea703a01f7bc840018b8dc3",
+  "boundary": "Linux ARM64 development-profile process-cluster functional qualification on Capitola; not performance evidence or physical two-host qualification.",
+  "archive": "linux-arm64-functional-8154357.tar.gz",
+  "sha256": "ac8b02e57d42ead5281e71ccb90a19aecb6f7beb3d10fd339753fec83baacb0c",
+  "included_files": 3153,
+  "uncompressed_bytes": 61416553,
+  "reaudited_cases": 41,
+  "cleanup_verified_cases": 41
+}

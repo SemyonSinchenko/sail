@@ -1,5 +1,6 @@
 //! Argentea worker role in the Nutmeg wheel. Existing driver Banda is unchanged.
 mod batches;
+mod bfs;
 mod delta;
 mod input;
 mod output;
@@ -78,6 +79,38 @@ pub fn plan_worker_relation<'py>(
     payload: &[u8],
     inputs: Vec<Bound<'py, PyCapsule>>,
 ) -> PyResult<Bound<'py, PyDict>> {
+    if type_url == bfs::request::TYPE_URL {
+        let request = bfs::request::Request::parse(type_url, payload).map_err(py_error)?;
+        let inputs = import_inputs(inputs)?;
+        request.validate_inputs(&inputs).map_err(py_error)?;
+        let result = PyDict::new(py);
+        result.set_item("operation_id", &request.operation_id)?;
+        result.set_item("partitions", request.partitions)?;
+        let mut routing = Vec::new();
+        for _ in &inputs {
+            let route = PyDict::new(py);
+            route.set_item("kind", "integer_range")?;
+            route.set_item("column", "owner")?;
+            route.set_item(
+                "split_points",
+                (1..request.partitions as i64).collect::<Vec<_>>(),
+            )?;
+            routing.push(route);
+        }
+        result.set_item("input_routing", routing)?;
+        result.set_item(
+            "provider",
+            export_provider(
+                py,
+                bfs::plan::BfsTable {
+                    request,
+                    inputs,
+                    state: None,
+                },
+            )?,
+        )?;
+        return Ok(result);
+    }
     if type_url == delta::request::TYPE_URL {
         let request = delta::request::Request::parse(type_url, payload).map_err(py_error)?;
         let inputs = import_inputs(inputs)?;
@@ -142,10 +175,12 @@ pub fn plan_worker_relation<'py>(
     Ok(result)
 }
 
+#[derive(Clone)]
 enum BoundAlgorithm {
     Unset,
     Reference,
     Delta(Arc<delta::state::DeltaState>),
+    Bfs(Arc<bfs::state::BfsState>),
 }
 #[pyclass]
 pub struct BoundArgentea {
@@ -187,6 +222,35 @@ impl BoundArgentea {
         payload: &[u8],
         inputs: Vec<Bound<'py, PyCapsule>>,
     ) -> PyResult<Bound<'py, PyCapsule>> {
+        if type_url == bfs::request::TYPE_URL {
+            let request = bfs::request::Request::parse(type_url, payload).map_err(py_error)?;
+            let inputs = import_inputs(inputs)?;
+            request.validate_inputs(&inputs).map_err(py_error)?;
+            let state = {
+                let mut algorithm = state::lock(&self.algorithm).map_err(py_error)?;
+                match &*algorithm {
+                    BoundAlgorithm::Reference | BoundAlgorithm::Delta(_) => {
+                        return Err(py_error("cannot mix BFS and PageRank under one operation"));
+                    }
+                    BoundAlgorithm::Bfs(value) => value.clone(),
+                    BoundAlgorithm::Unset => {
+                        let value =
+                            bfs::state::BfsState::new(self.state.clone()).map_err(py_error)?;
+                        *algorithm = BoundAlgorithm::Bfs(value.clone());
+                        value
+                    }
+                }
+            };
+            state.configure(&request).map_err(py_error)?;
+            return export_provider(
+                py,
+                bfs::plan::BfsTable {
+                    request,
+                    inputs,
+                    state: Some(state),
+                },
+            );
+        }
         if type_url == delta::request::TYPE_URL {
             let request = delta::request::Request::parse(type_url, payload).map_err(py_error)?;
             let inputs = import_inputs(inputs)?;
@@ -194,7 +258,7 @@ impl BoundArgentea {
             let state = {
                 let mut algorithm = state::lock(&self.algorithm).map_err(py_error)?;
                 match &*algorithm {
-                    BoundAlgorithm::Reference => {
+                    BoundAlgorithm::Reference | BoundAlgorithm::Bfs(_) => {
                         return Err(py_error(
                             "cannot mix v1 reference and v2 residual under one operation",
                         ));
@@ -223,7 +287,10 @@ impl BoundArgentea {
         request.validate_inputs(&inputs).map_err(py_error)?;
         {
             let mut algorithm = state::lock(&self.algorithm).map_err(py_error)?;
-            if matches!(*algorithm, BoundAlgorithm::Delta(_)) {
+            if matches!(
+                *algorithm,
+                BoundAlgorithm::Delta(_) | BoundAlgorithm::Bfs(_)
+            ) {
                 return Err(py_error(
                     "cannot mix v2 residual and v1 reference under one operation",
                 ));
@@ -244,14 +311,12 @@ impl BoundArgentea {
     /// Idempotent host CloseJob callback, even while plans or streams hold owner.
     fn close(&self) -> PyResult<()> {
         let first = self.state.close();
-        let delta = {
-            let algorithm = state::lock(&self.algorithm).map_err(py_error)?;
-            match &*algorithm {
-                BoundAlgorithm::Delta(value) => Some(value.clone()),
-                _ => None,
-            }
+        let algorithm = state::lock(&self.algorithm).map_err(py_error)?.clone();
+        let second = match algorithm {
+            BoundAlgorithm::Delta(value) => value.close(),
+            BoundAlgorithm::Bfs(value) => value.close(),
+            _ => Ok(()),
         };
-        let second = delta.map(|state| state.close()).transpose();
         first.map_err(py_error)?;
         second.map_err(py_error)?;
         Ok(())

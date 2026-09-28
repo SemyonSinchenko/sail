@@ -1,0 +1,11 @@
+{
+  "recorded_utc": "2026-09-28T06:05:30.618851+00:00",
+  "decompressed_files": 305,
+  "outcome": "passed",
+  "configured_credential_fields": [
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY"
+  ],
+  "matches": [],
+  "boundary": "Configured storage credentials and selected token patterns; not exhaustive secret detection."
+}

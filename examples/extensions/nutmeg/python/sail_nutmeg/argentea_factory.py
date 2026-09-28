@@ -4,6 +4,7 @@ Older Sail builds reject this wheel's worker manifest during discovery. There
 is no driver fallback: distributed state must use the scoped worker contract.
 """
 TYPE_URL = "type.googleapis.com/nutmeg.v1.ArgenteaApi"
+DELTA_TYPE_URL = "type.googleapis.com/nutmeg.v2.ArgenteaDeltaApi"
 
 
 class Extension:
@@ -20,6 +21,11 @@ class Extension:
             "memory_bytes": int(os.environ.get("SAIL_ARGENTEA_MEMORY_BYTES", "268435456")),
             "relation_types": [{
                 "type_url": TYPE_URL,
+                "accepts_bare": False,
+                "min_inputs": 1,
+                "max_inputs": 2,
+            }, {
+                "type_url": DELTA_TYPE_URL,
                 "accepts_bare": False,
                 "min_inputs": 1,
                 "max_inputs": 2,

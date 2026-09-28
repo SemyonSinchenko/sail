@@ -211,9 +211,14 @@ impl WorkerState {
             "session_id": self.incarnation.session_id,
         }))
         .map_err(error)?;
-        eprintln!("ARGENTEA_RECEIPT {json}");
+        self.audit_json(&json)
+    }
+
+    pub fn audit_json(&self, json: &str) -> Result<()> {
+        super::receipt::write_line(&mut std::io::stderr().lock(), "ARGENTEA_RECEIPT ", json)
+            .map_err(error)?;
         if let Some(file) = lock(&self.audit)?.as_mut() {
-            writeln!(file, "{json}").map_err(error)?;
+            super::receipt::write_line(file, "", json).map_err(error)?;
             file.flush().map_err(error)?;
         }
         Ok(())

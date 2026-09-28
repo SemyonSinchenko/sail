@@ -3,7 +3,13 @@
 //! This crate does not schedule work or provide a transport. Sail integration
 //! must establish placement, input completeness, operation cleanup and a real
 //! host memory lease before these primitives can execute remotely.
+mod adjacency;
+mod delta;
 mod pagerank;
+pub use delta::{
+    Convergence, DeltaCompletion, DeltaContribution, DeltaEmissionCursor, DeltaMode, DeltaOptions,
+    DeltaPartition, DeltaRankCursor, DeltaStatistics, DeltaStatisticsValues,
+};
 
 use grust_procedures::ExecutionContext;
 pub use pagerank::{

@@ -31,7 +31,7 @@ impl Drop for LeaseOwner {
     }
 }
 
-fn worker(id: u64, bytes: usize, drops: &Arc<AtomicUsize>) -> Arc<WorkerState> {
+pub(super) fn worker(id: u64, bytes: usize, drops: &Arc<AtomicUsize>) -> Arc<WorkerState> {
     WorkerState::new(
         Incarnation {
             session_id: "test-session".into(),
@@ -46,7 +46,7 @@ fn worker(id: u64, bytes: usize, drops: &Arc<AtomicUsize>) -> Arc<WorkerState> {
     .unwrap()
 }
 
-fn ints(names: &[&str], rows: &[Vec<i64>]) -> RecordBatch {
+pub(super) fn ints(names: &[&str], rows: &[Vec<i64>]) -> RecordBatch {
     let schema = Arc::new(Schema::new(
         names
             .iter()
@@ -66,7 +66,10 @@ fn ints(names: &[&str], rows: &[Vec<i64>]) -> RecordBatch {
     .unwrap()
 }
 
-async fn memory(ctx: &SessionContext, batches: Vec<Vec<RecordBatch>>) -> Arc<dyn ExecutionPlan> {
+pub(super) async fn memory(
+    ctx: &SessionContext,
+    batches: Vec<Vec<RecordBatch>>,
+) -> Arc<dyn ExecutionPlan> {
     let schema = batches.iter().flatten().next().unwrap().schema();
     MemTable::try_new(schema, batches)
         .unwrap()
@@ -75,7 +78,7 @@ async fn memory(ctx: &SessionContext, batches: Vec<Vec<RecordBatch>>) -> Arc<dyn
         .unwrap()
 }
 
-fn route(input: Arc<dyn ExecutionPlan>, partitions: usize) -> Arc<dyn ExecutionPlan> {
+pub(super) fn route(input: Arc<dyn ExecutionPlan>, partitions: usize) -> Arc<dyn ExecutionPlan> {
     let expr = Arc::new(Column::new(
         "owner",
         input.schema().index_of("owner").unwrap(),
@@ -93,7 +96,7 @@ fn route(input: Arc<dyn ExecutionPlan>, partitions: usize) -> Arc<dyn ExecutionP
 /// In-process placement shim only. Real DataFusion range exchanges and native
 /// execution run unchanged; this is not a Sail scheduler or two-process test.
 #[derive(Debug)]
-struct Dispatch(Vec<Arc<dyn ExecutionPlan>>);
+pub(super) struct Dispatch(pub(super) Vec<Arc<dyn ExecutionPlan>>);
 impl DisplayAs for Dispatch {
     fn fmt_as(&self, _: DisplayFormatType, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "TestNativeOwners")

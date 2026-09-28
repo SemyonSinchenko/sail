@@ -193,3 +193,123 @@ fn cleanup_task_failure_cascade_is_a_terminal_control() -> ExecutionResult<()> {
     assert_eq!(task_events(&f.events)?.len(), f.keys.len());
     Ok(())
 }
+
+#[test]
+fn cleanup_failed_or_canceled_output_preserves_terminal_states_and_is_idempotent()
+-> ExecutionResult<()> {
+    for outcome in [JobOutputOutcome::Failed, JobOutputOutcome::Canceled] {
+        for initial in [
+            TaskState::Created,
+            TaskState::Scheduled,
+            TaskState::Running,
+            TaskState::Succeeded,
+            TaskState::Failed,
+            TaskState::Canceled,
+        ] {
+            let mut f = fixture()?;
+            let key = &f.keys[0];
+            f.scheduler.jobs[&key.job_id].stages[key.stage].tasks[key.partition].attempts[0]
+                .state = initial;
+            if initial.is_terminal() {
+                assert!(f.assigner.unassign_task(key).is_some());
+            }
+            let expected = if initial.is_terminal() {
+                initial
+            } else {
+                TaskState::Canceled
+            };
+            let count = f.keys.len() - usize::from(initial.is_terminal());
+            let actions = f.scheduler.clean_up_job(JobId::from(1), outcome);
+            assert_eq!(retire_after_cancellation(&mut f, actions), count);
+            assert_eq!(
+                f.scheduler.jobs[&JobId::from(1)].state.status(),
+                match outcome {
+                    JobOutputOutcome::Failed => "FAILED",
+                    JobOutputOutcome::Canceled => "CANCELED",
+                    JobOutputOutcome::Completed => "SUCCEEDED",
+                }
+            );
+            let events = task_events(&f.events)?;
+            assert_eq!(events.len(), count);
+            assert!(events.iter().all(|event| matches!(event,
+                SystemEvent::TaskUpdated { status, .. } if status == "CANCELED")));
+            assert_eq!(
+                f.scheduler
+                    .get_task_state(&f.keys[0])
+                    .map(|state| state.status()),
+                Some(expected.status())
+            );
+
+            let again = f.scheduler.clean_up_job(JobId::from(1), outcome);
+            assert!(
+                !again
+                    .iter()
+                    .any(|action| matches!(action, JobAction::CancelTask { .. }))
+            );
+            assert_eq!(task_events(&f.events)?.len(), count);
+            // A delayed RUNNING/SUCCEEDED/FAILED report cannot resurrect an
+            // attempt whose cancellation has already been committed by cleanup.
+            for late in [TaskState::Running, TaskState::Succeeded, TaskState::Failed] {
+                f.scheduler.update_task(&f.keys[0], late, None, None);
+                assert_eq!(
+                    f.scheduler
+                        .get_task_state(&f.keys[0])
+                        .map(|state| state.status()),
+                    Some(expected.status())
+                );
+            }
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn cleanup_completed_output_allows_success_status_before_or_after_eof() -> ExecutionResult<()> {
+    // Shuffle sink commit can expose EOF before TaskMonitor's success RPC.
+    // Exercise both message orders directly without a machine-speed race.
+    for report_success_first in [false, true] {
+        let mut f = fixture()?;
+        if report_success_first {
+            for key in &f.keys {
+                f.scheduler
+                    .update_task(key, TaskState::Succeeded, None, None);
+                assert!(f.assigner.unassign_task(key).is_some());
+            }
+        }
+        let before = task_events(&f.events)?.len();
+        let actions = f
+            .scheduler
+            .clean_up_job(JobId::from(1), JobOutputOutcome::Completed);
+        let expected_cancellations = if report_success_first {
+            0
+        } else {
+            f.keys.len()
+        };
+        assert_eq!(
+            retire_after_cancellation(&mut f, actions),
+            expected_cancellations
+        );
+        assert_eq!(task_events(&f.events)?.len(), before);
+        assert!(matches!(
+            f.scheduler.jobs[&JobId::from(1)].state,
+            JobState::Succeeded
+        ));
+        if !report_success_first {
+            for key in &f.keys {
+                assert!(matches!(
+                    f.scheduler.get_task_state(key),
+                    Some(TaskState::Running)
+                ));
+                f.scheduler
+                    .update_task(key, TaskState::Succeeded, None, None);
+            }
+        }
+        assert!(
+            f.keys
+                .iter()
+                .all(|key| matches!(f.scheduler.get_task_state(key), Some(TaskState::Succeeded)))
+        );
+        assert_eq!(task_events(&f.events)?.len(), f.keys.len());
+    }
+    Ok(())
+}

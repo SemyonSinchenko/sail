@@ -9,13 +9,14 @@ from pathlib import Path
 import platform
 import sys
 import traceback
+import time
 
 EXAMPLES = Path(__file__).resolve().parents[2]
 REPO = EXAMPLES.parents[1]
 sys.path[:0] = [str(EXAMPLES/'graph-algorithms/src'),str(EXAMPLES/'scripts'),str(EXAMPLES/'benchmarks')]
 from runtime import git, group_exists, native_package_identity, package_versions, sha256, validate_admission_settings
 from argentea_wcc_client import ArgenteaWcc, METHODS, options
-from argentea_wcc_evidence import validate_events, validate_rows
+from argentea_wcc_evidence import validate_events, validate_rows, validate_cap
 from argentea_evidence import validate_native_stages
 from argentea_host_evidence import validate_host_graph
 from argentea_evidence import parse_log, parse_worker_tasks
@@ -40,6 +41,25 @@ def utc():
 
 def save(path,value):
     path.write_text(json.dumps(value,sort_keys=True,indent=2,allow_nan=False,default=str)+'\n')
+
+
+def terminal_inventory(spark,evidence,log_path):
+    deadline=time.monotonic()+30
+    while True:
+        evidence['worker_endpoints'],evidence['stages']=inventory(spark)
+        native=[s for s in evidence['stages'] if s['slot_group'].startswith('worker-extension:')]
+        jobs={s['job_id'] for s in native};assert len(jobs)==1
+        job=next(iter(jobs))
+        evidence['stored_tasks']=[r.asDict() for r in spark.sql(f"SELECT session_id, CAST(job_id AS BIGINT) job_id, CAST(stage AS BIGINT) stage, CAST(partition AS BIGINT) partition, CAST(attempt AS BIGINT) attempt, status FROM system.execution.tasks WHERE job_id={job}").collect()]
+        evidence['jobs']=[r.asDict() for r in spark.sql(f"SELECT session_id, CAST(job_id AS BIGINT) job_id, status FROM system.execution.jobs WHERE job_id={job}").collect()]
+        records,_=parse_log(read_complete_log(log_path))
+        selected=[r for r in records if r.get('operation_id')==evidence['request']['operation_id']]
+        closed={r['partition'] for r in selected if r['event']=='close'}
+        if (closed==set(range(evidence['request']['partitions'])) and evidence['stored_tasks'] and
+                all(t['status'] in ('SUCCEEDED','FAILED','CANCELED') for t in evidence['stored_tasks'])):
+            return
+        if time.monotonic()>=deadline:raise TimeoutError('WCC failed tasks or owners did not terminate')
+        time.sleep(.05)
 
 
 def exercise(endpoint,args):
@@ -94,10 +114,15 @@ def exercise(endpoint,args):
             if args.mode=='local' and 'requires distributed Sail execution' in str(error):
                 evidence['outcome'] = 'expected-local-rejection'
                 return evidence
+            if args.expect_cap and args.mode!='local':
+                evidence.update(outcome='failed-query-awaiting-cap-audit',query_failed=True)
+                check_view_cleanup()
+                terminal_inventory(spark,evidence,args.output/('server-and-workers.log' if args.mode=='two-host' else 'server.log'))
+                return evidence
             raise
         with result:
             check_view_cleanup()
-            assert args.mode!='local', 'expected local refusal unexpectedly returned components'
+            assert args.mode!='local' and not args.expect_cap, 'expected refusal unexpectedly returned components'
             rows = [row.asDict() for row in result.native_frame.collect()]
             evidence.update(rows=rows,result_validation=validate_rows(rows,case['ids'],case['edges'],result.request),
                 result_path=result.path,rounds=result.rounds,
@@ -122,6 +147,12 @@ def exercise(endpoint,args):
 def audit(receipt,log,*,minimum_workers,required_hosts=()):
     records,supervisors=parse_log(log);tasks=parse_worker_tasks(log)
     check=receipt['checks'];request=check['request']
+    if check['outcome']=='failed-query-awaiting-cap-audit':
+        receipt['native_execution']=validate_cap(records,request,stages=check['stages'],task_statuses=tasks,
+            stored_tasks=check['stored_tasks'],jobs=check['jobs'],query_failed=check['query_failed'],minimum_workers=minimum_workers)
+        receipt.update(native_receipts=records,worker_task_statuses=tasks)
+        check['outcome']='expected-cap'
+        return
     result=validate_events(records,check['rows'],request,minimum_workers=minimum_workers)
     selected=[r for r in records if r.get('operation_id')==request['operation_id']]
     session,job=selected[0]['session_id'],selected[0]['job_id']
@@ -165,6 +196,7 @@ def main():
     parser.add_argument('--mode',choices=['local','process-cluster','two-host'],default='process-cluster')
     parser.add_argument('--case',choices=CASES,default='graph')
     parser.add_argument('--method',choices=METHODS,default='reference')
+    parser.add_argument('--expect-cap',action='store_true')
     parser.add_argument('--max-rounds',type=int,default=14)
     parser.add_argument('--seed',type=int,default=42)
     parser.add_argument('--sail-binary',type=Path)

@@ -65,3 +65,47 @@ def test_event_corruption_is_rejected(fault):
     elif fault=='round':target['rounds']+=1
     else:target['snapshot_id']='foreign'
     with pytest.raises(AssertionError):validate_events(records,rows,base)
+
+
+def cap_fixture():
+    from argentea_wcc_evidence import validate_cap
+    base,events,_=fixture();base.update(algorithm='wcc_reference',max_rounds=0)
+    records=[]
+    for r in events:
+        r=dict(r,algorithm='wcc_reference')
+        if r['event']=='result' or r['event'] in ('decide','apply') and r['phase']>0:continue
+        if r['event']=='close':r['phase']=1
+        records.append(r)
+    cause=dict(next(r for r in records if r['event']=='close'),event='failure',code='wcc_round_cap',
+               outcome='nonconverged',max_rounds=0,unresolved=0,certificate_not_attempted=True)
+    records.append(cause)
+    stages=[dict(session_id='session',job_id=7,stage=i,slot_group='worker-extension:one',partitions=2,
+                 placement='Worker',mode='Pipelined') for i in range(4)]
+    tasks=[dict(job_id=7,stage=i,partition=p,worker_id=10+p,attempt=0,status='FAILED' if i==3 else 'SUCCEEDED')
+           for i in range(4) for p in range(2)]
+    stored=[dict(session_id='session',**{k:v for k,v in t.items() if k!='worker_id'}) for t in tasks]
+    args=dict(stages=stages,task_statuses=tasks,stored_tasks=stored,jobs=[dict(session_id='session',job_id=7,status='FAILED')],query_failed=True)
+    return validate_cap,base,records,args
+
+
+def test_zero_round_reference_cap_measures_zero_without_inventing_work():
+    validate,base,records,args=cap_fixture()
+    result=validate(records,base,**args)
+    assert result['measured_unresolved']==0 and result['complete_pre_cap_barriers']==1
+
+
+@pytest.mark.parametrize('fault',['cause','synthetic','pending','partial','active','retry','missing-task','owner','job','close'])
+def test_cap_evidence_rejects_missing_cause_or_incomplete_cleanup(fault):
+    validate,base,records,args=cap_fixture()
+    cause=next(r for r in records if r['event']=='failure')
+    if fault=='cause':records.remove(cause)
+    elif fault=='synthetic':cause['unresolved']=1
+    elif fault=='pending':cause['certificate_not_attempted']=False
+    elif fault=='partial':records.append(dict(cause,event='result'))
+    elif fault=='active':args['stored_tasks'][0]['status']='RUNNING'
+    elif fault=='retry':args['task_statuses'][0]['attempt']=1
+    elif fault=='missing-task':args['stored_tasks'].pop()
+    elif fault=='owner':args['task_statuses'][0]['worker_id']=999
+    elif fault=='job':args['jobs'][0]['status']='CANCELED'
+    else:records.remove(next(r for r in records if r['event']=='close'))
+    with pytest.raises(AssertionError):validate(records,base,**args)

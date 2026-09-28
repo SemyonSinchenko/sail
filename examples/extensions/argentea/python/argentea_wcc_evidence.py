@@ -107,3 +107,69 @@ def validate_events(records,rows,request,*,minimum_workers=2):
     return dict(owners=owners,trace=trace,rounds=rounds,native_phase_count=count,
                 closed_all_owners=True,same_adjacency_across_phases=True,
                 boundary='native events only; scheduler stage/task audit is separately required')
+
+
+def validate_cap(records,request,*,stages,task_statuses,stored_tasks,jobs,query_failed,minimum_workers=2):
+    assert query_failed is True
+    selected=[r for r in records if r.get('operation_id')==request['operation_id']]
+    assert selected and all(r['protocol']==4 and r['algorithm']==request['algorithm'] and
+        r['snapshot_id']==request['snapshot_id'] and r['generation']==request['generation'] for r in selected)
+    identity={(r['session_id'],r['job_id']) for r in selected};assert len(identity)==1
+    session,job=next(iter(identity))
+    assert [r for r in jobs if r['session_id']==session and r['job_id']==job]==[dict(session_id=session,job_id=job,status='FAILED')]
+    assert not any(r['event']=='result' for r in selected),'capped WCC returned components'
+    method=request['algorithm'].removeprefix('wcc_');limit=request['max_rounds']
+    stop=limit+1 if method=='reference' else 3*limit+2
+    causes=[r for r in selected if r['event']=='failure']
+    assert causes and len({r['partition'] for r in causes})==len(causes)
+    assert all(r['code']=='wcc_round_cap' and r['outcome']=='nonconverged' and
+               r['rounds']==r['max_rounds']==limit and r['phase']==stop for r in causes)
+    unresolved={r['unresolved'] for r in causes};assert len(unresolved)==1
+    pending=method=='reference' and limit==0
+    assert all(r['certificate_not_attempted'] is pending for r in causes)
+    assert next(iter(unresolved))==0 if pending else next(iter(unresolved))>0
+    grouped=defaultdict(list)
+    for r in selected:grouped[r['partition']].append(r)
+    assert set(grouped)==set(range(request['partitions']))
+    owners={};last=[]
+    for owner,events in grouped.items():
+        counts=Counter(r['event'] for r in events)
+        assert counts['init']==counts['close']==1 and counts['decide']==counts['apply']==stop
+        assert set(counts)<={'init','close','decide','apply','failure'}
+        origin={(r['worker_id'],r['pid'],r['adjacency_id']) for r in events};assert len(origin)==1
+        worker,pid,adjacency=next(iter(origin));owners[owner]=dict(worker_id=worker,pid=pid,adjacency_id=adjacency)
+        assert adjacency>0
+        for event in ('decide','apply'):
+            assert sorted(r['phase'] for r in events if r['event']==event)==list(range(stop))
+        initial=next(r for r in events if r['event']=='init');assert initial['phase']==initial['rounds']==0
+        applied=[r for r in events if r['event']=='apply'];incoming={r['incoming_adjacency_id'] for r in applied}
+        assert len(incoming)==1 and next(iter(incoming))>0
+        assert all(r['output_phase']==r['phase']+1 for r in applied)
+        terminal=next(r for r in applied if r['phase']==stop-1);last.append(terminal)
+        assert terminal['mode']==('topology' if pending else 'reference' if method=='reference' else 'neighbors')
+        close=next(r for r in events if r['event']=='close')
+        assert close['phase']==stop and close['rounds']==limit and close['incoming_adjacency_id'] in incoming
+    measured=sum(r['changed'] if method=='reference' else r['crossing'] for r in last)
+    assert measured==next(iter(unresolved)),'cap reports synthetic unresolved work'
+    for phase in range(stop):
+        applied=[r for r in selected if r['event']=='apply' and r['phase']==phase]
+        assert sum(r['emitted_messages'] for r in applied)==sum(r['received_messages'] for r in applied)
+    native=[s for s in stages if s['session_id']==session and s['job_id']==job and s['slot_group'].startswith('worker-extension:')]
+    assert len(native)==len({s['stage'] for s in native})==phase_count(limit,method)
+    assert len({s['slot_group'] for s in native})==1
+    assert all(s['partitions']==request['partitions'] and s['placement']=='Worker' and s['mode']=='Pipelined' for s in native)
+    ids={s['stage'] for s in native}
+    tasks=[t for t in task_statuses if t['job_id']==job and t['stage'] in ids]
+    assert tasks and any(t['status']=='FAILED' for t in tasks)
+    assert all(t['attempt']==0 and t['partition'] in owners and t['worker_id']==owners[t['partition']]['worker_id'] for t in tasks)
+    stored=[t for t in stored_tasks if t['session_id']==session and t['job_id']==job]
+    assert stored and all(t['attempt']==0 and t['status'] in ('SUCCEEDED','FAILED','CANCELED') for t in stored)
+    native_stored=[t for t in stored if t['stage'] in ids]
+    expected={(s,p) for s in ids for p in range(request['partitions'])}
+    assert len(native_stored)==len(expected) and {(t['stage'],t['partition']) for t in native_stored}==expected
+    assert len({v['worker_id'] for v in owners.values()})>=minimum_workers
+    assert len({v['pid'] for v in owners.values()})>=minimum_workers
+    return dict(session_id=session,job_id=job,owners=owners,native_pids=sorted({v['pid'] for v in owners.values()}),
+                native_phase_count=len(native),cap_failures=causes,measured_unresolved=measured,
+                native_task_statuses=tasks,stored_tasks=stored,no_result=True,no_native_retry=True,
+                closed_all_owners=True,complete_pre_cap_barriers=stop)

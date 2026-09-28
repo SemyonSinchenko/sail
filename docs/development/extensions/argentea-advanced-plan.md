@@ -18,8 +18,11 @@ worker processes and both physical hosts. The first RPC may still surface peer
 cancellation; a completed fresh certificate and typed native failure record
 establish the cap cause. The
 [evidence index](argentea-validation/README.md) retains every outcome.
-BFS core/adapter qualification remains separate from actual distributed
-qualification; larger phase budgets and performance are not established here.
+BFS core/adapter and public client at
+`b3c543171c6c64df0ef53677394abc24e9a2de99` also pass bounded reference, frontier
+and direction-switching execution on ARM workers and both physical hosts. The
+direction cases exercise actual Pull. These are separate functional gates;
+larger phase budgets and performance are not established here.
 
 ## Existing contracts
 

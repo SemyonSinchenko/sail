@@ -4,9 +4,10 @@ Status: active implementation. Bounded reference PageRank passes on two physical
 hosts over explicit SSH-forwarded Sail connections; live quota reuse also passes
 on one host. Bounded certified residual PageRank passes on both physical hosts
 using existing temporary views to compose one native job. Typed cap failure
-evidence also passes on both hosts. Distributed BFS and further failure scenarios
-remain under qualification. These are functional gates, not distributed
-performance results.
+evidence also passes on both hosts. Reference, frontier and direction-switching
+BFS pass bounded execution on both physical hosts, including typed cap failure.
+Further failure scenarios and larger budgets remain under qualification. These
+are functional gates, not distributed performance results.
 Repository: `querygraph/sail`, branch `work/extensions-traversal-bench`.
 
 Argentea is distributed Banda: native Rust graph partitions execute on Sail

@@ -135,6 +135,41 @@ prefixes: empty. All supervised processes are absent. The original SSH/Rosetta
 and bounded functional boundaries still apply. This evidence does not qualify
 injected worker loss, active cancellation, larger graphs or performance.
 
+## BFS worker execution
+
+The [BFS archive](bfs-functional-evidence.tar.gz) contains 525 original artifacts
+plus its manifest. SHA256:
+`092e4b4ef0cfa1cf1c98131015e7db3baaa98f5e988f5c1afd8fbf7e89e03dc0`.
+The [manifest](bfs-functional-manifest.json), [bundle receipt](bfs-functional-bundle.json)
+and [scan](bfs-functional-scan.json) pin every included byte; earlier archives
+remain unchanged.
+
+The native wheel and client source are
+`b3c543171c6c64df0ef53677394abc24e9a2de99`, with the unchanged `038c9b9597d3`
+host. Two additional pre-execution input controls use Python-only helper source
+`8b42fbe7a4dcc80212aee9be105d9b7d5f118cac` with that same native wheel. The
+combined source passes 54 core release tests, 32 native adapter tests and 386
+Python tests; the helper extends the Python gate to 398. Core Clippy is strict;
+native Clippy retains only the disclosed pre-existing `mutation.rs` enum-size
+exception. A separate core-only release stress runs 5,748 checks with ten owned
+CPU burners, all reaped afterward; it is not a distributed stress verdict.
+
+| Archive directory | Outcome and coverage |
+| --- | --- |
+| `arm-gates/` | 15 passed cases: reference/frontier/direction across directed, undirected, source-only and cap fixtures; local refusal; missing-source prevalidation; unknown request-field registration refusal. |
+| `two-host-reference/` | Passed: exact distances/parents, 32 native phases, four expansions, nonempty graph data on both physical hosts and five cross-host arcs. |
+| `two-host-frontier/` | Passed the same full-vector and ownership checks. |
+| `two-host-direction/` | Passed the same checks, with four actual Pull expansions. |
+| `two-host-cap/` | Passed negative gate: complete topology, typed `bfs_level_cap` cause, failed query, no result/retry and all owners closed. |
+
+All positive calls allocate zero native state during temporary-view registration
+and explain. Every owned view and native owner closes; all supervised processes
+are absent afterward. The physical runs retain independent empty listings of
+their owned storage prefixes. The helper's first rejected CLI invocation is
+also retained: its unsupported argument prevented server startup, and it is not
+counted as a runtime case. Physical tests retain the SSH/Rosetta boundary above.
+See [BFS.md](../../../../examples/extensions/argentea/BFS.md) for reproduction.
+
 ## Verify delivered bytes
 
 From the repository root, using Python 3.12 or later:
@@ -145,7 +180,7 @@ import hashlib, json, tarfile
 from pathlib import Path
 
 root = Path("docs/development/extensions/argentea-validation")
-for name in ("reference-functional", "residual-functional", "cap-repair-functional"):
+for name in ("reference-functional", "residual-functional", "cap-repair-functional", "bfs-functional"):
     receipt = json.loads((root / f"{name}-bundle.json").read_text())
     archive = root / receipt["archive"]
     assert hashlib.sha256(archive.read_bytes()).hexdigest() == receipt["sha256"]

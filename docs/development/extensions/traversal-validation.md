@@ -122,6 +122,13 @@ the [archive receipt](traversal-validation/linux-038c-archive.json) and
 [decompressed scan](traversal-validation/linux-038c-scan.json) record byte
 verification and the credential-pattern check.
 
+Scope correction: those 42 Linux calls installed Nutmeg and the Python Sedona
+client, but not the native Sail Sedona extension. Their generic receipt text
+claiming both extensions were loaded is overbroad. The retained package
+inventories establish traversal correctness under that actual deployment;
+they do not establish Sedona/Nutmeg co-loading. The original receipt bytes are
+preserved, and release-host co-loading requires its own runtime check.
+
 Verify all delivered files without extracting them:
 
 ```sh

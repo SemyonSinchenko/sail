@@ -1,0 +1,145 @@
+{
+  "archive": "bfs-functional-evidence.tar.gz",
+  "boundary": "Functional and diagnostic attempts only; all failed outcomes retained. No performance claim.",
+  "included_files": 526,
+  "outcomes": [
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "arm-gates/direction-cap/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "arm-gates/direction-graph/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "arm-gates/direction-local-refusal/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "arm-gates/direction-source-only/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "arm-gates/direction-undirected/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "arm-gates/frontier-cap/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "arm-gates/frontier-graph/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "arm-gates/frontier-source-only/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "arm-gates/frontier-undirected/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "arm-gates/missing-source/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "8b42fbe7a4dcc80212aee9be105d9b7d5f118cac"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "arm-gates/reference-cap/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "arm-gates/reference-graph/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "arm-gates/reference-source-only/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "arm-gates/reference-undirected/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "arm-gates/unknown-field/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "8b42fbe7a4dcc80212aee9be105d9b7d5f118cac"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "two-host-reference/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "two-host-frontier/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "two-host-direction/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    },
+    {
+      "native": "b3c543171c6c64df0ef53677394abc24e9a2de99",
+      "outcome": "passed",
+      "path": "two-host-cap/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "b3c543171c6c64df0ef53677394abc24e9a2de99"
+    }
+  ],
+  "qualification": "All three BFS methods pass bounded ARM and physical two-host execution. Actual Pull, complete topology, exact independent distance/parent checks, typed cap failure and cleanup are required. Does not qualify worker loss, larger phase budgets or performance.",
+  "recorded_utc": "2026-09-28T05:14:55.541918+00:00",
+  "sha256": "092e4b4ef0cfa1cf1c98131015e7db3baaa98f5e988f5c1afd8fbf7e89e03dc0",
+  "size_bytes": 437017,
+  "source_clean_qualification": "Each original receipt pins source and artifacts separately; private diagnostics are explicitly identified."
+}

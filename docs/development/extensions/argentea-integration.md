@@ -451,6 +451,26 @@ PageRank, its additional statistics barriers and certificate, and the subsequent
 reference/frontier and direction-optimizing BFS work. Each implementation has
 its own qualification; a bounded reference query does not establish the others.
 
+## Bounded BFS qualification
+
+The extension/client at `b3c543171c6c64df0ef53677394abc24e9a2de99` adds reference,
+frontier and direction-switching BFS without further Sail host changes. All
+three pass on ARM workers and across Capitola/Morrobay using host `038c9b9597d3`.
+The physical fixture has eight vertices, five reached from source `-5`, five
+cross-host arcs including a duplicate, and four vertices owned on each host.
+Each positive query executes 32 native phases in one job, completes four
+expansions, and checks every distance and parent against an independent BFS.
+Direction switching actually performs four Pull expansions. A separate zero-cap
+case fails with a typed `bfs_level_cap` record after complete topology setup.
+
+The [BFS evidence](argentea-validation/README.md#bfs-worker-execution) retains
+19 runtime cases: 15 ARM cases and four physical two-host cases. All owned views,
+native owners and supervised processes close; independent post-stop listings
+find empty owned storage prefixes. The existing SSH/Rosetta functional boundary
+still applies. The [tutorial](../../../examples/extensions/argentea/BFS.md)
+describes the initial 14-level/32-phase deployment bound. This proof establishes
+neither arbitrary graph diameter nor distributed performance.
+
 ## Remaining executable integration gates
 
 1. Qualify active cancellation propagation for residual PageRank, retaining the
@@ -462,8 +482,9 @@ its own qualification; a bounded reference query does not establish the others.
    currently leaves some task status records marked RUNNING after the job has
    failed and the worker retired; final process and staging cleanup succeeds,
    but the full worker-loss gate is not accepted while this remains unresolved.
-3. Apply the same correctness, ownership, resource and cleanup gates to BFS,
-   WCC and SSSP. Keep reference and advanced variants separately identified.
+3. Apply the same correctness, ownership, resource and cleanup gates to WCC and
+   SSSP, and qualify larger BFS phase budgets. Keep reference and advanced
+   variants separately identified.
 4. Run performance comparisons only after functional qualification, with the
    same graph, semantics and disclosed resource envelope. Report per-host and
    aggregate memory, including communication and staging costs.

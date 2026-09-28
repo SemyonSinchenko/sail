@@ -5,9 +5,12 @@ and certified residual PageRank implementations pass worker-process and physical
 two-host functional tests. Native CSR partitions persist within one Sail job;
 ordinary Sail shuffles carry their updates. Larger iteration budgets, further
 failure scenarios and performance remain under qualification.
+Reference, frontier and direction-switching BFS also pass bounded worker-process
+and physical two-host tests, including actual Pull and typed cap failure.
 
 Start with the [reference PageRank tutorial](PYTHON.md) or the
-[certified residual PageRank tutorial](DELTA.md). Both describe build commands,
+[certified residual PageRank tutorial](DELTA.md), then the [BFS tutorial](BFS.md).
+They describe build commands,
 the Python API and exact-source qualification. The
 [evidence index](../../../docs/development/extensions/argentea-validation/README.md)
 retains successful and failed attempts, including a cap failure whose cause was

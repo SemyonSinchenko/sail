@@ -1,0 +1,109 @@
+{
+  "recorded_utc": "2026-09-28T03:14:22.868206+00:00",
+  "source_root": "/Users/alexy/src/sail-extensions-gates/pecan-benchmark/large-timeout-control-aa4b5fa6",
+  "boundary": "All original regular files inventoried; logs, memory samples, configuration, plans and receipts copied byte-for-byte; Parquet bytes omitted.",
+  "included_files": 12,
+  "omitted_parquet_files": 4,
+  "files": [
+    {
+      "path": "cells/large-wcc-r2-uniform-2097152-pecan-wcc-reference/artifacts/memory-samples.jsonl",
+      "bytes": 204093,
+      "sha256": "efb63db36afff79573a79f6aeda578a6fdeea04434203e833a4670e3214db6e8",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r2-uniform-2097152-pecan-wcc-reference/artifacts/receipt.json",
+      "bytes": 20939,
+      "sha256": "1472541c17632187a5e7d37e3225b79313c08ee4e7aa81afc3aec57336f30e3f",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r2-uniform-2097152-pecan-wcc-reference/artifacts/result/T5eOjC2cfYc6RPmm_0.zst.parquet",
+      "bytes": 2053681,
+      "sha256": "5249bc1eab544ee2c6a995177b35bff396c88cc40bbb92ac2165ee59b0054115",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r2-uniform-2097152-pecan-wcc-reference/artifacts/result/T5eOjC2cfYc6RPmm_1.zst.parquet",
+      "bytes": 2053030,
+      "sha256": "8a7e8a13ea1c61e39119db30ebc3cc9ee9f3b4e7ef5ee5bab482451497f8eb75",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r2-uniform-2097152-pecan-wcc-reference/artifacts/result/T5eOjC2cfYc6RPmm_2.zst.parquet",
+      "bytes": 2055574,
+      "sha256": "840ec6f204243ab1910337aa5e190d87af6bdaf00e08596d3603b29cf7f0c6ad",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r2-uniform-2097152-pecan-wcc-reference/artifacts/result/T5eOjC2cfYc6RPmm_3.zst.parquet",
+      "bytes": 2054022,
+      "sha256": "5758a411d008cc400b9026180197c784e6e6e997debfeb0095aa9049d6568a77",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r2-uniform-2097152-pecan-wcc-reference/artifacts/server.log",
+      "bytes": 5412,
+      "sha256": "bd5023aaff3be2cc3f18df3287d5e9c6c631013db43c3055406a7e1f43f7ef0f",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r2-uniform-2097152-pecan-wcc-reference/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r2-uniform-2097152-pecan-wcc-reference/orchestration.json",
+      "bytes": 3208,
+      "sha256": "f6e94020357a3a977b9b778ebcb5213d39d734cef39f56aec8e9bf8b542637e5",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r2-uniform-2097152-pecan-wcc-reference/summary.json",
+      "bytes": 718,
+      "sha256": "af0097bc6c2f877b2b6d6cd01b166b24d22ae178a3c8a1f0564ec25f9277bbfe",
+      "included": true
+    },
+    {
+      "path": "configuration.json",
+      "bytes": 3077,
+      "sha256": "06a7e29828addd8ecad7507c9e6ac03497dc0d4621e1bc08e9f450bc4cb511d5",
+      "included": true
+    },
+    {
+      "path": "matrix-results.json",
+      "bytes": 960,
+      "sha256": "4d4ff46c954b82a1163b57252ae21b4dc17f3cf8f1ba6a779ebf16f5262232d4",
+      "included": true
+    },
+    {
+      "path": "plan-1790565054135585000.json",
+      "bytes": 3911,
+      "sha256": "52fb9bb17f780084ec67887ac57fbb3b3e3a767e62d86323983e6b39a09434d7",
+      "included": true
+    },
+    {
+      "path": "preflight-1790565054235975000/container.log",
+      "bytes": 17,
+      "sha256": "0c1432ca1143165f74f6420714d484abdb7d12ce371e3f9369aa57b9624fc13f",
+      "included": true
+    },
+    {
+      "path": "preflight-1790565054235975000/orchestration.json",
+      "bytes": 2604,
+      "sha256": "e48a74a5d3f0abe5206dbadd84c4241e43f821acaff2746c6dba5426db34b2bb",
+      "included": true
+    },
+    {
+      "path": "resolved-image.json",
+      "bytes": 96,
+      "sha256": "ab671a4660b3de078ef59040999425371b244509d32a8476a01a3bcfdd58b020",
+      "included": true
+    }
+  ]
+}

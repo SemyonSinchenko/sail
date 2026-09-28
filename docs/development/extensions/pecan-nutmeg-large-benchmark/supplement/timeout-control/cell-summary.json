@@ -1,0 +1,19 @@
+{
+  "algorithm": "wcc",
+  "cell_id": "large-wcc-r2-uniform-2097152-pecan-wcc-reference",
+  "configuration_sha256": "f862e9ca22ee33436e7829c0c5e260e00c7b5a0fc7e83c3028a24ca4e77532ef",
+  "dataset": "uniform-2097152",
+  "diagnostic": false,
+  "end_to_end_seconds": 32.0890961130026,
+  "engine": "pecan",
+  "expected_outcome": "passed",
+  "expected_outcome_observed": true,
+  "max_iterations": 1000,
+  "mode": "process-cluster",
+  "outcome": "passed",
+  "receipt_path": "/Users/alexy/src/sail-extensions-gates/pecan-benchmark/large-timeout-control-aa4b5fa6/cells/large-wcc-r2-uniform-2097152-pecan-wcc-reference/artifacts/receipt.json",
+  "repeat": 2,
+  "sequence": 133,
+  "suite": "large-wcc",
+  "variant": "reference"
+}

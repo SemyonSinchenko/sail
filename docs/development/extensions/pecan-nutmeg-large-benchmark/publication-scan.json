@@ -1,0 +1,18 @@
+{
+  "boundary": "Every public non-archive file and every decompressed archive member checked; listed patterns and available exact values only, not exhaustive secret detection.",
+  "credential_fields_checked": [],
+  "manifest_sha256": "3949671d737d5c5d04d991e40aa9d9f94b4d3a0ba347b738cdc7078ba9445b4e",
+  "matches": [],
+  "outcome": "passed",
+  "pattern_rules": [
+    "authorization-bearer",
+    "aws-access-key",
+    "credential-field-assignment",
+    "github-token",
+    "json-secret-field",
+    "private-key"
+  ],
+  "recorded_utc": "2026-09-28T03:31:03.971882+00:00",
+  "scanned_files": 1402,
+  "scanner_sha256": "6332eb50f94ba79bbd9434314000ee99befb23c7aa8948ae33f7ec660d4edd54"
+}

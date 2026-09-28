@@ -1,0 +1,134 @@
+{
+  "recorded_utc": "2026-09-28T02:38:22.182022+00:00",
+  "host": "Morrobay",
+  "inspector_pid": 94703,
+  "observations": [
+    {
+      "command": [
+        "sw_vers"
+      ],
+      "returncode": 0,
+      "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t15.7.9\nBuildVersion:\t\t24G830\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "sysctl",
+        "hw.model",
+        "hw.logicalcpu",
+        "hw.memsize",
+        "machdep.cpu.brand_string"
+      ],
+      "returncode": 0,
+      "stdout": "hw.model: iMacPro1,1\nhw.logicalcpu: 36\nhw.memsize: 137438953472\nmachdep.cpu.brand_string: Intel(R) Xeon(R) W-2191B CPU @ 2.30GHz\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "memory_pressure",
+        "-Q"
+      ],
+      "returncode": 0,
+      "stdout": "The system has 137438953472 (33554432 pages with a page size of 4096).\nSystem-wide memory free percentage: 93%\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "vm_stat"
+      ],
+      "returncode": 0,
+      "stdout": "Mach Virtual Memory Statistics: (page size of 4096 bytes)\nPages free:                               63397.\nPages active:                          12843138.\nPages inactive:                        12650429.\nPages speculative:                      5735168.\nPages throttled:                              0.\nPages wired down:                       1900621.\nPages purgeable:                         121272.\n\"Translation faults\":               11080889711.\nPages copy-on-write:                  312855367.\nPages zero filled:                   4302587492.\nPages reactivated:                     19879506.\nPages purged:                           3194601.\nFile-backed pages:                     18050244.\nAnonymous pages:                       13178491.\nPages stored in compressor:             1108681.\nPages occupied by compressor:            359306.\nDecompressions:                         5216795.\nCompressions:                           8150528.\nPageins:                             2193238226.\nPageouts:                               2790862.\nSwapins:                                 326301.\nSwapouts:                                549963.\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "df",
+        "-h",
+        "/Users/alexy/src/sail-extensions-gates"
+      ],
+      "returncode": 0,
+      "stdout": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk1s1   3.6Ti   3.5Ti   163Gi    96%     10M  1.7G    1%   /System/Volumes/Data\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "colima",
+        "status",
+        "-p",
+        "sail-gate"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "time=\"2026-09-27T19:38:23-07:00\" level=info msg=\"colima [profile=sail-gate] is running using QEMU\"\ntime=\"2026-09-27T19:38:23-07:00\" level=info msg=\"arch: x86_64\"\ntime=\"2026-09-27T19:38:23-07:00\" level=info msg=\"runtime: docker\"\ntime=\"2026-09-27T19:38:23-07:00\" level=info msg=\"mountType: 9p\"\ntime=\"2026-09-27T19:38:23-07:00\" level=info msg=\"docker socket: unix:///Users/alexy/.colima/sail-gate/docker.sock\"\ntime=\"2026-09-27T19:38:23-07:00\" level=info msg=\"containerd socket: unix:///Users/alexy/.colima/sail-gate/containerd.sock\"\n"
+    },
+    {
+      "command": [
+        "colima",
+        "status",
+        "-p",
+        "default"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "time=\"2026-09-27T19:38:23-07:00\" level=info msg=\"colima is running using macOS Virtualization.Framework\"\ntime=\"2026-09-27T19:38:23-07:00\" level=info msg=\"arch: x86_64\"\ntime=\"2026-09-27T19:38:23-07:00\" level=info msg=\"runtime: docker\"\ntime=\"2026-09-27T19:38:23-07:00\" level=info msg=\"mountType: virtiofs\"\ntime=\"2026-09-27T19:38:23-07:00\" level=info msg=\"docker socket: unix:///Users/alexy/.colima/default/docker.sock\"\ntime=\"2026-09-27T19:38:23-07:00\" level=info msg=\"containerd socket: unix:///Users/alexy/.colima/default/containerd.sock\"\n"
+    },
+    {
+      "command": [
+        "docker",
+        "--context",
+        "colima-sail-gate",
+        "ps",
+        "--format",
+        "{{.Names}} {{.Image}} {{.Status}}"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "docker",
+        "--context",
+        "colima",
+        "ps",
+        "--format",
+        "{{.Names}} {{.Image}} {{.Status}}"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "docker",
+        "--context",
+        "colima-sail-gate",
+        "image",
+        "inspect",
+        "sail-pecan-benchmark:release",
+        "--format",
+        "{{.Id}}"
+      ],
+      "returncode": 0,
+      "stdout": "sha256:f3518d652fbea8b9b9f9ebf9849277ca3bd39d0c21bb2c6e36fbaeaa2dc2678e\n",
+      "stderr": ""
+    }
+  ],
+  "largest_cpu_processes": [
+    "94018  82.4 1601900 /System/Library/PrivateFrameworks/MediaAnalysis.framework/Versions/A/mediaanalysisd",
+    "54277  14.5 32269152 /usr/local/bin/qemu-system-x86_64",
+    "87222  11.5 16295380 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine",
+    "90990   2.7 158108 /Applications/Utilities/Adobe Creative Cloud Experience/CCXProcess/CCXProcess.app/Contents/MacOS/Creative Cloud Content Manager.node",
+    "94703   1.9  12664 /usr/local/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python",
+    " 1090   1.3  25040 /Library/Printers/Canon/CUPS_SFP/BackGrounder/Canon CUPSSFP BackGrounder.app/Contents/MacOS/Canon CUPSSFP BackGrounder",
+    "94744   1.3  12720 /System/Library/Frameworks/CoreServices.framework/Frameworks/Metadata.framework/Versions/A/Support/mdworker_shared",
+    "94743   1.2   8852 /System/Library/Frameworks/CoreServices.framework/Frameworks/Metadata.framework/Versions/A/Support/mdworker_shared",
+    "94745   1.2  12728 /System/Library/Frameworks/CoreServices.framework/Frameworks/Metadata.framework/Versions/A/Support/mdworker_shared",
+    "94746   1.2  12736 /System/Library/Frameworks/CoreServices.framework/Frameworks/Metadata.framework/Versions/A/Support/mdworker_shared",
+    "94747   1.1   8952 /System/Library/Frameworks/CoreServices.framework/Frameworks/Metadata.framework/Versions/A/Support/mdworker_shared",
+    "74789   1.0  59752 /usr/local/bin/limactl",
+    "  133   0.9  22228 /usr/libexec/opendirectoryd",
+    "  158   0.9   4312 /usr/sbin/notifyd",
+    " 4222   0.8 1771072 /System/Library/Frameworks/CoreServices.framework/Frameworks/Metadata.framework/Versions/A/Support/mds_stores"
+  ]
+}

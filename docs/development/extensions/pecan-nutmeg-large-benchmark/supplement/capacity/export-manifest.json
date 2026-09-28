@@ -1,0 +1,177 @@
+{
+  "recorded_utc": "2026-09-28T03:19:29.201699+00:00",
+  "source_root": "/Users/alexy/src/sail-extensions-gates/pecan-benchmark/large-pilots-aa4b5fa6",
+  "boundary": "All original regular files inventoried; logs, memory samples, configuration, plans and receipts copied byte-for-byte; Parquet bytes omitted.",
+  "included_files": 21,
+  "omitted_parquet_files": 6,
+  "files": [
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-reference/artifacts/memory-samples.jsonl",
+      "bytes": 45103,
+      "sha256": "7a8bf307399590fd62b6e31c5c60f23bf16d8cd342e8e1c574bb24c9f112bc48",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-reference/artifacts/receipt.json",
+      "bytes": 19340,
+      "sha256": "f141c1efdf118df3e1c5db2a04248e7430d83a1683809228120fef3c838a0f5a",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-reference/artifacts/server.log",
+      "bytes": 3879,
+      "sha256": "da9dda3dc928edf8d7f05103ca62f96e02357265c90d6ed7d830489a27b087f4",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-reference/container.log",
+      "bytes": 261,
+      "sha256": "5146e6bd86045beeb3ebe59962d9705147a6bc15e0a4888a5cde6acfa5f7c810",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-reference/orchestration.json",
+      "bytes": 3203,
+      "sha256": "a37447ad9a7ab001db7316ab25516a8aa69ec0e095cb47cdf72ded67eeb786bb",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-reference/summary.json",
+      "bytes": 749,
+      "sha256": "2551feed3d260437138062d49322336fcecb6bc568f6d205afbdbdbf5102b81a",
+      "included": true
+    },
+    {
+      "path": "configuration.json",
+      "bytes": 2441,
+      "sha256": "867e011675eeb4cd1ce2179d61d3c1a0bf9e2e8d39772fd056ccb261c680f69d",
+      "included": true
+    },
+    {
+      "path": "datasets/hub-4194304/container.log",
+      "bytes": 2050,
+      "sha256": "6c77e1651550898a33f70d94b5a1f82d117927044913e547e8661a1c296dd688",
+      "included": true
+    },
+    {
+      "path": "datasets/hub-4194304/dataset/edges.parquet",
+      "bytes": 213782921,
+      "sha256": "4887ac46fbde25683e26f8a9053cacfd41838cb680eb77b20356d772098cd0bb",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "datasets/hub-4194304/dataset/manifest.json",
+      "bytes": 1876,
+      "sha256": "95f8361cd9c62a5a23c70eb92c91b9cdcb9020237b562287fa6fead08e653c49",
+      "included": true
+    },
+    {
+      "path": "datasets/hub-4194304/dataset/reference.parquet",
+      "bytes": 53023320,
+      "sha256": "4f00d44ab4dde2411cee5467c257699808b279bd652d5ec8bc4058229d0a467a",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "datasets/hub-4194304/dataset/vertices.parquet",
+      "bytes": 12930434,
+      "sha256": "82adeb0f63979c242e399a93f16ea84eb4fbc9d0e3e4a53ff22230dcae991c7f",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "datasets/hub-4194304/orchestration.json",
+      "bytes": 2623,
+      "sha256": "5f227f8e5a2d49469d1aa6141e5b528a2bd06368aaa57253361aff03ee16009b",
+      "included": true
+    },
+    {
+      "path": "datasets/uniform-4194304/container.log",
+      "bytes": 2059,
+      "sha256": "db4eb9ce04450fb77816855453ec237af4b7a6949fc49064dd388a889b63cf31",
+      "included": true
+    },
+    {
+      "path": "datasets/uniform-4194304/dataset/edges.parquet",
+      "bytes": 217401579,
+      "sha256": "859f51e667db9a211257e5de00deee371c047eff14d972cc46f653b958ff0607",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "datasets/uniform-4194304/dataset/manifest.json",
+      "bytes": 1885,
+      "sha256": "fade7f31a14209d70bcb9007e82f38d109d4714d3f4f8fef69def9de23c8ca32",
+      "included": true
+    },
+    {
+      "path": "datasets/uniform-4194304/dataset/reference.parquet",
+      "bytes": 53172094,
+      "sha256": "7dbbe17e3b4decaa599e4f4aaa62e5436e6f87fe5fa06b046295a7b28af797ec",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "datasets/uniform-4194304/dataset/vertices.parquet",
+      "bytes": 12930434,
+      "sha256": "82adeb0f63979c242e399a93f16ea84eb4fbc9d0e3e4a53ff22230dcae991c7f",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "datasets/uniform-4194304/orchestration.json",
+      "bytes": 2635,
+      "sha256": "f28da71c36426a501e377c0da9dd54778ea5aae131db892b8a2ababcbabb8493",
+      "included": true
+    },
+    {
+      "path": "matrix-results.json",
+      "bytes": 990,
+      "sha256": "aa36111cb48a46e1f4904cd620a6e44e2285e4b6733f385d20733c006082629f",
+      "included": true
+    },
+    {
+      "path": "plan-1790548570404272000.json",
+      "bytes": 15102,
+      "sha256": "57b304891d3724f45c231019887abce28d8d743d8d23f10dd483653bdd453193",
+      "included": true
+    },
+    {
+      "path": "plan-1790548711054377000.json",
+      "bytes": 3277,
+      "sha256": "f86bad8fc49c16c60dd51f50dae9264945f84b81018756805da11dd91f720ce4",
+      "included": true
+    },
+    {
+      "path": "preflight-1790548570499617000/container.log",
+      "bytes": 17,
+      "sha256": "0c1432ca1143165f74f6420714d484abdb7d12ce371e3f9369aa57b9624fc13f",
+      "included": true
+    },
+    {
+      "path": "preflight-1790548570499617000/orchestration.json",
+      "bytes": 2591,
+      "sha256": "741bd8e4b658ba23f7bb2a6c9a15aa73431953913ac75eab2e3225ed266aec9c",
+      "included": true
+    },
+    {
+      "path": "preflight-1790548711157618000/container.log",
+      "bytes": 17,
+      "sha256": "0c1432ca1143165f74f6420714d484abdb7d12ce371e3f9369aa57b9624fc13f",
+      "included": true
+    },
+    {
+      "path": "preflight-1790548711157618000/orchestration.json",
+      "bytes": 2591,
+      "sha256": "44e0cc37aefc61aea2ccfef4be7ac687bddcd25107f7cc75f1d9867407dc5fd7",
+      "included": true
+    },
+    {
+      "path": "resolved-image.json",
+      "bytes": 96,
+      "sha256": "ab671a4660b3de078ef59040999425371b244509d32a8476a01a3bcfdd58b020",
+      "included": true
+    }
+  ]
+}

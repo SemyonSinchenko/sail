@@ -1,0 +1,12 @@
+{
+  "recorded_utc": "2026-09-28T03:10:52.032513+00:00",
+  "purpose": "One fresh exact-cell diagnostic after the independent audit; original timeout and original180-cell summary remain unchanged.",
+  "changed_configuration_keys": [
+    "run_id",
+    "host_output",
+    "container_root"
+  ],
+  "read_only_shared_inputs": "/targets/pecan-benchmark/runs/large-qualified-full-aa4b5fa6/datasets",
+  "audit_recorded_utc": "2026-09-28T03:05:22.343670+00:00",
+  "original_cell": "large-wcc-r2-uniform-2097152-pecan-wcc-reference"
+}

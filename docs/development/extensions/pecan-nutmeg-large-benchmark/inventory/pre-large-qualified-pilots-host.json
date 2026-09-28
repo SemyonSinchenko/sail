@@ -1,0 +1,134 @@
+{
+  "recorded_utc": "2026-09-27T22:41:48.722217+00:00",
+  "host": "Morrobay",
+  "inspector_pid": 57535,
+  "observations": [
+    {
+      "command": [
+        "sw_vers"
+      ],
+      "returncode": 0,
+      "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t15.7.9\nBuildVersion:\t\t24G830\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "sysctl",
+        "hw.model",
+        "hw.logicalcpu",
+        "hw.memsize",
+        "machdep.cpu.brand_string"
+      ],
+      "returncode": 0,
+      "stdout": "hw.model: iMacPro1,1\nhw.logicalcpu: 36\nhw.memsize: 137438953472\nmachdep.cpu.brand_string: Intel(R) Xeon(R) W-2191B CPU @ 2.30GHz\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "memory_pressure",
+        "-Q"
+      ],
+      "returncode": 0,
+      "stdout": "The system has 137438953472 (33554432 pages with a page size of 4096).\nSystem-wide memory free percentage: 93%\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "vm_stat"
+      ],
+      "returncode": 0,
+      "stdout": "Mach Virtual Memory Statistics: (page size of 4096 bytes)\nPages free:                             4010040.\nPages active:                           8327022.\nPages inactive:                        10802398.\nPages speculative:                      8150340.\nPages throttled:                              0.\nPages wired down:                       1904331.\nPages purgeable:                         108484.\n\"Translation faults\":               10260028455.\nPages copy-on-write:                  304208361.\nPages zero filled:                   4185164343.\nPages reactivated:                     19799329.\nPages purged:                           3170718.\nFile-backed pages:                     19008499.\nAnonymous pages:                        8271261.\nPages stored in compressor:             1112828.\nPages occupied by compressor:            358385.\nDecompressions:                         5213068.\nCompressions:                           8150528.\nPageins:                             2190014588.\nPageouts:                               2790862.\nSwapins:                                 324708.\nSwapouts:                                549963.\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "df",
+        "-h",
+        "/Users/alexy/src/sail-extensions-gates"
+      ],
+      "returncode": 0,
+      "stdout": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk1s1   3.6Ti   3.4Ti   178Gi    96%     10M  1.9G    1%   /System/Volumes/Data\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "colima",
+        "status",
+        "-p",
+        "sail-gate"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "time=\"2026-09-27T15:41:49-07:00\" level=info msg=\"colima [profile=sail-gate] is running using QEMU\"\ntime=\"2026-09-27T15:41:49-07:00\" level=info msg=\"arch: x86_64\"\ntime=\"2026-09-27T15:41:49-07:00\" level=info msg=\"runtime: docker\"\ntime=\"2026-09-27T15:41:49-07:00\" level=info msg=\"mountType: 9p\"\ntime=\"2026-09-27T15:41:49-07:00\" level=info msg=\"docker socket: unix:///Users/alexy/.colima/sail-gate/docker.sock\"\ntime=\"2026-09-27T15:41:49-07:00\" level=info msg=\"containerd socket: unix:///Users/alexy/.colima/sail-gate/containerd.sock\"\n"
+    },
+    {
+      "command": [
+        "colima",
+        "status",
+        "-p",
+        "default"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "time=\"2026-09-27T15:41:50-07:00\" level=info msg=\"colima is running using macOS Virtualization.Framework\"\ntime=\"2026-09-27T15:41:50-07:00\" level=info msg=\"arch: x86_64\"\ntime=\"2026-09-27T15:41:50-07:00\" level=info msg=\"runtime: docker\"\ntime=\"2026-09-27T15:41:50-07:00\" level=info msg=\"mountType: virtiofs\"\ntime=\"2026-09-27T15:41:50-07:00\" level=info msg=\"docker socket: unix:///Users/alexy/.colima/default/docker.sock\"\ntime=\"2026-09-27T15:41:50-07:00\" level=info msg=\"containerd socket: unix:///Users/alexy/.colima/default/containerd.sock\"\n"
+    },
+    {
+      "command": [
+        "docker",
+        "--context",
+        "colima-sail-gate",
+        "ps",
+        "--format",
+        "{{.Names}} {{.Image}} {{.Status}}"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "docker",
+        "--context",
+        "colima",
+        "ps",
+        "--format",
+        "{{.Names}} {{.Image}} {{.Status}}"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "docker",
+        "--context",
+        "colima-sail-gate",
+        "image",
+        "inspect",
+        "sail-pecan-benchmark:release",
+        "--format",
+        "{{.Id}}"
+      ],
+      "returncode": 0,
+      "stdout": "sha256:f3518d652fbea8b9b9f9ebf9849277ca3bd39d0c21bb2c6e36fbaeaa2dc2678e\n",
+      "stderr": ""
+    }
+  ],
+  "largest_cpu_processes": [
+    "94018  94.6 1605640 /System/Library/PrivateFrameworks/MediaAnalysis.framework/Versions/A/mediaanalysisd",
+    "54277  47.6 14473400 /usr/local/bin/qemu-system-x86_64",
+    "87222   9.9 3170420 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine",
+    "57535   1.6  12436 /usr/local/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python",
+    "74789   1.1  52744 /usr/local/bin/limactl",
+    "  133   0.6  22116 /usr/libexec/opendirectoryd",
+    "  158   0.6   4312 /usr/sbin/notifyd",
+    "    1   0.4  25436 /sbin/launchd",
+    "   93   0.4  99124 /usr/libexec/logd",
+    "  286   0.4  13880 /Library/Application Support/org.pqrs/Karabiner-Elements/Karabiner-Core-Service.app/Contents/MacOS/Karabiner-Core-Service",
+    "  165   0.3 140440 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer",
+    "  306   0.3   5284 /usr/libexec/taskgated",
+    "  378   0.3   1948 /System/Library/DriverExtensions/com.apple.AppleUserHIDDrivers.dext/com.apple.AppleUserHIDDrivers",
+    " 1000   0.3 887500 /Applications/Notion.app/Contents/Frameworks/Notion Helper (Renderer).app/Contents/MacOS/Notion Helper (Renderer)",
+    "  141   0.2  38020 /usr/libexec/locationd"
+  ]
+}

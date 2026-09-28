@@ -1,0 +1,17 @@
+{
+  "archive_bytes": 7966472,
+  "archive_sha256": "5cf0f2b14e9792c25c7fb1957324f5edca9170049c56cd98f8eb6e469814002f",
+  "deterministic_format": "sorted PAX tar; uid/gid/mtime=0; gzip mtime=0, empty filename, level6",
+  "generated_utc": "2026-09-28T03:09:56.731306+00:00",
+  "hash_verification": "passed",
+  "included_files": 1109,
+  "omitted_files": 728,
+  "packager_sha256": "6332eb50f94ba79bbd9434314000ee99befb23c7aa8948ae33f7ec660d4edd54",
+  "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "sources": {
+    "harness_source_sha": "aa4b5fa6bd1a8e0ac833ec9db0862386777575c2",
+    "native_source_sha": "9d7155aa2302d9dda4e93e48ee3fd81aac1ee637",
+    "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822"
+  },
+  "zlib": "1.2.12"
+}

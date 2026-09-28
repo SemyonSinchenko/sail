@@ -374,3 +374,17 @@ commit `8c6c9423b4f774f945f8c6423320014d442d5375`. Runtime and native build comm
 are recorded separately in the index. These runs check the local execution path
 after adding the remote adapters; they do **not** qualify physical two-host
 execution or Linux, and their durations are not benchmark results.
+
+## Linux ARM64 native core gate
+
+The [Linux core bundle](linux-arm64-core-8154357.tar.gz) and
+[index](linux-arm64-core-8154357.json) retain 92 passing release-mode native core
+tests and strict all-target Clippy on frozen source
+`8154357553af2147e16fdea650e013379b0af2cf`. The image digest, three-CPU/6 GiB
+container limits, commands, and logs are recorded. The first Clippy attempt
+failed because the base image lacked the component; that attempt is retained
+alongside the successful run after installing it.
+
+This is functional Linux ARM64 evidence on Capitola's Docker Desktop VM. It
+covers the native core, not the full Sail process matrix or physical two-host
+execution. Durations in the logs are not published benchmark measurements.

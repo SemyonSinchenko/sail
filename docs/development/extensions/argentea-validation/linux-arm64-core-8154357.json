@@ -1,0 +1,112 @@
+{
+  "archive": "linux-arm64-core-8154357.tar.gz",
+  "sha256": "098b3786ae39baa9f74a549e4867493ff6695a7112f196c0e228ada22594fed4",
+  "recorded_utc": "2026-09-28T09:04:56.150208+00:00",
+  "source_commit": "8154357553af2147e16fdea650e013379b0af2cf",
+  "host": "Capitola",
+  "platform": "Linux ARM64 in Docker Desktop",
+  "tests_passed": 92,
+  "attempts": [
+    {
+      "name": "sail-argentea-core-linux-8154357",
+      "image_id": "sha256:0e2bcaef56d041a486784e54104a81aebe0da44bd03019bd70bc0401e42e4a97",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "--manifest-path",
+        "examples/extensions/argentea/Cargo.toml",
+        "-j",
+        "3"
+      ],
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-09-28T09:03:37.849897593Z",
+        "FinishedAt": "2026-09-28T09:04:02.312719132Z"
+      },
+      "limits": {
+        "NanoCpus": 3000000000,
+        "Memory": 6442450944,
+        "MemorySwap": 6442450944
+      }
+    },
+    {
+      "name": "sail-argentea-core-linux-clippy-8154357",
+      "image_id": "sha256:0e2bcaef56d041a486784e54104a81aebe0da44bd03019bd70bc0401e42e4a97",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--release",
+        "--all-targets",
+        "--manifest-path",
+        "examples/extensions/argentea/Cargo.toml",
+        "-j",
+        "3",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 1,
+        "Error": "",
+        "StartedAt": "2026-09-28T09:04:26.942606796Z",
+        "FinishedAt": "2026-09-28T09:04:27.124623254Z"
+      },
+      "limits": {
+        "NanoCpus": 3000000000,
+        "Memory": 6442450944,
+        "MemorySwap": 6442450944
+      }
+    },
+    {
+      "name": "sail-argentea-core-linux-clippy-tools-8154357",
+      "image_id": "sha256:0e2bcaef56d041a486784e54104a81aebe0da44bd03019bd70bc0401e42e4a97",
+      "command": [
+        "sh",
+        "-c",
+        "rustup component add clippy && cargo clippy --locked --release --all-targets --manifest-path examples/extensions/argentea/Cargo.toml -j 3 -- -D warnings"
+      ],
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-09-28T09:04:34.413177299Z",
+        "FinishedAt": "2026-09-28T09:04:40.164062802Z"
+      },
+      "limits": {
+        "NanoCpus": 3000000000,
+        "Memory": 6442450944,
+        "MemorySwap": 6442450944
+      }
+    }
+  ],
+  "files": {
+    "sail-argentea-core-linux-8154357.log": "385de2d04de730887d3d57f2786a27ffcac229bba813fd484aef1bc158ae250d",
+    "sail-argentea-core-linux-clippy-8154357.log": "1141885d9623f29f5cb745cbf0158271bca02052d524355ef55b66f5684af72a",
+    "sail-argentea-core-linux-clippy-tools-8154357.log": "c9a91aa0f4f461f465f6da8ee8c3fd40cc7a1600496c2649c20f8acc0cb97ea0"
+  },
+  "boundary": "Native core release tests and strict Clippy only. Not full Sail Linux or physical two-host qualification. No timing claim."
+}

@@ -46,6 +46,10 @@ use crate::task::scheduling::{
 #[path = "worker_topology.rs"]
 mod worker_topology;
 
+#[cfg(test)]
+#[path = "cleanup_tests.rs"]
+mod cleanup_tests;
+
 impl JobScheduler {
     fn next_job_id(&mut self) -> ExecutionResult<JobId> {
         self.job_id_generator.generate()

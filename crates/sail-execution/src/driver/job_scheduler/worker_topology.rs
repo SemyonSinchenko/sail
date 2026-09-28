@@ -105,4 +105,5 @@ pub(super) fn validate(graph: &JobGraph, topology: &JobTopology) -> ExecutionRes
 }
 
 #[cfg(test)]
+#[path = "worker_topology/tests.rs"]
 mod tests;

@@ -80,7 +80,7 @@ async fn two_input_stage_reads_all_four_partitions_and_replays_receipt() {
             .iter()
             .map(|f| f.name().as_str())
             .collect::<Vec<_>>(),
-        ["graph", "nodeCount", "edgeCount", "revision"]
+        ["graph", "nodeCount", "edgeCount", "revision", "nodeSortPermutationBytes", "nodeSortKeysBytes", "nodeSortedCopyBytes", "nodeFillBytes", "nodeNormalizedBytes", "nodeRetainedBytes", "nodeSortSeconds", "nodeSorted", "edgeSortPermutationBytes", "edgeSortKeysBytes", "edgeSortedCopyBytes", "edgeFillBytes", "edgeNormalizedBytes", "edgeRetainedBytes", "edgeSortSeconds", "edgeSorted"]
     );
     let physical = provider.scan(&ctx.state(), None, &[], None).await.unwrap();
     assert!(registry.list().unwrap().is_empty(), "scan must not stage");

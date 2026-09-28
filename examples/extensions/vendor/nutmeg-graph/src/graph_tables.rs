@@ -63,6 +63,7 @@ impl GraphSnapshot {
             staged_edges: e.edges.iter().map(RecordBatch::num_rows).sum(),
             staged_bytes: e.node_bytes.bytes() + e.edge_bytes.bytes(),
             projections: e.projections.len(),
+            projection_builds: e.projection_builds.clone(),
         })
     }
 

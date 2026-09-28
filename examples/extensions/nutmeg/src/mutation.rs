@@ -2,7 +2,7 @@
 use std::fmt;
 use std::sync::{Arc, Mutex};
 
-use arrow::array::{ArrayRef, BooleanArray, Int64Array, StringArray};
+use arrow::array::{ArrayRef, BooleanArray, Float64Array, Int64Array, StringArray};
 use arrow::datatypes::{DataType, Field, Schema, SchemaRef};
 use arrow::record_batch::RecordBatch;
 use async_trait::async_trait;
@@ -88,6 +88,24 @@ impl MutationTable {
                     Field::new("nodeCount", DataType::Int64, false),
                     Field::new("edgeCount", DataType::Int64, false),
                     Field::new("revision", DataType::Int64, false),
+                    // What the write admitted, tier by tier, for the record:
+                    // the same figures a refusal names, on success.
+                    Field::new("nodeSortPermutationBytes", DataType::Int64, false),
+                    Field::new("nodeSortKeysBytes", DataType::Int64, false),
+                    Field::new("nodeSortedCopyBytes", DataType::Int64, false),
+                    Field::new("nodeFillBytes", DataType::Int64, false),
+                    Field::new("nodeNormalizedBytes", DataType::Int64, false),
+                    Field::new("nodeRetainedBytes", DataType::Int64, false),
+                    Field::new("nodeSortSeconds", DataType::Float64, false),
+                    Field::new("nodeSorted", DataType::Boolean, false),
+                    Field::new("edgeSortPermutationBytes", DataType::Int64, false),
+                    Field::new("edgeSortKeysBytes", DataType::Int64, false),
+                    Field::new("edgeSortedCopyBytes", DataType::Int64, false),
+                    Field::new("edgeFillBytes", DataType::Int64, false),
+                    Field::new("edgeNormalizedBytes", DataType::Int64, false),
+                    Field::new("edgeRetainedBytes", DataType::Int64, false),
+                    Field::new("edgeSortSeconds", DataType::Float64, false),
+                    Field::new("edgeSorted", DataType::Boolean, false),
                 ])),
                 attempt: Mutex::new(Attempt::Ready),
             }),
@@ -302,12 +320,28 @@ impl Mutation {
                         }
                     }
                 }
-                let info = staging.finish()?;
+                let report = staging.finish()?;
                 vec![
                     graph,
-                    Arc::new(Int64Array::from(vec![info.staged_nodes as i64])) as ArrayRef,
-                    Arc::new(Int64Array::from(vec![info.staged_edges as i64])) as ArrayRef,
-                    Arc::new(Int64Array::from(vec![info.revision as i64])) as ArrayRef,
+                    Arc::new(Int64Array::from(vec![report.info.staged_nodes as i64])) as ArrayRef,
+                    Arc::new(Int64Array::from(vec![report.info.staged_edges as i64])) as ArrayRef,
+                    Arc::new(Int64Array::from(vec![report.info.revision as i64])) as ArrayRef,
+                    Arc::new(Int64Array::from(vec![report.nodes.sort_permutation_bytes as i64])) as ArrayRef,
+                    Arc::new(Int64Array::from(vec![report.nodes.sort_keys_bytes as i64])) as ArrayRef,
+                    Arc::new(Int64Array::from(vec![report.nodes.sorted_copy_bytes as i64])) as ArrayRef,
+                    Arc::new(Int64Array::from(vec![report.nodes.fill_bytes as i64])) as ArrayRef,
+                    Arc::new(Int64Array::from(vec![report.nodes.normalized_bytes as i64])) as ArrayRef,
+                    Arc::new(Int64Array::from(vec![report.nodes.retained_bytes as i64])) as ArrayRef,
+                    Arc::new(Float64Array::from(vec![report.nodes.sort_seconds])) as ArrayRef,
+                    Arc::new(BooleanArray::from(vec![report.nodes.sorted])) as ArrayRef,
+                    Arc::new(Int64Array::from(vec![report.edges.sort_permutation_bytes as i64])) as ArrayRef,
+                    Arc::new(Int64Array::from(vec![report.edges.sort_keys_bytes as i64])) as ArrayRef,
+                    Arc::new(Int64Array::from(vec![report.edges.sorted_copy_bytes as i64])) as ArrayRef,
+                    Arc::new(Int64Array::from(vec![report.edges.fill_bytes as i64])) as ArrayRef,
+                    Arc::new(Int64Array::from(vec![report.edges.normalized_bytes as i64])) as ArrayRef,
+                    Arc::new(Int64Array::from(vec![report.edges.retained_bytes as i64])) as ArrayRef,
+                    Arc::new(Float64Array::from(vec![report.edges.sort_seconds])) as ArrayRef,
+                    Arc::new(BooleanArray::from(vec![report.edges.sorted])) as ArrayRef,
                 ]
             }
         };

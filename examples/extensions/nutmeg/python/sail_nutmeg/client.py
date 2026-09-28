@@ -54,7 +54,10 @@ class Nutmeg:
         """Atomically overwrite one graph; eagerly collect its one-row receipt.
 
         Both DataFrames must belong to this session. Each receipt reports graph,
-        nodeCount, edgeCount and revision. All input partitions are consumed.
+        nodeCount, edgeCount and revision, then what the write admitted for
+        each part, tier by tier: node/edge SortPermutationBytes, SortKeysBytes,
+        SortedCopyBytes, FillBytes, NormalizedBytes, RetainedBytes, SortSeconds
+        and Sorted. All input partitions are consumed.
         """
         if nodes.sparkSession is not self.spark or edges.sparkSession is not self.spark:
             raise ValueError("stage inputs must belong to this Nutmeg Spark session")

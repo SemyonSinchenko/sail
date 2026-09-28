@@ -35,7 +35,10 @@ def test_analysis_has_no_mutation_and_bad_overwrite_is_atomic(spark):
     nm = Nutmeg(spark)
     nodes, edges = cycle(spark)
     lazy_stage = nm._relation("stage", "analysis", inputs=(nodes, edges))
-    assert lazy_stage.columns == ["graph", "nodeCount", "edgeCount", "revision"]
+    assert lazy_stage.columns[:4] == ["graph", "nodeCount", "edgeCount", "revision"]
+    assert lazy_stage.columns[4:] == [f"{part}{name}" for part in ("node", "edge") for name in (
+        "SortPermutationBytes", "SortKeysBytes", "SortedCopyBytes", "FillBytes",
+        "NormalizedBytes", "RetainedBytes", "SortSeconds", "Sorted")]
     lazy_stage.explain()
     with pytest.raises(Exception, match="no graph named `analysis`"):
         nm.run("analysis", "degree").collect()

@@ -114,6 +114,10 @@ impl ExecutionPlan for DiagnosticsExec {
                 let graphs = registry.list()?.into_iter().map(|g| json!({
                 "name": g.name, "node_count": g.staged_nodes, "edge_count": g.staged_edges,
                 "revision": g.revision, "projections": g.projections, "staged_bytes": g.staged_bytes,
+                "projection_builds": g.projection_builds.iter().map(|b| json!({
+                    "key": b.key, "seconds": b.seconds,
+                    "live_bytes_before": b.live_bytes_before, "admitted_bytes": b.admitted_bytes,
+                })).collect::<Vec<_>>(),
             })).collect::<Vec<_>>();
                 let reads = registry.reads()?.into_iter().map(|r| json!({
                 "id": r.id, "algorithm": r.algorithm, "graph": r.graph, "state": r.state.name(),

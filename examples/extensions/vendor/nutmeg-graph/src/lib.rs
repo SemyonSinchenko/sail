@@ -591,6 +591,25 @@ pub enum StageOrder {
 /// The write option, and Python client keyword, that chooses [`StageOrder`].
 pub const ORDER_OPTION: &str = "order";
 
+/// What staging one part admitted, tier by tier, for the record: the sort's
+/// working space as the three components its refusal names (permutation,
+/// keys, sorted copy), the schema fill, what the normalized rows held before
+/// the sort, what the part keeps afterwards, and the time the canonical sort
+/// took. Under [`StageOrder::AsStaged`] `sorted` is false and the sort
+/// fields are zero. These are the admitted bounds, not measured RSS, so a
+/// successful stage reports the same figures a refused one would have.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct StageTiers {
+    pub sorted: bool,
+    pub fill_bytes: usize,
+    pub sort_permutation_bytes: usize,
+    pub sort_keys_bytes: usize,
+    pub sorted_copy_bytes: usize,
+    pub normalized_bytes: usize,
+    pub retained_bytes: usize,
+    pub sort_seconds: f64,
+}
+
 impl StageOrder {
     pub fn parse(text: &str) -> Result<Self> {
         match text.trim().to_ascii_lowercase().as_str() {
@@ -623,12 +642,17 @@ fn canonicalize(
     mut batches: Vec<RecordBatch>,
     declared: Option<SchemaRef>,
     budget: &Budget<'_>,
-) -> Result<(Vec<RecordBatch>, Admitted)> {
+) -> Result<(Vec<RecordBatch>, Admitted, StageTiers)> {
+    let started = Instant::now();
+    let mut tiers = StageTiers {
+        sorted: true,
+        ..StageTiers::default()
+    };
     if let Some(schema) = declared {
         batches.push(RecordBatch::new_empty(schema));
     }
     if batches.is_empty() {
-        return Ok((batches, Admitted::default()));
+        return Ok((batches, Admitted::default(), tiers));
     }
     let mut work = Admitted::default();
     let fill_bound = admission::unify_bound(&batches);
@@ -640,9 +664,11 @@ fn canonicalize(
         return internal_err!("nutmeg: schema unification exceeded its pre-admitted bound");
     }
     work.shrink_to(filled).map_err(err)?;
+    tiers.fill_bytes = filled;
     let batches: Vec<RecordBatch> = batches.into_iter().filter(|b| b.num_rows() > 0).collect();
     if batches.is_empty() {
-        return Ok((batches, Admitted::default()));
+        tiers.sort_seconds = started.elapsed().as_secs_f64();
+        return Ok((batches, Admitted::default(), tiers));
     }
     let schema = batches[0].schema();
     let structural: &[&str] = match part {
@@ -688,6 +714,9 @@ fn canonicalize(
     let keys = admission::sort_keys_bound(&batches, &key);
     let beyond_copy = keys.saturating_sub(copy);
     let need = permutation.saturating_add(beyond_copy).saturating_add(copy);
+    tiers.sort_permutation_bytes = permutation;
+    tiers.sort_keys_bytes = keys;
+    tiers.sorted_copy_bytes = copy;
     let describe = || {
         format!(
             "the sort's working space: {permutation} bytes of permutation, about {keys} of sort \
@@ -742,7 +771,9 @@ fn canonicalize(
     } else {
         sorted.shrink_to(held).map_err(err)?;
     }
-    Ok((out, sorted))
+    tiers.retained_bytes = sorted.bytes();
+    tiers.sort_seconds = started.elapsed().as_secs_f64();
+    Ok((out, sorted, tiers))
 }
 
 /// An upper bound on the bytes Arrow's row format takes to encode the `key`
@@ -1053,6 +1084,21 @@ struct Entry {
     edges_canonical: bool,
     revision: u64,
     projections: HashMap<String, GraphProjection>,
+    /// Every projection built for this revision, in build order, with what
+    /// it cost: kept for the record, beside the projections themselves.
+    projection_builds: Vec<ProjectionBuild>,
+}
+
+/// One projection build: its cache key, the wall time the build took, and
+/// the pool's live bytes before it and admitted by it. The bytes are the
+/// pool's live delta over the build, so a concurrent read's own admissions
+/// would be counted too; a benchmark cell builds alone.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ProjectionBuild {
+    pub key: String,
+    pub seconds: f64,
+    pub live_bytes_before: usize,
+    pub admitted_bytes: usize,
 }
 
 /// What [`Registry::list`] reports for one graph.
@@ -1068,6 +1114,8 @@ pub struct GraphInfo {
     pub staged_bytes: usize,
     pub revision: u64,
     pub projections: usize,
+    /// The builds behind `projections`, in order; see [`ProjectionBuild`].
+    pub projection_builds: Vec<ProjectionBuild>,
 }
 
 /// What [`Registry::memory`] reports: the budget and what holds it.
@@ -1217,6 +1265,7 @@ impl Store {
                 staged_bytes: e.node_bytes.bytes() + e.edge_bytes.bytes(),
                 revision: e.revision,
                 projections: e.projections.len(),
+                projection_builds: e.projection_builds.clone(),
             });
         }
         out.sort_by(|a, b| a.name.cmp(&b.name));
@@ -1311,6 +1360,8 @@ impl Store {
             "nutmeg".into(),
         )
         .map_err(err)?;
+        let build_started = Instant::now();
+        let live_bytes_before = self.pool.usage().map_or(0, |u| u.live_bytes);
         // Built in the pool's own context, which owns it: its reservations,
         // and the transpose an in-arc kernel builds on first use, stay on the
         // pool for as long as it is cached. Kernels do not run here; each
@@ -1346,6 +1397,13 @@ impl Store {
             }
             other => err(other),
         })?;
+        let live_bytes_after = self.pool.usage().map_or(0, |u| u.live_bytes);
+        e.projection_builds.push(ProjectionBuild {
+            key: key.clone(),
+            seconds: build_started.elapsed().as_secs_f64(),
+            live_bytes_before,
+            admitted_bytes: live_bytes_after.saturating_sub(live_bytes_before),
+        });
         e.projections.insert(key, graph.clone());
         Ok(graph)
     }
@@ -1608,6 +1666,12 @@ impl Staging<'_> {
     /// the order given, and the part is no longer canonical until a canonical
     /// write sorts it again.
     pub fn finish(self) -> Result<usize> {
+        self.finish_reporting().map(|(rows, _)| rows)
+    }
+
+    /// [`Staging::finish`], also returning what the write admitted, tier by
+    /// tier ([`StageTiers`]).
+    pub fn finish_reporting(self) -> Result<(usize, StageTiers)> {
         let store = self.store;
         let (entry, created) = {
             let mut map = store.graphs.write().map_err(|_| poisoned())?;
@@ -1635,7 +1699,7 @@ impl Staging<'_> {
         result
     }
 
-    fn swap_into(&self, entry: &RwLock<Entry>) -> Result<usize> {
+    fn swap_into(&self, entry: &RwLock<Entry>) -> Result<(usize, StageTiers)> {
         let mut e = entry.write().map_err(|_| poisoned())?;
         let (rows, admitted) = match self.part {
             Part::Nodes => (&e.nodes, &e.node_bytes),
@@ -1651,7 +1715,8 @@ impl Staging<'_> {
         };
         staged.extend(self.normalized.iter().cloned());
         let canonical = self.order == StageOrder::Canonical;
-        let (staged, held) = if canonical {
+        let normalized_bytes = self.fresh.bytes();
+        let (staged, held, mut tiers) = if canonical {
             canonicalize(self.part, staged, self.schema.clone(), &self.budget())?
         } else {
             let mut held = if self.replace {
@@ -1660,8 +1725,14 @@ impl Staging<'_> {
                 admitted.clone()
             };
             held.absorb(self.fresh.clone());
-            (staged, held)
+            let tiers = StageTiers {
+                sorted: false,
+                retained_bytes: held.bytes(),
+                ..StageTiers::default()
+            };
+            (staged, held, tiers)
         };
+        tiers.normalized_bytes = normalized_bytes;
         let total = staged.iter().map(|b| b.num_rows()).sum();
         match self.part {
             Part::Nodes => {
@@ -1686,7 +1757,8 @@ impl Staging<'_> {
         }
         e.revision += 1;
         e.projections.clear();
-        Ok(total)
+        e.projection_builds.clear();
+        Ok((total, tiers))
     }
 }
 

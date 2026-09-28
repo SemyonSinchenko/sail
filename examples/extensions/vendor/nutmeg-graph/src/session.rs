@@ -176,10 +176,10 @@ impl GraphStaging<'_> {
     }
 
     /// Linearize one graph revision only after both parts are complete.
-    pub fn finish(self) -> Result<GraphInfo> {
+    pub fn finish(self) -> Result<StageReport> {
         let entry = RwLock::new(Entry::default());
-        self.nodes.swap_into(&entry)?;
-        self.edges.swap_into(&entry)?;
+        let (_, nodes) = self.nodes.swap_into(&entry)?;
+        let (_, edges) = self.edges.swap_into(&entry)?;
         let mut prepared = entry.into_inner().map_err(|_| poisoned())?;
         let mut graphs = self.registry.store.graphs.write().map_err(|_| poisoned())?;
         let previous = graphs
@@ -198,10 +198,20 @@ impl GraphStaging<'_> {
             staged_bytes: prepared.node_bytes.bytes() + prepared.edge_bytes.bytes(),
             revision: prepared.revision,
             projections: 0,
+            projection_builds: Vec::new(),
         };
         graphs.insert(self.name, Arc::new(RwLock::new(prepared)));
-        Ok(info)
+        Ok(StageReport { info, nodes, edges })
     }
+}
+
+/// What [`GraphStaging::finish`] reports: the graph as staged, and what each
+/// part's write admitted ([`StageTiers`]).
+#[derive(Clone, Debug)]
+pub struct StageReport {
+    pub info: GraphInfo,
+    pub nodes: StageTiers,
+    pub edges: StageTiers,
 }
 
 #[cfg(test)]
@@ -226,7 +236,13 @@ mod tests {
         let mapping = ColumnMapping::default();
         let mut tx = registry.replacing("g", &mapping, &mapping, StageOrder::Canonical);
         tx.push_edges(&edges).unwrap();
-        tx.finish().unwrap();
+        let report = tx.finish().unwrap();
+        assert!(report.edges.sorted, "canonical staging reports its sort");
+        assert!(
+            report.edges.retained_bytes > 0 && report.edges.sorted_copy_bytes >= report.edges.retained_bytes,
+            "{:?}",
+            report.edges
+        );
     }
 
     #[test]

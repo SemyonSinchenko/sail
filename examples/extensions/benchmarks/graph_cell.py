@@ -7,8 +7,10 @@ import math
 import os
 from pathlib import Path
 import platform
+import resource
 import signal
 import sys
+import tempfile
 import time
 import traceback
 
@@ -132,9 +134,17 @@ def execute(spark, args, manifest, receipt, sampler):
             nodes = vertices.select(F.col('id').cast('string').alias('node_id'))
             links = edges.select(F.col('src').cast('string').alias('source'),
                                  F.col('dst').cast('string').alias('target'))
+            # Staging, projection and kernel are timed and sampled as separate
+            # steps of the one 'execute' phase. The stage receipt carries the
+            # admitted sort tiers; the status after each step carries the
+            # pool's live and peak bytes; projectionStats builds the kernel's
+            # projection ahead of it and reports the CSR bytes. Whether the
+            # kernel then reused that projection is checked after the run.
+            sampler.mark_step('stage')
             staged = nm.stage('benchmark', nodes, links)
             receipt['stage_seconds'] = time.perf_counter() - started
             receipt['stage_receipt'] = staged.asDict()
+            receipt['native_status_after_stage'] = nm.status()
             options = dict(concurrency=args.threads)
             if args.algorithm == 'pagerank':
                 options.update(damping=args.damping, tolerance=args.tolerance,
@@ -143,6 +153,14 @@ def execute(spark, args, manifest, receipt, sampler):
                 options.update(maxIterations=args.max_iterations, seed=args.seed)
             kernel = method
             receipt['kernel'] = kernel
+            sampler.mark_step('projection')
+            projection_started = time.perf_counter()
+            projection_options = {key: options[key] for key in ('orientation',) if key in options}
+            receipt['projection_stats'] = nm.run('benchmark', 'projectionStats', **projection_options).first().asDict()
+            receipt['projection_seconds'] = time.perf_counter() - projection_started
+            receipt['native_status_after_projection'] = nm.status()
+            sampler.mark_step('kernel')
+            kernel_started = time.perf_counter()
             frame = nm.run('benchmark', kernel, **options)
             if args.algorithm == 'pagerank':
                 exported = frame.select(F.col('nodeId').cast('long').alias('id'), 'score',
@@ -165,6 +183,7 @@ def execute(spark, args, manifest, receipt, sampler):
             else:
                 options.update(method=method, seed=args.seed)
             receipt['kernel'] = options['method']
+            sampler.mark_step('rounds')
             handle = getattr(graph, args.algorithm)(vertices, edges, **options)
             receipt['algorithm_ready_seconds'] = time.perf_counter() - started
             receipt['algorithm_iterations'] = handle.iterations
@@ -176,12 +195,23 @@ def execute(spark, args, manifest, receipt, sampler):
                     F.lit(getattr(handle, 'residual', None)).cast('double').alias('residual'))
             else:
                 exported = handle.frame.select('id', F.col('component').cast('string').alias('component'))
+        if nm is None:
+            sampler.mark_step('output')
         write_started = time.perf_counter()
         exported.write.mode('error').parquet(output.as_uri())
         receipt['end_to_end_seconds'] = time.perf_counter() - started
         receipt['output_action_seconds'] = time.perf_counter() - write_started
-        receipt['output_action_boundary'] = (
-            'includes native kernel/CSR execution' if nm else 'export of already materialized Pecan result')
+        if nm is not None:
+            receipt['kernel_and_output_seconds'] = time.perf_counter() - kernel_started
+            receipt['output_action_boundary'] = ('native kernel execution on the projection built by projectionStats, '
+                                                 'plus the result write; the kernel is lazy until the write')
+        else:
+            receipt['output_action_boundary'] = 'export of already materialized Pecan result'
+            rounds = [e['elapsed_seconds'] for e in events if e.get('kind') == 'iteration_end']
+            if rounds:
+                receipt['round_end_seconds'] = rounds
+                receipt['first_round_seconds'] = rounds[0]
+                receipt['mean_round_seconds'] = rounds[-1] / len(rounds)
         return output, handle, nm
     except BaseException:
         receipt['elapsed_until_error_seconds'] = time.perf_counter() - started
@@ -340,7 +370,11 @@ def main():
                    boundary='input DataFrame handles to completed full result Parquet write; server startup and correctness verification excluded',
                    cache_boundary='fresh Sail state; dataset checksum reads before timing warm OS page cache; no cache flushing',
                    outcome='started', cleanup_errors=[])
-    sampler = Sampler(args.output / 'memory-samples.jsonl')
+    soft_nofile, hard_nofile = resource.getrlimit(resource.RLIMIT_NOFILE)
+    receipt['rlimit_nofile'] = {'soft': soft_nofile, 'hard': hard_nofile}
+    receipt['temporary_directory'] = tempfile.gettempdir()
+    sampler = Sampler(args.output / 'memory-samples.jsonl',
+                      watch={'staging': args.output / 'staging', 'temporary': tempfile.gettempdir()})
     handle = nm = spark = None
     signal.signal(signal.SIGALRM, timeout_handler)
     before_ticks = cpu_ticks()
@@ -366,6 +400,15 @@ def main():
                     signal.alarm(args.timeout)
                     receipt['cgroup_execution_after'] = cgroup_snapshot()
                     record_result_evidence(result, nm, receipt['kernel'], manifest['counts']['vertices'], receipt)
+                    if nm is not None:
+                        graphs = [g for g in receipt['native_status_after'].get('graphs', []) if g['name'] == 'benchmark']
+                        builds = graphs[0].get('projection_builds', []) if graphs else []
+                        receipt['projection_builds'] = builds
+                        receipt['projection_reused_by_kernel'] = len(builds) == 1
+                        receipt['projection_boundary'] = (
+                            'one projection built by projectionStats and reused by the kernel' if len(builds) == 1
+                            else f'{len(builds)} projections built: the kernel did not reuse the projectionStats build, '
+                                 'so kernel_and_output_seconds includes a second build')
                     if args.algorithm in ('bfs', 'sssp'):
                         from traversal_cell import validate as traversal_validate
                         receipt['correctness'] = traversal_validate(spark, result, args.dataset, args.algorithm,

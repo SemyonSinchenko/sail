@@ -8,6 +8,7 @@ Python environment, then run (without Python's `-O` flag):
 python test_positive_certificate.py
 python test_parquet_audit.py
 python test_retained_outputs.py
+python test_campaign.py
 python audit_parquet.py /path/to/receipt.json /path/to/dataset /path/to/result
 ```
 
@@ -36,6 +37,32 @@ placement, artifact provenance, or cleanup; those require their separate
 receipts and checks. File pins establish agreement with a receipt, not the
 independent authenticity of that receipt. Preserve and verify the campaign's
 source identities and frozen configuration separately.
+
+## Complete campaign audit
+
+After confirming that the campaign process and its containers have stopped,
+mount the retained inputs and campaign directory read-only. Run:
+
+```sh
+python audit_campaign.py /campaign /datasets /reports/audit.json \
+  --configuration-sha256 <independently-recorded-configuration-hash>
+```
+
+The campaign directory must contain `configuration.json`, `matrix-results.json`,
+and `cells/<cell-id>/artifacts/{receipt.json,result/}`. The datasets directory
+contains one directory per dataset name. For the frozen large traversal run,
+inputs are in the `sail-extension-targets` Docker volume under
+`/targets/graph-kernels-traversal-1f18/datasets`; host-exported campaign artifacts
+are separate. Do not assume the inputs were exported alongside those artifacts.
+
+The runner rejects incomplete or duplicate coverage and a configuration that
+does not match the supplied pin. It checks receipt identity against the matrix,
+audits each retained result, and records failures without changing the original
+campaign outcomes. A failed campaign cell with no retained result is recorded as
+`no_result`, not a correctness pass. Individual audit errors produce a nonzero
+exit status after the complete report is written. An existing report is never
+overwritten. Process termination, provenance, resource measurements, and cleanup
+remain separate prerequisites or checks; this runner does not establish them.
 
 ## Validation evidence
 

@@ -86,8 +86,8 @@ def exercise(endpoint, args, driver, check):
                 controller = FaultController(args.case, log, check['request'], workers, driver, token,
                                              check.setdefault('injection', {}), args.victim_owner)
                 controller.thread.start()
-        # All 524288 arcs cross owners. The fresh certificate must emit them in
-        # one-row batches; this fixture actually enters native work before the
+        # All 524288 arcs cross owners. PageRank's first certificate and
+        # WCC/SSSP topology must emit them in one-row batches; this fixture actually enters native work before the
         # external pause. No fixed sleep or tolerance-based nontermination claim.
         vertices = 3 if args.case == 'quota' else 4096
         copies = 1 if args.case == 'quota' else 128
@@ -95,8 +95,21 @@ def exercise(endpoint, args, driver, check):
         edges = spark.range(vertices*copies).selectExpr(f'id % {vertices} AS src', f'(id + 1) % {vertices} AS dst')
         check['fixture'] = dict(vertices=vertices, edges=vertices*copies, copies=copies, batch_rows=1)
         try:
-            result = ArgenteaDelta(spark, observer=observe).pagerank(nodes, edges, max_pushes=7,
-                partitions=2, tolerance=1e-12, batch_rows=1, cancellation=token)
+            if args.algorithm=='pagerank_delta':
+                result = ArgenteaDelta(spark, observer=observe).pagerank(nodes, edges, max_pushes=7,
+                    partitions=2, tolerance=1e-12, batch_rows=1, cancellation=token)
+            elif args.algorithm.startswith('wcc_'):
+                from argentea_wcc_client import ArgenteaWcc
+                result = ArgenteaWcc(spark,observer=observe).wcc(nodes,edges,
+                    method=args.algorithm.removeprefix('wcc_'),max_rounds=3,
+                    partitions=2,batch_rows=1,cancellation=token)
+            else:
+                from argentea_sssp_client import ArgenteaSssp
+                from pyspark.sql.connect import functions as F
+                result = ArgenteaSssp(spark,observer=observe).sssp(nodes,edges.withColumn('weight',F.lit(1.0)),
+                    source=0,method=args.algorithm.removeprefix('sssp_'),max_rounds=3,
+                    partitions=2,batch_rows=1,cancellation=token)
+
         except Exception as error:
             check.update(query_failed=True, error=str(error), error_type=type(error).__name__,
                 error_traceback=traceback.format_exc(), cleanup_deferred=getattr(error, 'cleanup_deferred', None),
@@ -150,6 +163,7 @@ def main():
     p.add_argument('--sail-binary', type=Path, required=True)
     p.add_argument('--runtime-source-sha', required=True)
     p.add_argument('--native-source-sha', required=True)
+    p.add_argument('--algorithm',choices=('pagerank_delta','wcc_reference','wcc_star','sssp_reference','sssp_delta_star'),default='pagerank_delta')
     p.add_argument('--case', choices=('cancel', 'worker-loss', 'quota'), required=True)
     p.add_argument('--victim-owner', type=int, choices=(0, 1),
                    help='worker-loss only: select this initialized native owner; default keeps lowest worker ID')

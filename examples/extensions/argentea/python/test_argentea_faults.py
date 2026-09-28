@@ -9,9 +9,9 @@ from argentea_fault_evidence import output_task_placement, validate_fault
 
 
 def fixture(case='cancel'):
-    request = dict(operation_id='op', snapshot_id='snap', generation=1, partitions=2, max_pushes=1)
+    request = dict(version=2,algorithm='pagerank_delta',operation_id='op', snapshot_id='snap', generation=1, partitions=2, max_pushes=1)
     workers = [dict(worker_id=p+1, pid=100+p, session_id='s', driver_pid=99) for p in range(2)]
-    records = [dict(event='init', partition=p, worker_id=p+1, pid=100+p,
+    records = [dict(protocol=2,algorithm='pagerank_delta',event='init', partition=p, worker_id=p+1, pid=100+p,
         adjacency_id=p+5, session_id='s', job_id=3, **{k:request[k] for k in ('operation_id','snapshot_id','generation')}) for p in range(2)]
     snapshot = {w['pid']:dict(status='T',pgid=99) for w in workers}
     window = copy.deepcopy(validate_window(records, request, workers, snapshot, 99))
@@ -164,3 +164,33 @@ def test_killed_child_may_await_reap_but_must_not_execute(victim):
     snapshot.pop(100)
     snapshot[101]={'status':'Z','pgid':99}
     with pytest.raises(AssertionError,match='surviving worker'):validate_after_close(snapshot,workers,100)
+
+
+@pytest.mark.parametrize('algorithm,count,version',[
+    ('wcc_reference',10,4),('wcc_star',28,4),('sssp_reference',10,5),('sssp_delta_star',10,5)])
+@pytest.mark.parametrize('case',['cancel','worker-loss','quota'])
+def test_graph_faults_require_their_exact_native_stage_matrix(algorithm,count,version,case):
+    text,records,check,_,_=fixture(case)
+    check['request'].update(algorithm=algorithm,version=version,max_rounds=3)
+    for r in records+check['injection']['window']['native_receipts']:
+        r.update(algorithm=algorithm,protocol=version)
+    # Replace the fixture's PageRank stage matrix with this protocol's matrix.
+    check['stages']=[dict(session_id='s',job_id=3,stage=i,slot_group='worker-extension:0',partitions=2,
+        placement='Worker',mode='Pipelined') for i in range(count)]
+    check['stored_tasks']=[dict(session_id='s',job_id=3,stage=i,partition=p,attempt=0,status='CANCELED')
+        for i in range(count) for p in range(2)]
+    text='\n'.join(f'worker_task_status worker_id={p+1} job_id=3 stage={i} partition={p} attempt=0 status=RUNNING'
+        for i in range(count) for p in range(2))
+    if case=='worker-loss':
+        check['stages'].append(dict(session_id='s',job_id=3,stage=count,slot_group='',partitions=1,placement='Worker',mode='Pipelined'))
+        check['stored_tasks'].append(dict(session_id='s',job_id=3,stage=count,partition=0,attempt=0,status='CANCELED'))
+        text+=f'\nworker_task_status worker_id=2 job_id=3 stage={count} partition=0 attempt=0 status=RUNNING'
+    assert validate_fault(text,records,check)['native_task_count']==2*count
+    check['stages'].pop(0)
+    with pytest.raises(AssertionError):validate_fault(text,records,check)
+
+
+def test_fault_protocol_must_match_the_recorded_native_execution():
+    text,records,check,_,_=fixture()
+    records[0]['algorithm']='sssp_reference'
+    with pytest.raises(AssertionError,match='protocol changed'):validate_fault(text,records,check)

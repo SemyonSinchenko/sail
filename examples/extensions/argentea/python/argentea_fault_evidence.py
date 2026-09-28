@@ -5,6 +5,24 @@ from argentea_evidence import parse_worker_tasks
 from argentea_fault_control import select_victim, validate_window
 
 
+def native_phase_count(request):
+    algorithm=request['algorithm']
+    if algorithm=='pagerank_delta':
+        assert request['version']==2
+        pushes=request['max_pushes']
+        assert type(pushes) is int and 0<=pushes<=7
+        return 4*pushes+4
+    if algorithm in ('wcc_reference','wcc_star'):
+        assert request['version']==4
+        from argentea_wcc_client import phase_count
+        return phase_count(request['max_rounds'],algorithm.removeprefix('wcc_'))
+    if algorithm in ('sssp_reference','sssp_delta_star'):
+        assert request['version']==5
+        from argentea_sssp_client import phase_count
+        return phase_count(request['max_rounds'],algorithm.removeprefix('sssp_'))
+    raise AssertionError('unsupported fault protocol')
+
+
 def output_task_placement(log, stages, workers, session, job):
     # JobGraph::try_new appends its final output stage after all input stages.
     # Read placement independently of the selected owner; do not assume that
@@ -61,13 +79,14 @@ def validate_fault(log, records, check):
     output_placement = None
     request, case = check['request'], check['case']
     selected = [r for r in records if r.get('operation_id') == request['operation_id']]
+    assert all(r['protocol']==request['version'] and r['algorithm']==request['algorithm'] for r in selected), 'fault protocol changed'
     assert check['query_failed'] is True and 'rows' not in check, 'fault returned a result'
     assert check['cleanup_deferred'] is True, 'failed write lost session cleanup ownership'
     assert not any(r['event'] in ('result', 'failure') for r in selected), 'fault raced a completed result or another typed failure'
     native = [s for s in check['stages'] if s['slot_group'].startswith('worker-extension:')]
     assert len({(s['session_id'], s['job_id']) for s in native}) == 1, 'fault spanned or retried native jobs'
     session, job = native[0]['session_id'], native[0]['job_id']
-    assert len(native) == len({s['stage'] for s in native}) == 4 * request['max_pushes'] + 4
+    assert len(native) == len({s['stage'] for s in native}) == native_phase_count(request)
     assert len({s['slot_group'] for s in native}) == 1
     assert all(s['partitions'] == 2 and s['placement'] == 'Worker' and s['mode'] == 'Pipelined' for s in native)
     ids = {s['stage'] for s in native}

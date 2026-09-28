@@ -4,8 +4,8 @@ import sys
 
 import pytest
 sys.path.insert(0, str(Path(__file__).parent))
-from argentea_fault_control import validate_window, workers_from_log
-from argentea_fault_evidence import validate_fault
+from argentea_fault_control import select_victim, validate_window, workers_from_log
+from argentea_fault_evidence import output_task_placement, validate_fault
 
 
 def fixture(case='cancel'):
@@ -14,7 +14,7 @@ def fixture(case='cancel'):
     records = [dict(event='init', partition=p, worker_id=p+1, pid=100+p,
         adjacency_id=p+5, session_id='s', job_id=3, **{k:request[k] for k in ('operation_id','snapshot_id','generation')}) for p in range(2)]
     snapshot = {w['pid']:dict(status='T',pgid=99) for w in workers}
-    window = validate_window(records, request, workers, snapshot, 99)
+    window = copy.deepcopy(validate_window(records, request, workers, snapshot, 99))
     for record in list(records):
         if case != 'worker-loss' or record['pid'] != 100:
             records.append(dict(record,event='close'))
@@ -24,9 +24,15 @@ def fixture(case='cancel'):
     text = '\n'.join(f'worker_task_status worker_id={p+1} job_id=3 stage={i} partition={p} attempt=0 status=RUNNING' for i in range(8) for p in range(2))
     check = dict(case=case,request=request,query_failed=True,cleanup_deferred=True,stages=stages,stored_tasks=tasks,
         jobs=[dict(session_id='s',job_id=3,status='CANCELED')],injection=dict(window=window,signals=[]),
-        error_type='GraphCancelledError',interrupt_operation_ids=['rpc1'],error='worker extension job failed; automatic retry disabled')
+        error_type='GraphCancelledError',interrupt_operation_ids=['rpc1'],error='worker extension job failed; automatic retry disabled: h2 protocol error',
+        supervised_workers=workers,connect_max_retries=0,requested_victim_owner=None)
     if case=='worker-loss':
-        check['injection'].update(killed_worker=workers[0],signals=[dict(pid=100,signal='SIGKILL')])
+        check['injection'].update(killed_worker=workers[0],signals=[dict(pid=100,signal='SIGKILL')],
+                                  requested_native_owner=None,selected_native_owner=0)
+        check.update(error_type='AnalysisException',jobs=[dict(session_id='s',job_id=3,status='FAILED')])
+        stages.append(dict(session_id='s',job_id=3,stage=8,slot_group='',partitions=1,placement='Worker',mode='Pipelined'))
+        tasks.append(dict(session_id='s',job_id=3,stage=8,partition=0,attempt=0,status='CANCELED'))
+        text+='\nworker_task_status worker_id=2 job_id=3 stage=8 partition=0 attempt=0 status=RUNNING'
     elif case=='quota':
         records=[]
         check.update(native_quota=1,error='procedure memory budget exceeded (limit 1)')
@@ -64,6 +70,67 @@ def test_quota_settings_do_not_substitute_for_native_cause():
     text,records,check,_,_=fixture('quota')
     check['error']='operation canceled while reading input'
     with pytest.raises(AssertionError,match='quota cause'):validate_fault(text,records,check)
+
+
+@pytest.mark.parametrize('path',['scheduler_failure','bare_h2_transport'])
+def test_worker_loss_accepts_only_proven_first_error_paths(path):
+    text,records,check,_,_=fixture('worker-loss')
+    if path=='bare_h2_transport':
+        check.update(error_type='SparkRuntimeException',error='h2 protocol error: error reading a body from connection')
+    assert validate_fault(text,records,check)['first_error_path']==path
+
+
+@pytest.mark.parametrize('path',['scheduler_failure','bare_h2_transport'])
+@pytest.mark.parametrize('bad',['missing-kill','wrong-killed-worker','unsupervised-kill','unheld-window',
+    'generic-error','wrong-error-type','active-task','retry','successful-job','canceled-job',
+    'replayed-init','missing-close','result','client-retry','ordinary-task-active','selected-owner','requested-owner'])
+def test_worker_loss_path_never_substitutes_for_fault_evidence(path,bad):
+    text,records,check,_,_=fixture('worker-loss')
+    if path=='bare_h2_transport':
+        check.update(error_type='SparkRuntimeException',error='h2 protocol error: error reading a body from connection')
+    if bad=='missing-kill':check['injection']['signals']=[]
+    elif bad=='wrong-killed-worker':check['injection']['killed_worker']=dict(check['injection']['killed_worker'],worker_id=99)
+    elif bad=='unsupervised-kill':check['supervised_workers']=check['supervised_workers'][1:]
+    elif bad=='unheld-window':check['injection']['window']['process_states'][100]['status']='R'
+    elif bad=='generic-error':check['error']='unrelated connection error'
+    elif bad=='wrong-error-type':check['error_type']='ValueError'
+    elif bad=='active-task':check['stored_tasks'][0]['status']='RUNNING'
+    elif bad=='retry':check['stored_tasks'][0]['attempt']=1
+    elif bad=='successful-job':check['jobs'][0]['status']='SUCCEEDED'
+    elif bad=='canceled-job':check['jobs'][0]['status']='CANCELED'
+    elif bad=='replayed-init':records.append(dict(records[0]))
+    elif bad=='missing-close':records.pop()
+    elif bad=='result':records.append(dict(records[0],event='result'))
+    elif bad=='client-retry':check['connect_max_retries']=1
+    elif bad=='ordinary-task-active':check['stored_tasks'].append(dict(session_id='s',job_id=3,stage=99,partition=0,attempt=0,status='RUNNING'))
+    elif bad=='selected-owner':check['injection']['selected_native_owner']=1
+    elif bad=='requested-owner':check['requested_victim_owner']=1
+    with pytest.raises(AssertionError):validate_fault(text,records,check)
+
+
+def test_explicit_owner_selection_uses_supervised_identity_not_worker_index():
+    _,_,check,workers,_=fixture('worker-loss')
+    window=check['injection']['window']
+    for record in window['native_receipts']:record['partition']=1-record['partition']
+    assert select_victim(window,workers)==(workers[0],1)
+    assert select_victim(window,workers,0)==(workers[1],0)
+    assert select_victim(window,workers,1)==(workers[0],1)
+    with pytest.raises(AssertionError):select_victim(window,workers,2)
+    window['native_receipts'][0]['pid']=999
+    with pytest.raises(AssertionError):select_victim(window,workers,1)
+
+
+@pytest.mark.parametrize('bad',['missing','changed-worker','retry','wrong-partition','wrong-width'])
+def test_output_placement_is_observed_independently(bad):
+    text,_,check,workers,_=fixture('worker-loss')
+    result=output_task_placement(text,check['stages'],workers,'s',3)
+    assert result['worker_id']==2 and result['pid']==101
+    if bad=='missing':text='\n'.join(text.splitlines()[:-1])
+    elif bad=='changed-worker':text+='\nworker_task_status worker_id=1 job_id=3 stage=8 partition=0 attempt=0 status=FAILED'
+    elif bad=='retry':text=text.replace('stage=8 partition=0 attempt=0','stage=8 partition=0 attempt=1')
+    elif bad=='wrong-partition':text=text.replace('stage=8 partition=0','stage=8 partition=1')
+    elif bad=='wrong-width':check['stages'][-1]['partitions']=2
+    with pytest.raises(AssertionError):output_task_placement(text,check['stages'],workers,'s',3)
 
 
 @pytest.mark.parametrize('bad',['running','driver-group','terminal','one-init'])

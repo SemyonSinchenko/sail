@@ -49,11 +49,29 @@ def validate_window(records, request, workers, process_states, driver):
                 initialized_owners=2, terminal_events_before_fault=0, both_workers_stopped=True)
 
 
+def select_victim(window, workers, requested_owner=None):
+    """Select only a supervised PID after the native held window is proven."""
+    assert requested_owner in (None, 0, 1)
+    initialized = [r for r in window['native_receipts'] if r['event'] == 'init']
+    if requested_owner is None:
+        victim = workers[0]  # Preserve the original lowest-worker-ID default.
+        own = [r for r in initialized if r['pid'] == victim['pid']]
+    else:
+        own = [r for r in initialized if r['partition'] == requested_owner]
+        assert len(own) == 1, 'selected native owner did not initialize exactly once'
+        matches = [w for w in workers if all(w[k] == own[0][k] for k in ('worker_id', 'pid', 'session_id'))]
+        assert len(matches) == 1, 'selected native owner is not supervised'
+        victim = matches[0]
+    assert len(own) == 1 and all(victim[k] == own[0][k] for k in ('worker_id', 'pid', 'session_id'))
+    return victim, own[0]['partition']
+
+
 class FaultController:
-    def __init__(self, case, log, request, workers, driver, token, evidence):
+    def __init__(self, case, log, request, workers, driver, token, evidence, victim_owner=None):
         self.case, self.log, self.request = case, log, request
         self.workers, self.driver, self.token, self.evidence = workers, driver, token, evidence
         self.stop = threading.Event()
+        self.victim_owner = victim_owner
         self.thread = threading.Thread(target=self.run, name='argentea-fault-controller')
         self.evidence['signals'] = []
 
@@ -101,7 +119,8 @@ class FaultController:
             if self.case == 'cancel':
                 self.token.cancel()
             else:
-                victim = self.workers[0]
+                victim, owner = select_victim(self.evidence['window'], self.workers, self.victim_owner)
+                self.evidence.update(requested_native_owner=self.victim_owner, selected_native_owner=owner)
                 self.send(victim['pid'], signal.SIGKILL)
                 self.evidence['killed_worker'] = victim
             self.evidence['injection_finished_utc'] = utc()

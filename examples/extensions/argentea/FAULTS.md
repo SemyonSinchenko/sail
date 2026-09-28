@@ -22,6 +22,14 @@ for case in cancel worker-loss quota; do
 done
 ```
 
+For explicit placement coverage, repeat `worker-loss` in new output directories
+with `--victim-owner 0` and `--victim-owner 1`. Selection resolves the initialized
+native owner to the already supervised worker; it never signals a PID from a
+native receipt alone. Omitting this option retains the lowest-worker-ID default.
+Receipts retain requested/selected owner and supervised identity, and independently
+record the final output stage's task placement. Neither owner is assumed to
+guarantee a particular first-error path; keep every attempt and its observed path.
+
 Require exit status zero and `outcome: passed` for each receipt. A failed case
 remains failed evidence; use a new output directory for any subsequent control.
 `--allow-working-tree` marks a development check and is not the final source gate.
@@ -60,6 +68,24 @@ The audit checks native stage width, placement, group, complete task inventory,
 attempt zero, fixed worker/adjacency identity, and whole-job failure. It retains
 all task outcomes and the original error. Session shutdown and process-group
 shutdown must remove every observed worker and every staging file.
+
+The receipt names the first RPC error path as `scheduler_failure` or
+`bare_h2_transport`. Sail's `driver/output.rs::forward_job_output` forwards an
+observed stream error unchanged, then requests failed-job cleanup. The separate
+`job_scheduler/core.rs::refresh_job` failure action adds the text "automatic
+retry disabled". Either can reach the caller first; that phrase is not a
+guaranteed property of the transport error. The bare branch accepts only the
+observed `SparkRuntimeException` with the exact HTTP/2 body-read error. Unrelated
+errors remain failures.
+
+Both worker-loss paths require an authoritative `FAILED` job, the exact killed
+native owner matched to the supervised worker and held process window, SIGKILL
+evidence, every job task terminal on attempt zero, and the complete native
+stage/owner audit. Client retries must be disabled. No result, duplicate init,
+replayed native job, missing survivor close, or failed final cleanup is accepted.
+This proves the no-replay behavior independently of which error arrived first.
+The earlier frozen qualifier's bare-HTTP/2 failure remains failed evidence; a
+new qualifier source and fresh runtime attempt are required for this audit.
 
 ## Bind-time quota refusal
 

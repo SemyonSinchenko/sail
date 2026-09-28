@@ -7,6 +7,7 @@ mod output;
 mod plan;
 mod receipt;
 mod request;
+mod resource_failure;
 mod sssp;
 mod state;
 mod wcc;

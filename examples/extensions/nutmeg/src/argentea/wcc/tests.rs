@@ -428,3 +428,6 @@ async fn signed_extremes_survive_wcc_wire_and_retained_result_slice() {
         assert_eq!(drops.load(Ordering::SeqCst), 2);
     }
 }
+
+#[path = "tests/resource_failure.rs"]
+mod resource_failure;

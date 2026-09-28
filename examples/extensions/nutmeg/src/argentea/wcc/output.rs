@@ -145,6 +145,11 @@ impl Output {
             rows,
         })
     }
+    pub fn audit_resource_failure(&self, failure: &datafusion_common::DataFusionError) {
+        let _ = self
+            .state
+            .audit_resource_failure(&self.request, self.partition, failure);
+    }
     pub fn next_batch(&mut self) -> Result<Option<RecordBatch>> {
         self.state.base.check()?;
         let worker = self.state.base.incarnation.worker_id as i64;

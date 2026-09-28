@@ -148,8 +148,11 @@ impl ExecutionPlan for ArgenteaSsspExec {
         let request = self.request.clone();
         let inputs = self.inputs.clone();
         let output = stream::once(async move {
-            Output::prepare(state, request, partition, inputs, context)
+            Output::prepare(state.clone(), request.clone(), partition, inputs, context)
                 .await
+                .inspect_err(|failure| {
+                    let _ = state.audit_resource_failure(&request, partition, failure);
+                })
                 .map(|output| {
                     stream::try_unfold(output, |mut output| async move {
                         // Give peer receivers a chance to drain bounded shuffle
@@ -157,6 +160,7 @@ impl ExecutionPlan for ArgenteaSsspExec {
                         tokio::task::yield_now().await;
                         output
                             .next_batch()
+                            .inspect_err(|failure| output.audit_resource_failure(failure))
                             .map(|batch| batch.map(|batch| (batch, output)))
                     })
                 })

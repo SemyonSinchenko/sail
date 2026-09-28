@@ -167,6 +167,32 @@ impl WccState {
         self.base
             .audit_json(&serde_json::to_string(&value).map_err(error)?)
     }
+    /// Best-effort causal logging must not replace the original execution error.
+    /// Registry inspection remains available after the execution guard cancels.
+    pub fn audit_resource_failure(
+        &self,
+        request: &Request,
+        p: usize,
+        failure: &datafusion_common::DataFusionError,
+    ) -> Result<()> {
+        let Some(mut details) =
+            super::super::resource_failure::details(&self.base.resources, failure)?
+        else {
+            return Ok(());
+        };
+        let part = lock(&self.inner)?.partitions.get(p).cloned().flatten();
+        let (adjacency, native_phase, rounds) = if let Some(part) = &part {
+            let part = lock(part)?;
+            (part.origin().adjacency_id, part.next_phase(), part.rounds())
+        } else {
+            (0, request.phase, 0)
+        };
+        details["initialized"] = part.is_some().into();
+        details["native_phase"] = native_phase.into();
+        details["rounds"] = rounds.into();
+        self.audit("failure", request, p, adjacency, details)
+    }
+
     // The bound owner closes/cancels the shared base first. Clearing this map
     // then cannot race a late configure/publication into resurrecting state.
     pub fn close(&self) -> Result<()> {

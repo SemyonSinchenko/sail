@@ -481,3 +481,6 @@ async fn signed_extremes_survive_sssp_wire_and_retained_result_slice() {
 
 #[path = "tests/adversarial.rs"]
 mod adversarial;
+
+#[path = "tests/resource_failure.rs"]
+mod resource_failure;

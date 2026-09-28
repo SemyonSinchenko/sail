@@ -147,6 +147,25 @@ native `bfs_level_cap` cause after complete topology, no result/retry, and all
 owner closes. A generic cancellation or quota error alone cannot pass. Use
 `--mode local --case graph` to verify explicit local-mode refusal.
 
+Two additional controls verify rejection before native graph execution:
+
+```bash
+for case in missing-source unknown-field; do
+  .venv/bin/python examples/extensions/argentea/python/qualify_bfs_inputs.py \
+    --case "$case" --sail-binary "$SAIL_BINARY" \
+    --runtime-source-sha "$RUNTIME_SOURCE_SHA" \
+    --native-source-sha "$NATIVE_SOURCE_SHA" \
+    --output "/tmp/argentea-bfs-input-$case"
+done
+```
+
+`missing-source` exercises public snapshot/source validation; `unknown-field`
+submits a deliberately malformed v3 request to schema-time view registration.
+Both require the specific rejection, zero Argentea execution receipts, a usable
+session afterwards, and view/process/staging cleanup. They do not claim to test
+post-initialization corruption. The native DataFusion gates cover malformed
+statistics/completion and pending-channel controls separately.
+
 For two physical hosts, use the [shared-storage supervisor setup](PYTHON.md#4-run-across-two-physical-hosts):
 
 ```bash

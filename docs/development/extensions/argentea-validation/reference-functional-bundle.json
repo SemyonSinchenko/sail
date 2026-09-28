@@ -1,0 +1,18 @@
+{
+  "recorded_utc": "2026-09-28T03:56:52.173438+00:00",
+  "archive": "reference-functional-evidence.tar.gz",
+  "sha256": "e9e1ec9a4d0a9be639a52d9ae1d32d843ffe9b589c78d4012d2a83a3e30ba6a6",
+  "size_bytes": 107693,
+  "included_files": 60,
+  "outcome": "bytes-verified",
+  "qualification_outcomes": {
+    "process-a952": "passed",
+    "resource-a033": "passed",
+    "resource-f11": "passed",
+    "two-host-8d43-forwarded": "passed",
+    "x86-a952-log-interleaving": "failed",
+    "two-host-a952-direct-failure": "failed",
+    "two-host-a952-direct-repeat": "failed",
+    "two-host-http2-diagnostic": "diagnostic-failed"
+  }
+}

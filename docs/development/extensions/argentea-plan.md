@@ -1,7 +1,11 @@
 # Argentea: distributed native graph execution
 
-Status: active implementation. Partition primitives and focused host hooks are
-under qualification; distributed native execution is not yet established.
+Status: active implementation. Bounded reference PageRank passes on two physical
+hosts over explicit SSH-forwarded Sail connections; live quota reuse also passes
+on one host. Bounded certified residual PageRank passes on both physical hosts
+using existing temporary views to compose one native job. Typed cap failure
+reporting, distributed BFS and further failure scenarios remain under
+qualification. These are functional gates, not distributed performance results.
 Repository: `querygraph/sail`, branch `work/extensions-traversal-bench`.
 
 Argentea is distributed Banda: native Rust graph partitions execute on Sail

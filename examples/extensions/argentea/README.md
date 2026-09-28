@@ -1,18 +1,25 @@
-# Argentea integration primitives
+# Argentea: native graph partitions on Sail workers
 
-Argentea is the planned distributed execution path for Nutmeg Banda. This
-folder contains its native PageRank partition primitive and executable Sail
-scheduler-source probes. **The worker integration is still being qualified.**
-The [Python client tutorial](PYTHON.md) describes the
-implemented single-query client and local/process/two-host qualification driver;
-the combined runtime gates must pass before treating it as distributed support.
+Argentea is Nutmeg Banda's distributed execution path. Its bounded reference
+and certified residual PageRank implementations pass worker-process and physical
+two-host functional tests. Native CSR partitions persist within one Sail job;
+ordinary Sail shuffles carry their updates. Larger iteration budgets, further
+failure scenarios and performance remain under qualification.
+
+Start with the [reference PageRank tutorial](PYTHON.md) or the
+[certified residual PageRank tutorial](DELTA.md). Both describe build commands,
+the Python API and exact-source qualification. The
+[evidence index](../../../docs/development/extensions/argentea-validation/README.md)
+retains successful and failed attempts, including a cap failure whose cause was
+obscured by peer cancellation. A failed query alone does not qualify that cause.
 The [integration inventory](../../../docs/development/extensions/argentea-integration.md)
-identifies the specific worker hooks and next two-host gate.
+explains each focused host change, its upstream foundation and remaining gates.
 
 The core keeps an immutable outgoing CSR across full PageRank rounds, exchanges
 typed contributions and producer-completion records, and uses Banda's existing
 resource-accounting crate and Sail memory-lease ABI. It has no scheduler,
-transport or separate graph API. The unit harness uses tiny in-memory fixtures.
+transport or separate graph API. The core unit harness uses tiny in-memory
+fixtures; its results remain separate from the actual Sail execution evidence.
 
 ## Run the current probes
 

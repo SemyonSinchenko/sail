@@ -1,0 +1,96 @@
+{
+  "archive": "residual-functional-evidence.tar.gz",
+  "boundary": "Functional and diagnostic attempts only; all failed outcomes retained. No performance claim.",
+  "included_files": 208,
+  "outcomes": [
+    {
+      "native": "f11fe6e8a091e4be56a21712850d2a1a205c3e6c",
+      "outcome": "failed",
+      "path": "nested-plan-depth-failure/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "9ea08c3a477b420154061dff67dd114aaede92ea"
+    },
+    {
+      "native": null,
+      "outcome": "passed-private-diagnostic",
+      "path": "lazy-view-private-probe/receipt.json",
+      "runtime": null,
+      "source": "9ea08c3a477b420154061dff67dd114aaede92ea"
+    },
+    {
+      "native": "f11fe6e8a091e4be56a21712850d2a1a205c3e6c",
+      "outcome": "passed",
+      "path": "raw-cap-9ea/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "9ea08c3a477b420154061dff67dd114aaede92ea"
+    },
+    {
+      "native": null,
+      "outcome": "passed-private-diagnostic",
+      "path": "raw-stationary-k0-private/receipt.json",
+      "runtime": null,
+      "source": "9ea08c3a477b420154061dff67dd114aaede92ea"
+    },
+    {
+      "native": "f11fe6e8a091e4be56a21712850d2a1a205c3e6c",
+      "outcome": "failed",
+      "path": "v1-two-host-readiness-failure/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "f11fe6e8a091e4be56a21712850d2a1a205c3e6c"
+    },
+    {
+      "native": "f11fe6e8a091e4be56a21712850d2a1a205c3e6c",
+      "outcome": "passed",
+      "path": "v1-two-host-ready/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "941b5e50b90e5fbf7f5184c733f7d9d522aa42c5"
+    },
+    {
+      "native": "f11fe6e8a091e4be56a21712850d2a1a205c3e6c",
+      "outcome": "passed",
+      "path": "v2-two-host/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "010b9e065ad2adc33a7169de73191a039ce8d6d0"
+    },
+    {
+      "native": "f11fe6e8a091e4be56a21712850d2a1a205c3e6c",
+      "outcome": "failed",
+      "path": "public-client-gates/cap/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "010b9e065ad2adc33a7169de73191a039ce8d6d0"
+    },
+    {
+      "native": "f11fe6e8a091e4be56a21712850d2a1a205c3e6c",
+      "outcome": "passed",
+      "path": "public-client-gates/cap-control-2/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "010b9e065ad2adc33a7169de73191a039ce8d6d0"
+    },
+    {
+      "native": "f11fe6e8a091e4be56a21712850d2a1a205c3e6c",
+      "outcome": "passed",
+      "path": "public-client-gates/local-refusal/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "010b9e065ad2adc33a7169de73191a039ce8d6d0"
+    },
+    {
+      "native": "f11fe6e8a091e4be56a21712850d2a1a205c3e6c",
+      "outcome": "passed",
+      "path": "public-client-gates/residual/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "010b9e065ad2adc33a7169de73191a039ce8d6d0"
+    },
+    {
+      "native": "f11fe6e8a091e4be56a21712850d2a1a205c3e6c",
+      "outcome": "passed",
+      "path": "public-client-gates/stationary/receipt.json",
+      "runtime": "038c9b9597d3fcf7e0b8c30c1253d7d77563f012",
+      "source": "010b9e065ad2adc33a7169de73191a039ce8d6d0"
+    }
+  ],
+  "outstanding": "Public cap cause reporting is nondeterministic: one failed and one passed same-source cap attempt are retained; typed native cause evidence is pending.",
+  "recorded_utc": "2026-09-28T04:26:45.640019+00:00",
+  "sha256": "781f5034a7e9d7dd7a9adfa13f3497178e4ba18d5daf3f012d4ba37f52a665ab",
+  "size_bytes": 184444,
+  "source_clean_qualification": "Each original receipt pins source and artifacts separately; private diagnostics are explicitly identified."
+}

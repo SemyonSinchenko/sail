@@ -1,0 +1,20 @@
+{
+  "recorded_utc": "2026-09-28T03:58:15.384687+00:00",
+  "archive_sha256": "e9e1ec9a4d0a9be639a52d9ae1d32d843ffe9b589c78d4012d2a83a3e30ba6a6",
+  "decompressed_files_checked": 60,
+  "patterns": {
+    "private_key_header": "-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----",
+    "aws_access_key": "\\b(?:AKIA|ASIA)[A-Z0-9]{16}\\b",
+    "github_token": "\\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,})\\b",
+    "authorization_bearer": "(?i)authorization[\\\"\\s:]+bearer\\s+[A-Za-z0-9._~-]{16,}",
+    "assigned_aws_secret": "(?i)AWS_SECRET_ACCESS_KEY\\s*=\\s*[^\\s\\\"\\']{8,}",
+    "url_credentials": "https?://[^\\s/:]+:[^\\s/@]+@"
+  },
+  "exact_credential_fields_checked": [
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY"
+  ],
+  "matches": [],
+  "outcome": "passed",
+  "boundary": "Actual decompressed-byte scan using listed patterns and exact configured store credentials; not exhaustive secret detection."
+}

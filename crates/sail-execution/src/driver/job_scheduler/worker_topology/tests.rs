@@ -216,3 +216,57 @@ fn ordinary_jobs_keep_mixed_widths_and_blocking_regions() -> ExecutionResult<()>
     }
     Ok(())
 }
+
+#[test]
+fn two_input_sources_reveal_actual_operation_bucket_offsets() -> ExecutionResult<()> {
+    let width = 3;
+    let input = exchange(empty(1), width)?;
+    let schema = input.schema().as_ref().clone();
+    let first: Arc<dyn ExecutionPlan> = Arc::new(WorkerExtensionExec::new(
+        WorkerDescriptor {
+            package_identity: "package".into(),
+            type_url: "fixture.worker".into(),
+            operation_id: "operation".into(),
+            payload: vec![],
+            input_names: vec!["vertices".into(), "edges".into()],
+            input_schemas: vec![schema.clone(), schema.clone()],
+            input_routing: vec![None, None],
+            output_schema: schema,
+            partitions: width,
+        },
+        vec![input, exchange(empty(1), width)?],
+    )?);
+    let round = native(exchange(first, width)?, width, "package", "operation")?;
+    let result = native(exchange(round, width)?, width, "package", "operation")?;
+    let graph = graph(result, false)?;
+    assert_eq!(
+        graph
+            .stages()
+            .iter()
+            .map(|stage| stage.plan.output_partitioning().partition_count())
+            .collect::<Vec<_>>(),
+        [1, 1, 3, 3, 3]
+    );
+    let topology = JobTopology::try_new(&graph)?;
+    assert_eq!(topology.regions.len(), 1);
+    let order = topology.regions[0]
+        .tasks
+        .iter()
+        .map(|task| task.stage)
+        .collect::<IndexSet<_>>()
+        .into_iter()
+        .collect::<Vec<_>>();
+    assert_eq!(order, [0, 2, 1, 3, 4]);
+    let groups = build_stage_groups(&graph, &topology.regions[0]);
+    assert_eq!(groups.len(), 1);
+    let group = &groups[&StageGroupKey {
+        placement: TaskPlacement::Worker,
+        group: String::new(),
+    }];
+    let buckets = (0..5)
+        .map(|stage| group.bucket(stage, 0))
+        .collect::<Vec<_>>();
+    assert_eq!(buckets, [0, 1, 1, 2, 2]);
+    assert!(validate(&graph, &topology).is_err());
+    Ok(())
+}

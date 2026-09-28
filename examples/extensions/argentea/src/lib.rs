@@ -4,6 +4,12 @@
 //! must establish placement, input completeness, operation cleanup and a real
 //! host memory lease before these primitives can execute remotely.
 mod adjacency;
+mod wcc;
+pub use wcc::{
+    WccAlgorithm, WccCapFailure, WccCompletion, WccCompletionValues, WccConvergence,
+    WccEmissionCursor, WccMessage, WccMessageValues, WccMode, WccOptions, WccOrigin, WccPartition,
+    WccPayload, WccRow, WccRowCursor, WccStatistics, WccStatisticsValues, WccWork, wcc_head,
+};
 mod bfs;
 pub use bfs::{
     BfsAlgorithm, BfsCapFailure, BfsCompletion, BfsCompletionValues, BfsConvergence,

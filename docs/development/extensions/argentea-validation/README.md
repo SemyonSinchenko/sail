@@ -180,7 +180,7 @@ import hashlib, json, tarfile
 from pathlib import Path
 
 root = Path("docs/development/extensions/argentea-validation")
-for name in ("reference-functional", "residual-functional", "cap-repair-functional", "bfs-functional", "wcc-functional", "sssp-functional"):
+for name in ("reference-functional", "residual-functional", "cap-repair-functional", "bfs-functional", "wcc-functional", "sssp-functional", "graph-fault-functional"):
     receipt = json.loads((root / f"{name}-bundle.json").read_text())
     archive = root / receipt["archive"]
     assert hashlib.sha256(archive.read_bytes()).hexdigest() == receipt["sha256"]
@@ -279,3 +279,31 @@ physical two-host execution, SSSP-specific post-initialization quota/fault gates
 and time/memory comparisons remain separate requirements. See the
 [SSSP tutorial](../../../../examples/extensions/argentea/SSSP_ADAPTER.md) for
 build context, API examples and exact-source qualification commands.
+
+
+## Graph algorithm cancellation and worker loss
+
+[graph-fault-functional-bundle.json](graph-fault-functional-bundle.json) pins
+[the archive](graph-fault-functional-evidence.tar.gz), its 73 files, the
+[manifest](graph-fault-functional-manifest.json) and
+[scan](graph-fault-functional-scan.json). All 13 cases passed at qualifier
+`d03579496`, host `d9c6381a`, and ARM development wheel `00ebb7ac9`.
+
+Each reference/star WCC and reference/delta-star SSSP method was canceled once
+and run twice with loss of an explicitly selected owner (0 and 1). A residual
+PageRank cancellation control also passed. The gate observes native
+initialization and a supervised stopped-process window before injecting any
+fault. It requires no result, no replay, complete terminal task inventories,
+fixed owner identity, surviving-owner closure and final process/staging cleanup.
+Every WCC/SSSP method observed both the scheduler-wrapped and bare HTTP/2 first
+RPC error paths; neither arrival order nor a particular victim-to-error mapping
+is promised.
+
+Reference WCC and both SSSP methods have 10 native stages and 20 native tasks;
+star WCC has 28 stages and 56 tasks. Each cancellation closes two owners; each
+worker loss closes the survivor. The PageRank control has 32 stages and 64 tasks.
+The disclosed envelope is two owners/workers, 32 task slots, a 2 GiB Sail pool
+and 256 MiB native admission per worker. No additional host change was needed.
+These are two processes on Capitola. Physical two-host faults and post-init
+quota/reuse remain separate gates. See [FAULTS.md](../../../../examples/extensions/argentea/FAULTS.md)
+for commands and the causal-evidence contract.

@@ -483,9 +483,11 @@ requirements. The [WCC adapter](../../../examples/extensions/argentea/WCC_ADAPTE
 and [SSSP adapter](../../../examples/extensions/argentea/SSSP_ADAPTER.md) add
 extension-owned graph stages and no further Sail host hook.
 
-1. Extend active-cancellation, worker-loss and post-initialization quota controls
-   to each additional algorithm and to physical two-host execution. Bind-time
-   refusal does not prove post-initialization allocation cleanup.
+1. Extend the now-passing WCC/SSSP process cancellation and worker-loss controls
+   to physical two-host execution, and finish post-initialization quota/reuse
+   gates. Bind-time refusal does not prove later allocation cleanup. The
+   [graph fault evidence](argentea-validation/README.md#graph-algorithm-cancellation-and-worker-loss)
+   records the four algorithm variants separately.
 2. Complete Linux and physical WCC/SSSP qualification after the measured
    Morrobay campaign. Process-cluster gates cover128-stage reference WCC and
    both SSSP methods,124-stage star WCC, signed extrema, isolates, SSSP skew,

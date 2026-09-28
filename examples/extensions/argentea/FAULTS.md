@@ -99,3 +99,55 @@ that surfaces only peer cancellation is not accepted as proof of a quota cause.
 Native Arrow-buffer retention after close remains covered by separate native
 and host lifetime tests; this process gate does not retain those buffers. It also
 does not establish zero RSS or universal leak freedom.
+
+
+## WCC and SSSP fault cases
+
+`--algorithm` selects `pagerank_delta` (the existing default), `wcc_reference`,
+`wcc_star`, `sssp_reference`, or `sssp_delta_star`. WCC and SSSP use a three-round
+cap: 10 native stages for reference WCC and both SSSP methods, 28 for star WCC.
+The fixture has 4,096 vertices and 524,288 cross-owner arcs; SSSP assigns each
+arc weight 1. Native batches contain one row. Fault acceptance requires the
+observed stopped-process window after both owners initialize, before a result
+or another typed failure. This does not depend on the graph failing to converge.
+
+For example, after the shared build/install setup:
+
+```sh
+python examples/extensions/argentea/python/qualify_faults.py \
+  --algorithm sssp_delta_star --case worker-loss --victim-owner 1 \
+  --sail-binary /absolute/path/to/sail \
+  --runtime-source-sha "$SAIL_SOURCE_SHA" \
+  --native-source-sha "$NUTMEG_SOURCE_SHA" \
+  --output /absolute/path/to/new-sssp-worker-loss-evidence
+```
+
+Use `--case cancel` without `--victim-owner` for cancellation, or owner 0 for the
+other loss case. Owner selection is explicit; it does not guarantee which RPC
+error arrives first.
+
+[The graph-fault archive](../../../docs/development/extensions/argentea-validation/README.md#graph-algorithm-cancellation-and-worker-loss)
+retains 13 passing cases at qualifier `d03579496`, host `d9c6381a` and native
+wheel `00ebb7ac9`: three cases for each WCC/SSSP method, plus a residual PageRank
+cancellation control. Both first-error paths occurred for every WCC/SSSP method.
+The envelope is two owners/processes, 32 worker task slots, a 2 GiB Sail pool and
+256 MiB native admission per worker. These are functional process tests, not
+physical two-host or performance measurements.
+
+## Preserving later memory-refusal causes
+
+WCC and SSSP now write `failure` records with `code=native_memory_budget` for an
+exact local memory-budget error from their pinned resource-accounting dependency.
+The core currently returns string errors, so the adapter matches the exact
+local error and this operation's memory limit. It does not classify a generic
+cancellation, a nested remote error, or the configured quota alone as a refusal.
+The original execution error is returned unchanged; audit failure never replaces
+it. This requires no new Sail host hook.
+
+Records include worker/operation/adjacency identity, whether native state exists,
+its phase, the limit, and live/peak reservation counters after the failed call
+unwinds. Those counters are not RSS and do not state the refused allocation's
+size. A peer cancellation can still be the first RPC error. Full post-init quota
+qualification must independently require initialized owners, this causal record,
+terminal tasks, cleanup and subsequent quota reuse on the same live workers.
+That formal quota/reuse gate remains outstanding.

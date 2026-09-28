@@ -1,0 +1,102 @@
+{
+  "archive": "graph-fault-functional-evidence.tar.gz",
+  "boundary": "Functional and diagnostic attempts only; all failed outcomes retained. No performance claim.",
+  "included_files": 73,
+  "outcomes": [
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/pagerank_delta-cancel/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "d03579496d71741bbc672dc4e1e352f0f67b0b0a"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/sssp_delta_star-cancel/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "d03579496d71741bbc672dc4e1e352f0f67b0b0a"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/sssp_delta_star-worker-loss-owner0/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "d03579496d71741bbc672dc4e1e352f0f67b0b0a"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/sssp_delta_star-worker-loss-owner1/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "d03579496d71741bbc672dc4e1e352f0f67b0b0a"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/sssp_reference-cancel/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "d03579496d71741bbc672dc4e1e352f0f67b0b0a"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/sssp_reference-worker-loss-owner0/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "d03579496d71741bbc672dc4e1e352f0f67b0b0a"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/sssp_reference-worker-loss-owner1/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "d03579496d71741bbc672dc4e1e352f0f67b0b0a"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/wcc_reference-cancel/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "d03579496d71741bbc672dc4e1e352f0f67b0b0a"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/wcc_reference-worker-loss-owner0/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "d03579496d71741bbc672dc4e1e352f0f67b0b0a"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/wcc_reference-worker-loss-owner1/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "d03579496d71741bbc672dc4e1e352f0f67b0b0a"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/wcc_star-cancel/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "d03579496d71741bbc672dc4e1e352f0f67b0b0a"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/wcc_star-worker-loss-owner0/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "d03579496d71741bbc672dc4e1e352f0f67b0b0a"
+    },
+    {
+      "native": "00ebb7ac96eefcb66d52c4364104e95579eacd4e",
+      "outcome": "passed",
+      "path": "formal/wcc_star-worker-loss-owner1/receipt.json",
+      "runtime": "d9c6381a0effe07ab89ddb87739a0b2003b9664b",
+      "source": "d03579496d71741bbc672dc4e1e352f0f67b0b0a"
+    }
+  ],
+  "recorded_utc": "2026-09-28T07:23:54.317177+00:00",
+  "sha256": "d01238ca779ef69305e54a3ec27e15ac8dffdb8f14f7f0b5e11e92da8f1a49e0",
+  "size_bytes": 200092,
+  "source_clean_qualification": "Thirteen first-call fault cases pass on two ARM worker processes: cancellation and loss of either selected owner for reference/star WCC and reference/delta-star SSSP, plus a residual PageRank cancellation control. Native state initialization and stopped-process windows are observed before injection; complete stage/task identity, no retries, surviving owner closure, final process and staging cleanup are audited. Both scheduler-wrapped and bare HTTP2 first-error paths are observed. These are not physical two-host, post-initialization quota, or performance gates."
+}

@@ -168,9 +168,78 @@ common revision across concurrent replacement; the Rust snapshot API can pin bot
 There is no automatic CSR eviction or dynamic quota lending.
 
 Native results can feed downstream distributed SQL. This does **not** distribute the native
-CSR kernel itself. Distributed iterative graph algorithms need a separate design for
-partitioned state, round exchanges, convergence, deterministic reductions and recovery. The
-distributed SQL tests do not establish those iterative execution contracts.
+CSR kernel itself. Pecan subsequently demonstrated distributed relational iteration with a
+client controller, as described below. Partitioned native kernels and recovery across failed
+iterations remain separate design problems. The historical distributed SQL tests cited in
+this review do not establish those iterative execution contracts.
+
+## Architectural lessons from Pecan
+
+Pecan demonstrates a second extension model: a domain library can express substantial graph
+algorithms as ordinary distributed table operations, without owning a separate graph engine.
+Python controls the iterations; Sail/DataFusion executes the joins, aggregates and intermediate
+writes. This complements the native wheel contract rather than requiring every extension to
+use it. The [Pecan/Nutmeg report](pecan-nutmeg-benchmark.md) records the later implementation,
+qualification and measurement boundaries; its evidence is distinct from the historical host
+and ABI gates recorded in this document.
+
+### Separate the algorithm interface from its execution path
+
+| Path | Algorithm implementation | Execution and ownership |
+| --- | --- | --- |
+| Pecan | Client library constructs ordinary relational plans and controls iterations | Sail/DataFusion executes the plans; an owned staging run retains intermediate tables |
+| Nutmeg Grenada | Nutmeg `GraphTables` adapts to the same Pecan controller | Same relational execution; no native graph staging or CSR |
+| Nutmeg Banda | Dedicated native graph kernels | Explicit staged snapshot and driver-local graph structures, with host-funded native admission |
+
+Grenada is an alternative entry path, not a third independent algorithm implementation.
+This reuse argues for a common table-facing graph interface while keeping execution choice
+explicit. The API must disclose where computation runs, what snapshot it uses, who owns
+intermediate state, and how cancellation and cleanup behave. Native staging should remain
+an explicit operation whose cost and lifetime can be inspected.
+
+### Keep the host contract small and reusable
+
+Sail owns the responsibilities that a package cannot safely enforce by itself: protocol
+validation, registration, session ownership, cancellation, distributed identity and resource
+accounting. Algorithms, graph-specific schemas and method selection belong in extension
+packages or client libraries. A client-composed table algorithm does not need native loading
+or a graph-specific physical operator merely because it is a graph algorithm.
+
+Pecan provided a concrete additional consumer for **owned intermediate storage**: iterative
+algorithms need to materialize state, retain the result, and remove obsolete generations.
+The service should enforce ownership and cleanup without knowing PageRank or WCC semantics.
+Its capability checks, session isolation, cancellation behavior and uncertain-write cleanup
+can therefore be reviewed independently of algorithm correctness. The
+[Pecan testing guide](../../../examples/extensions/graph-algorithms/TESTING.md) describes
+local, process-worker and two-host validation.
+
+### Shared execution does not eliminate memory or performance contracts
+
+Using DataFusion allows relational work to participate in Sail's execution facilities, but
+it does not make every allocation spillable or bound total process memory. Joins, shuffles,
+intermediate writes, page cache and client-controller state have different lifetimes.
+Banda also runs inside Sail, yet native allocations still require explicit admission and
+retained-output accounting. Neither being in one process nor being written in Rust is a
+substitute for that ownership contract.
+
+The current relational iteration path can repeatedly scan edges and materialize state. These
+costs must be measured before adding host mechanisms. BFS and shortest-path development will
+test whether reusable adjacency, efficient frontier processing or server-side iteration
+warrants another shared capability; those additions are proposals, not established requirements
+or qualified behavior. A relational pull join, for example, does not automatically provide a
+native bottom-up BFS kernel's ability to stop after finding the first matching neighbor.
+
+### Implications for review and validation
+
+Review host ownership and execution contracts separately from domain algorithms. For each
+host addition, identify an actual consumer, the invariant it enforces, and a focused failure
+test. Then validate algorithms through the ordinary table path and native path independently,
+with execution placement, input semantics, admission failures and timing boundaries disclosed.
+A faster kernel does not by itself justify a larger host interface.
+
+The resulting design direction is **small general-purpose host capabilities with substantial
+algorithms outside Sail's core**. Pecan supplies implementation evidence for that separation;
+comparative measurements determine where additional mechanisms are justified.
 
 ## Necessary host contracts and their justification
 

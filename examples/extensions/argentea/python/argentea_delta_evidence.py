@@ -169,9 +169,31 @@ def validate_audit(records, rows, request, *, stages, task_statuses, worker_endp
                 native_host_graph=host_graph,closed_all_owners=True,same_adjacency_across_phases=True)
 
 
-def validate_cap(records,request,*,stages,task_statuses,minimum_workers=2):
+def validate_cap(records,request,*,stages,task_statuses,query_failed,minimum_workers=2):
     selected,grouped,owners = scoped_records(records,request)
+    assert query_failed is True, 'a cap receipt cannot certify a successful query as a negative test'
     assert request['max_pushes']==0
+    failures = [r for r in selected if r['event']=='failure']
+    assert failures, 'failed query has no typed native cap cause'
+    assert len({r['partition'] for r in failures})==len(failures), 'replayed native cap failure'
+    for failure in failures:
+        assert failure['code']=='pagerank_push_cap' and failure['outcome']=='nonconverged', 'wrong native failure cause'
+        assert failure['phase']==1 and failure['max_pushes']==request['max_pushes']
+        assert failure['pushes']==request['max_pushes'] and failure['certificate_passes']==1
+        assert failure['tolerance']==request['tolerance']
+        assert math.isfinite(failure['residual_l1']) and failure['residual_l1']>request['tolerance'], 'cap lacks a failing fresh certificate'
+    assert len({(r['pushes'],r['certificate_passes'],r['residual_l1'],r['tolerance']) for r in failures})==1, 'native cap causes disagree'
+    fresh = []
+    for owner,receipts in grouped.items():
+        reports = [r for r in receipts if r['event']=='statistics' and r['output_phase']==1]
+        assert len(reports)==1, 'cap lacks the complete fresh certificate barrier'
+        report = reports[0]
+        assert report['phase']==0 and report['mode']==2 and report['pushes']==0 and report['certificate_passes']==1
+        assert math.isfinite(report['residual_l1']) and report['residual_l1']>=0
+        fresh.append(report['residual_l1'])
+        close = next(r for r in receipts if r['event']=='close')
+        assert close['phase']==1 and close['pushes']==0 and close['certificate_passes']==1
+    assert abs(math.fsum(fresh)-failures[0]['residual_l1'])<=ROUND_OFF, 'cap cause differs from fresh global residual'
     assert not any(r['event']=='result' for r in selected), 'capped operation emitted result receipt'
     session,job = selected[0]['session_id'],selected[0]['job_id']
     native = [s for s in stages if s['session_id']==session and s['job_id']==job and s['slot_group'].startswith('worker-extension:')]
@@ -186,4 +208,5 @@ def validate_cap(records,request,*,stages,task_statuses,minimum_workers=2):
     assert len(workers)>=minimum_workers and len(pids)>=minimum_workers
     return dict(session_id=session,job_id=job,native_pids=sorted(pids),native_workers=sorted(workers),
                 native_phases=4,closed_all_owners=True,post_init_cap=True,no_result=True,no_native_retry=True,
-                native_receipts=selected,native_task_statuses=tasks)
+                native_receipts=selected,native_task_statuses=tasks,native_cause='pagerank_push_cap',
+                cap_failures=failures,query_failed=True,global_certificate_residual=failures[0]['residual_l1'])

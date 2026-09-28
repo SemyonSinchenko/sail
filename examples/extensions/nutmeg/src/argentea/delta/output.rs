@@ -73,6 +73,31 @@ impl Output {
                     .await?
             }
         };
+        // Record the actual typed algorithm decision before this stage's guard
+        // cancels the shared domain. A peer cancellation may win RPC delivery;
+        // it must not erase evidence of the failed fresh global certificate.
+        if matches!(request.verb, Verb::Decide | Verb::Result) {
+            let cap = {
+                let mut native = lock(&part)?;
+                native
+                    .cap_failure(&phase)
+                    .map_err(error)?
+                    .map(|failure| (native.adjacency_identity(), failure))
+            };
+            if let Some((adjacency, failure)) = cap {
+                state.audit(
+                    "failure",
+                    &request,
+                    partition,
+                    adjacency,
+                    serde_json::json!({"code":"pagerank_push_cap","outcome":"nonconverged",
+                    "pushes":failure.pushes,"max_pushes":failure.max_pushes,
+                    "certificate_passes":failure.certificate_passes,
+                    "residual_l1":failure.residual_l1,"tolerance":failure.tolerance}),
+                )?;
+                return Err(error(failure));
+            }
+        }
         let (adjacency, rows) = {
             let mut native = lock(&part)?;
             state.base.check()?;

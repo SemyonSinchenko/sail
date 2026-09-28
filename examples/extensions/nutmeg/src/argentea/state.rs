@@ -214,6 +214,11 @@ impl WorkerState {
         self.audit_json(&json)
     }
 
+    #[cfg(test)]
+    pub fn test_audit_file(&self, file: std::fs::File) {
+        *lock(&self.audit).unwrap() = Some(file);
+    }
+
     pub fn audit_json(&self, json: &str) -> Result<()> {
         super::receipt::write_line(&mut std::io::stderr().lock(), "ARGENTEA_RECEIPT ", json)
             .map_err(error)?;

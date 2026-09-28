@@ -7,8 +7,9 @@ mod adjacency;
 mod delta;
 mod pagerank;
 pub use delta::{
-    Convergence, DeltaCompletion, DeltaContribution, DeltaEmissionCursor, DeltaMode, DeltaOptions,
-    DeltaPartition, DeltaRankCursor, DeltaStatistics, DeltaStatisticsValues,
+    Convergence, DeltaCapFailure, DeltaCompletion, DeltaContribution, DeltaEmissionCursor,
+    DeltaMode, DeltaOptions, DeltaPartition, DeltaRankCursor, DeltaStatistics,
+    DeltaStatisticsValues,
 };
 
 use grust_procedures::ExecutionContext;

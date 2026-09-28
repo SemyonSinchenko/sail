@@ -90,8 +90,11 @@ def exercise(endpoint,args):
             if args.mode=='local' and 'requires distributed Sail execution' in str(error):
                 evidence['outcome'] = 'expected-local-rejection'
                 return evidence
-            if args.case=='cap' and args.mode!='local' and 'push cap' in str(error):
-                evidence['outcome'] = 'expected-cap'
+            if args.case=='cap' and args.mode!='local':
+                # Peer cancellation can reach the RPC before the causal error.
+                # Only the subsequent typed native-cause audit may accept it.
+                evidence['outcome'] = 'failed-query-awaiting-cap-audit'
+                evidence['query_failed'] = True
                 check_view_cleanup()
                 evidence['worker_endpoints'],evidence['stages'] = inventory(spark)
                 return evidence
@@ -129,9 +132,10 @@ def audit(receipt,log,*,minimum_workers,required_hosts=()):
     tasks = parse_worker_tasks(log)
     check = receipt['checks']
     receipt.update(native_receipts=records,worker_task_statuses=tasks)
-    if check['outcome']=='expected-cap':
+    if check['outcome']=='failed-query-awaiting-cap-audit':
         receipt['native_execution'] = validate_cap(records,check['request'],stages=check['stages'],
-            task_statuses=tasks,minimum_workers=minimum_workers)
+            task_statuses=tasks,query_failed=check['query_failed'],minimum_workers=minimum_workers)
+        check['outcome'] = 'expected-cap'
         # A failed operation has no rank rows with which to prove nonempty host
         # placement. Keep this separate from the positive physical-host proof.
         receipt['execution_scope'] = 'post-init cap refusal and owner cleanup; not a nonempty two-host graph proof'

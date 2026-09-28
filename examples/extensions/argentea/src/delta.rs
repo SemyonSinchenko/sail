@@ -1,6 +1,8 @@
 //! Signed residual PageRank. These are partition protocol primitives, not a
 //! scheduler: callers supply complete, ordered producer streams and barriers.
 mod emission;
+mod failure;
+pub use failure::DeltaCapFailure;
 mod protocol;
 mod statistics;
 

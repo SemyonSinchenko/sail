@@ -123,6 +123,9 @@ impl WeightedAdjacency {
     pub fn arc_count(&self) -> usize {
         self.arcs.len()
     }
+    pub(super) fn outgoing_at(&self, index: usize) -> &[(i64, f64)] {
+        &self.arcs[self.offsets[index]..self.offsets[index + 1]]
+    }
     pub fn outgoing(&self, vertex: i64) -> Result<&[(i64, f64)]> {
         let index = self
             .vertices

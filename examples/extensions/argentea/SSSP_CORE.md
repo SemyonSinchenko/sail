@@ -1,10 +1,12 @@
 # Argentea distributed SSSP
 
-SSSP will use the existing job-bound worker factory, integer owner routing,
+SSSP uses the existing job-bound worker factory, integer owner routing,
 producer-complete barriers and admitted native storage. It adds no host transport,
-graph scheduler or general iteration engine. The initial implemented primitives
-are weighted CSR and path candidate ordering; the distributed state machine,
-Arrow adapter, Python client and runtime qualification are not implemented yet.
+graph scheduler or general iteration engine. The implemented core includes weighted CSR, path candidate ordering and the
+producer-complete distributed state machine. The Arrow adapter, Python client
+and Sail runtime qualification are not implemented yet. Core tests exchange
+messages between partition objects in one process; they are not evidence of
+multiworker or two-host execution.
 
 ## Weighted storage and answers
 
@@ -57,9 +59,35 @@ delta, rather than saturating or silently changing groups.
    missing targets, delivery counts, skew, cancellation and worker loss. Compare
    full vectors with an independent tiny-graph oracle before any benchmark.
 
-Reference Bellman–Ford and advanced all-edge delta-star are the intended distributed
+Reference Bellman–Ford and advanced all-edge delta-star are the implemented core
 methods. Existing Banda also has a driver-native Dijkstra reference; that is an
 algorithm difference to disclose. Classical delta-stepping and rho-stepping are
 comparison controls in the [traversal plan](../benchmarks/TRAVERSAL-PLAN.md), not
 implemented Argentea methods. No fastest-implementation claim follows from these
-primitives or from any one topology.
+core tests or from any one topology.
+
+## Core validation and cost boundary
+
+Run the standalone core tests from the Sail checkout:
+
+```sh
+CARGO_INCREMENTAL=0 cargo test --release \
+  --manifest-path examples/extensions/argentea/Cargo.toml
+```
+
+The SSSP tests compare complete distance/hop/parent vectors with an independent
+sequential Dijkstra oracle across owner counts and bucket widths. They cover
+zero-weight cycles, duplicate arcs, signed ID extremes, unreachable vertices,
+same-bucket reactivation, topology rejection, phase/origin/sequence replay,
+truncated producer barriers, cap refusal, arithmetic overflow, successor-state
+admission failure, incomplete-cursor cancellation and retained result leases.
+
+The advanced cursor scans active vertices and emits only edges in the selected
+global bucket. Later-bucket vertices remain active. Each completed exchange
+currently copies the local label vector and scans the local candidate vector
+to publish an immutable successor. This is O(local vertices) state work per
+exchange even when the selected frontier is small. `examined_vertices` and
+`examined_edges` count emission traversal, not this publication work, statistics
+scans or allocation. Memory admission includes predecessor and successor state
+while both coexist; it does not promise that the allocator returns pages to
+the operating system immediately.

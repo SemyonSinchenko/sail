@@ -1,8 +1,15 @@
 //! Weighted storage and exact candidate order for distributed SSSP.
 //! The worker protocol is implemented separately from these admitted primitives.
 mod adjacency;
+mod partition;
 use crate::Result;
 pub use adjacency::WeightedAdjacency;
+pub use partition::{
+    SsspAlgorithm, SsspCapFailure, SsspCompletion, SsspCompletionValues, SsspConvergence,
+    SsspEmissionCursor, SsspMessage, SsspMessageValues, SsspMode, SsspOptions, SsspOrigin,
+    SsspPartition, SsspPayload, SsspRow, SsspRowCursor, SsspStatistics, SsspStatisticsValues,
+    SsspWork,
+};
 
 /// Finite nonnegative path distance, minimum hops, then numeric predecessor.
 /// Fields are private so NaN cannot enter the candidate order.

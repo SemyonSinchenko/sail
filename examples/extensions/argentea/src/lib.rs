@@ -5,7 +5,7 @@
 //! host memory lease before these primitives can execute remotely.
 mod adjacency;
 mod sssp;
-pub use sssp::{SsspLabel, WeightedAdjacency};
+pub use sssp::*;
 mod wcc;
 pub use wcc::{
     WccAlgorithm, WccCapFailure, WccCompletion, WccCompletionValues, WccConvergence,

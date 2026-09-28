@@ -6,6 +6,7 @@ from pathlib import Path
 
 from argentea_client import Argentea
 from argentea_evidence import validate_rows
+from argentea_readiness import wait_for_workers
 
 IDS = [-6, 0, 2, 3, 5, 8]
 EDGES = [(-6, 0), (0, 3), (0, 3), (3, 2), (2, -6), (5, 5)]
@@ -20,6 +21,9 @@ def exercise(endpoint, output, *, iterations=2, partitions=3, expect_local_rejec
     spark = SparkSession.builder.remote(endpoint).create()
     spark.client.set_retry_policies([DefaultPolicy(max_retries=1, initial_backoff=100, max_backoff=100, jitter=0)])
     try:
+        if not expect_local_rejection:
+            wait_for_workers(spark, evidence=evidence)
+
         def observe(event):
             (output / 'client-plan.pb').write_bytes(event['plan_bytes'])
             evidence['request'] = event['request']

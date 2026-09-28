@@ -1,7 +1,7 @@
 # Experimental Nutmeg kernels
 
 These local additions are `pagerankDelta`, `wccRandomized`, and
-`wccRandomizedFused`. The unchanged
+`wccRandomizedFused`, `bfsDirection`, and `ssspDeltaStar`. The unchanged
 Grust 0.23.0 `pagerank` and `wcc` kernels remain available as reference variants.
 No Grust registry source or published crate has been modified.
 
@@ -9,7 +9,7 @@ These kernels use the existing Nutmeg projection, read lifecycle, work limits,
 cancellation checks, buffer reservations, bounded output channel, and host
 memory lease. The public Grust projection exposes dense edge endpoints but not
 its CSR adjacency, so delta PageRank builds an additional, query-owned outgoing
-index. Its construction and memory are part of the query. The new kernels
+index. Its construction and memory are part of the query. The PageRank/WCC additions
 accept only unweighted outgoing projections; node/relationship filters remain
 projection options. Unsupported options are rejected during validation.
 
@@ -117,3 +117,53 @@ frontier or contraction sizes per round, seed bits, iteration count, and final
 convergence evidence. These bounded read-log records are bookkeeping, outside
 data-buffer accounting. Output buffers retain their admitted reservations
 through stream delivery and Arrow FFI ownership.
+
+## `bfsDirection`
+
+Options: required string `source`, `orientation="outgoing"` or `"undirected"`,
+`alpha=14`, `beta=24`, `maxIterations=1000`, and normal read limits/concurrency.
+Returns `nodeId`, nullable `distance`, and nullable `parentId`. The source has
+zero distance and is its own parent; unreachable vertices have null fields.
+
+Sparse push scans outgoing adjacency from the current frontier. Dense pull
+scans unvisited vertices' incoming adjacency and stops at the first frontier
+parent. Frontier edge volume and remaining outgoing volume select pull using
+alpha; a frontier below N/beta returns to push, with one push round of hysteresis
+before pull is eligible again. These thresholds are heuristics to benchmark,
+not claimed universal optima. Distances and parent trees are validated separately.
+Parallel push uses atomic discovery and minimum parent row within a level;
+pull has disjoint destination writes in fixed blocks of 4096 vertices. Each
+visited destination is charged, including isolates and already reached vertices,
+so no-edge scans still observe work limits and cancellation. Query-owned outgoing and incoming CSR
+construction, frontier buffers and output buffers are admitted and timed.
+
+## `ssspDeltaStar`
+
+Options: required string `source` and DOUBLE `weightProperty`, positive finite
+`delta=1`, `maxIterations=1000`, outgoing/undirected orientation, and normal read
+limits/concurrency. No default weight is supported. Returns `nodeId` and nullable
+`distance`; it does not expose a parent tree. Weights must be finite and
+nonnegative; signed zero is normalized for unsigned float-bit atomic minima.
+
+This is **all-edge delta-star stepping**, not classical light/heavy delta-stepping.
+Pop the lowest distance bucket, relax its vertices' outgoing edges in parallel,
+and enqueue every strictly improved vertex. Repeat a bucket until no pending
+vertex remains there. Each vertex has one indexed heap slot; stale heap entries
+cannot accumulate. The heap retains its own keys: after a parallel wave, each
+decreased atomic distance is published and repaired separately so concurrent
+distance changes cannot invalidate comparisons during another key's repair.
+Per-wave notifications are deduplicated atomically. Heap
+updates and bucket selection are serial; edge relaxation is parallel. Diagnostics
+include bucket, active vertices, improved vertices, examined edges and pool width.
+
+The existing Grust projection does not expose weighted adjacency. Nutmeg captures
+a query-owned weight vector from the matching staged entry and revision, then
+builds a query-owned weighted CSR. A concurrent graph replacement or revision
+change during capture is an explicit read error, never a mixture of snapshots.
+Copied weights, CSR and scratch are admitted before allocation. Finite distance
+or bucket overflow is an error, and iteration exhaustion is not a successful
+partial answer. Existing `bellmanFord` and `dijkstra` remain reference controls.
+
+Neither addition is claimed fastest. Compare against the pinned GAP and
+Parallel-SSSP controls in the traversal benchmark plan, disclose tuning and
+construction costs, and retain unfavorable measurements.

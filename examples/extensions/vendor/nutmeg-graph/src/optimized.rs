@@ -9,14 +9,32 @@ use grust_procedures::{
     ProcedureMode, ProcedureProvider, Streaming,
 };
 
+mod bfs;
 mod pagerank;
+pub(super) mod stepping;
+mod stepping_queue;
+mod stepping_weights;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod tests_bfs;
+#[cfg(test)]
+mod tests_stepping;
+#[cfg(test)]
+mod tests_stepping_weights;
+#[cfg(test)]
+mod tests_traversal_resources;
 #[cfg(test)]
 mod tests_wcc_fused;
 mod wcc;
 
-pub(super) const NAMES: [&str; 3] = ["pagerankDelta", "wccRandomized", "wccRandomizedFused"];
+pub(super) const NAMES: [&str; 5] = [
+    "pagerankDelta",
+    "wccRandomized",
+    "wccRandomizedFused",
+    "bfsDirection",
+    "ssspDeltaStar",
+];
 
 fn field(name: &str, kind: ValueType) -> grust_procedures::Field {
     grust_procedures::Field {
@@ -63,7 +81,26 @@ pub(super) fn register(builder: &mut RegistryBuilder) -> grust_procedures::Resul
             option("maxIterations", ValueType::Integer, Value::Int(1000)),
         ];
         let mut outputs = vec![field("nodeId", ValueType::String)];
-        if name == "pagerankDelta" {
+        if name == "ssspDeltaStar" {
+            options.extend([
+                option("source", ValueType::String, Value::Null),
+                option("delta", ValueType::Number, Value::Float(1.0)),
+            ]);
+            let mut distance = field("distance", ValueType::Number);
+            distance.nullable = true;
+            outputs.push(distance);
+        } else if name == "bfsDirection" {
+            options.extend([
+                option("source", ValueType::String, Value::Null),
+                option("alpha", ValueType::Number, Value::Float(14.0)),
+                option("beta", ValueType::Number, Value::Float(24.0)),
+            ]);
+            let mut distance = field("distance", ValueType::Number);
+            distance.nullable = true;
+            let mut parent = field("parentId", ValueType::String);
+            parent.nullable = true;
+            outputs.extend([distance, parent]);
+        } else if name == "pagerankDelta" {
             options.extend([
                 option("damping", ValueType::Number, Value::Float(0.85)),
                 option("tolerance", ValueType::Number, Value::Float(1e-8)),
@@ -107,6 +144,11 @@ pub(super) fn register(builder: &mut RegistryBuilder) -> grust_procedures::Resul
 pub(super) fn schema(algorithm: &str) -> Option<SchemaRef> {
     let mut fields = vec![Field::new("nodeId", DataType::Utf8, false)];
     match algorithm {
+        "ssspDeltaStar" => fields.push(Field::new("distance", DataType::Float64, true)),
+        "bfsDirection" => fields.extend([
+            Field::new("distance", DataType::Float64, true),
+            Field::new("parentId", DataType::Utf8, true),
+        ]),
         "pagerankDelta" => fields.extend([
             Field::new("score", DataType::Float64, false),
             Field::new("iterations", DataType::Int64, false),
@@ -165,6 +207,40 @@ pub(super) fn check_options(algorithm: &str, args: &ValidatedArguments) -> Resul
     let iterations = integer(args, "maxIterations")?;
     if !(1..=10000).contains(&iterations) {
         return plan_err!("nutmeg: optimized maxIterations must be in 1..=10000");
+    }
+    if algorithm == "ssspDeltaStar" {
+        if !matches!(args.options().get("source"), Some(Value::String(_)))
+            || !matches!(args.options().get("weightProperty"), Some(Value::String(_)))
+            || !matches!(args.options().get("defaultWeight"), Some(Value::Null))
+            || number(args, "delta")? <= 0.0
+        {
+            return plan_err!(
+                "ssspDeltaStar requires source, weightProperty, no defaultWeight and positive delta"
+            );
+        }
+        if !matches!(args.options().get("orientation"), Some(Value::String(s)) if s == "outgoing" || s == "undirected")
+        {
+            return plan_err!("SSSP orientation must be outgoing or undirected");
+        }
+        return Ok(());
+    }
+    if algorithm == "bfsDirection" {
+        if !matches!(args.options().get("source"), Some(Value::String(_))) {
+            return plan_err!("nutmeg: bfsDirection requires source");
+        }
+        if number(args, "alpha")? <= 0.0 || number(args, "beta")? <= 0.0 {
+            return plan_err!("nutmeg: BFS alpha and beta must be positive");
+        }
+        if !matches!(args.options().get("orientation"), Some(Value::String(s)) if s == "outgoing" || s == "undirected")
+        {
+            return plan_err!("nutmeg: BFS orientation must be outgoing or undirected");
+        }
+        if !matches!(args.options().get("weightProperty"), Some(Value::Null))
+            || !matches!(args.options().get("defaultWeight"), Some(Value::Null))
+        {
+            return plan_err!("nutmeg: bfsDirection requires unweighted projection");
+        }
+        return Ok(());
     }
     if !matches!(args.options().get("orientation"), Some(Value::String(s)) if s == "outgoing")
         || !matches!(args.options().get("weightProperty"), Some(Value::Null))
@@ -227,6 +303,9 @@ pub(super) fn run(
     emit: &mut dyn FnMut(RecordBatch) -> Result<bool>,
 ) -> Result<bool> {
     check_options(algorithm, args)?;
+    if algorithm == "bfsDirection" {
+        return bfs::run(graph, args, query, emit);
+    }
     if graph.is_weighted() || graph.orientation() != grust_algorithms::Orientation::Outgoing {
         return exec_err!("nutmeg: optimized kernels require unweighted outgoing edges");
     }

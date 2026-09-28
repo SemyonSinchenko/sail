@@ -40,6 +40,9 @@ def algorithm_method(engine, algorithm, variant):
     """Resolve explicit methods; a fused PageRank is not an available algorithm."""
     if engine not in ('pecan', 'nutmeg-native', 'nutmeg-datafusion'):
         raise ValueError(f'unknown graph engine: {engine}')
+    if algorithm in ('bfs', 'sssp'):
+        from traversal_methods import method
+        return method(engine, algorithm, variant)
     methods = {
         'pagerank': {'reference': ('power', 'pagerank'),
                      'optimized': ('delta', 'pagerankDelta')},

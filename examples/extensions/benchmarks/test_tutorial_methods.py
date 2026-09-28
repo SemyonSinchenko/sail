@@ -123,3 +123,19 @@ def test_fused_selection_runs_only_wcc_and_rejects_explicit_pagerank(tmp_path, m
     with pytest.raises(SystemExit) as error:
         tutorial_methods.main()
     assert error.value.code == 2
+
+
+def test_traversal_suite_retains_all_methods_and_failure(tmp_path, monkeypatch):
+    calls=[]
+    def launch(command, **kwargs):
+        calls.append(command)
+        receipt(command, {'outcome': 'error' if len(calls)==1 else 'passed'})
+        return SimpleNamespace(returncode=1 if len(calls)==1 else 0)
+    output=setup_tutorial(tmp_path,monkeypatch,launch,'--suite','traversal')
+    assert tutorial_methods.main()==1
+    summary=json.loads((output/'tutorial-summary.json').read_text())
+    assert summary['planned_cells']==len(summary['cells'])==18
+    assert len({(row['engine'],row['algorithm'],row['variant']) for row in summary['cells']})==18
+    assert Counter(row['outcome'] for row in summary['cells'])=={'error':1,'passed':17}
+    assert all('--directed' in c and c[c.index('--source')+1]=='0' for c in calls)
+    assert (output/'dataset/reference.parquet').is_file()

@@ -532,7 +532,7 @@ fn every_algorithm_reports_the_columns_its_scan_returns_under_either_naming() {
         .stage(
             numeric_probe,
             Part::Edges,
-            &[edges(&["1", "2"], &["2", "3"], None)],
+            &[edges(&["1", "2"], &["2", "3"], Some(&[1.0, 2.0]))],
             &ColumnMapping::default(),
             true,
             StageOrder::Canonical,
@@ -544,6 +544,17 @@ fn every_algorithm_reports_the_columns_its_scan_returns_under_either_naming() {
         let (args, store, graph) = if matches!(name, "wccRandomized" | "wccRandomizedFused") {
             (
                 validate(name, &Default::default()).unwrap(),
+                numeric_store.clone(),
+                numeric_probe,
+            )
+        } else if matches!(name, "bfsDirection" | "ssspDeltaStar") {
+            let options = if name == "ssspDeltaStar" {
+                serde_json::json!({"source":"1","weightProperty":"w"})
+            } else {
+                serde_json::json!({"source":"1"})
+            };
+            (
+                validate(name, options.as_object().unwrap()).unwrap(),
                 numeric_store.clone(),
                 numeric_probe,
             )
@@ -819,6 +830,21 @@ fn declared_nullable_outputs_are_nullable_whatever_the_rows_hold() {
 
     // Kernel, options, the declared-nullable column that holds a null here.
     let cases: Vec<(&str, serde_json::Value, &str)> = vec![
+        (
+            "bfsDirection",
+            serde_json::json!({"source":"a"}),
+            "distance",
+        ),
+        (
+            "bfsDirection",
+            serde_json::json!({"source":"a"}),
+            "parentId",
+        ),
+        (
+            "ssspDeltaStar",
+            serde_json::json!({"source":"a","weightProperty":"w"}),
+            "distance",
+        ),
         ("degree", serde_json::json!({}), "strength"),
         ("bfs", serde_json::json!({ "source": "a" }), "distance"),
         (
@@ -864,10 +890,10 @@ fn declared_nullable_outputs_are_nullable_whatever_the_rows_hold() {
         })
         .filter(|(_, nullable)| !nullable.is_empty())
         .collect();
-    let covered: BTreeMap<&str, Vec<&str>> = cases
-        .iter()
-        .map(|(kernel, _, column)| (*kernel, vec![*column]))
-        .collect();
+    let mut covered: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    for (kernel, _, column) in &cases {
+        covered.entry(kernel).or_default().push(column);
+    }
     assert_eq!(covered, declared);
 
     let read = |graph: &str, kernel: &str, options: &serde_json::Value| {

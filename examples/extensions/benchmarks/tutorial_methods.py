@@ -90,7 +90,7 @@ def run_case(command, log_path, receipt_path, private_container):
     return row
 
 
-def main():
+def main(default_suite="ranking"):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sail-binary", type=Path, required=True)
     parser.add_argument("--runtime-source-sha", required=True)
@@ -98,29 +98,40 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--mode", choices=("local", "process-cluster"), default="local")
     parser.add_argument("--engine", choices=("all", *ENGINES), default="all")
-    parser.add_argument("--algorithm", choices=("all", *ALGORITHMS), default="all")
-    parser.add_argument("--variant", choices=("all", *VARIANTS), default="all",
-                        help="optimized is advanced; fused selects the fused advanced WCC plan")
+    parser.add_argument("--suite", choices=("ranking", "traversal"), default=default_suite)
+    parser.add_argument("--algorithm", choices=("all", *ALGORITHMS, "bfs", "sssp"), default="all")
+    parser.add_argument("--variant", choices=("all", *VARIANTS, "frontier", "push_pull", "delta_star"), default="all",
+                        help="select an explicit method; advanced does not imply faster")
     parser.add_argument("--allow-dirty", action="store_true",
                         help="development smoke only; records the dirty source in each receipt")
     args = parser.parse_args()
-    if args.algorithm == "pagerank" and args.variant == "fused":
-        parser.error("fused is a WCC plan; PageRank offers reference and optimized")
-    pairs = [(algorithm, variant) for algorithm in selection(args.algorithm, ALGORITHMS)
-             for variant in selection(args.variant, VARIANTS)
-             if not (algorithm == "pagerank" and variant == "fused")]
+    available = ({"pagerank": ("reference", "optimized"),
+                  "wcc": ("reference", "optimized", "fused")} if args.suite == "ranking" else
+                 {"bfs": ("reference", "frontier", "push_pull"),
+                  "sssp": ("reference", "frontier", "delta_star")})
+    if args.algorithm != "all" and args.algorithm not in available:
+        parser.error("algorithm is not part of the selected suite")
+    pairs = [(algorithm, variant) for algorithm in selection(args.algorithm, tuple(available))
+             for variant in available[algorithm] if args.variant in ("all", variant)]
+    if not pairs:
+        parser.error("no algorithm in the selection supports this variant")
     args.sail_binary = args.sail_binary.resolve()
     if not args.sail_binary.is_file():
         parser.error("--sail-binary must name an existing executable")
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=False)
     dataset = args.output / "dataset"
-    manifest = prepare(dataset, vertices=128, degree=4, block_size=32)
+    if args.suite == "traversal":
+        from traversal_fixture import prepare as prepare_traversal
+        manifest = prepare_traversal(dataset, vertices=128, degree=4, source=0, directed=True)
+    else:
+        manifest = prepare(dataset, vertices=128, degree=4, block_size=32)
     private_container = Path("/.dockerenv").exists() and Path("/proc/stat").exists()
     summary = {
         "started_utc": utc(),
         "purpose": "functional tutorial; not isolated per-cell benchmark measurements",
         "mode": args.mode,
+        "suite": args.suite,
         "dataset_counts": manifest["counts"],
         "memory_scope": (
             "all visible container processes; private PID namespace required; "
@@ -153,6 +164,8 @@ def main():
                 "--max-iterations", "1000", "--tolerance", "1e-8", "--seed", "42",
                 "--allow-unisolated",
             ]
+            if algorithm in ("bfs", "sssp"):
+                command.extend(["--source", "0", "--directed", "--delta", "4.0"])
             if args.allow_dirty:
                 command.append("--allow-dirty")
             receipt_path = output / "receipt.json"
@@ -175,7 +188,7 @@ def main():
             outcome = row['outcome']
             failed |= outcome != 'passed'
             rss, pss = row['sampled_execution_rss_bytes'], row['sampled_execution_pss_bytes']
-            flavor = {"reference": "reference", "optimized": "advanced", "fused": "advanced fused"}[variant]
+            flavor = {"reference": "reference", "optimized": "advanced", "fused": "advanced fused"}.get(variant, variant)
             print(f"{engine} | {algorithm} | {flavor} | {outcome} | "
                   f"{display(row['end_to_end_seconds'])} | {display(rss, mib=True)} | {display(pss, mib=True)}",
                   flush=True)

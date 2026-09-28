@@ -1,7 +1,9 @@
-# Pecan and Nutmeg: PageRank/WCC benchmark
+# Pecan and Nutmeg graph benchmarks
 
 The [completed benchmark report](../../../docs/development/extensions/pecan-nutmeg-benchmark.md)
-links every result, time/memory table, source identity and retained failure.
+links every PageRank/WCC result, time/memory table, source identity and retained failure.
+The [BFS/SSSP tutorial](TRAVERSAL-TUTORIAL.md) builds and checks the new traversal
+methods; its qualification and measurements are separate from that report.
 For installation and executable examples, use the [step-by-step tutorial](TUTORIAL.md).
 For the exact 2.1M- and 4.2M-vertex Graph Kernels inputs from adversari.al,
 use the [large-graph reproduction guide](LARGE-GRAPHS.md).

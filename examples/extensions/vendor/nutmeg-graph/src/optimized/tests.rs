@@ -392,7 +392,9 @@ fn unsupported_optimized_options_are_rejected_before_execution() {
 #[test]
 fn empty_graphs_keep_declared_output_schemas() {
     let graph = graph(&[], &[], 1);
-    for name in NAMES {
+    // Single-source traversal rejects an empty graph because no source exists.
+    // Whole-graph algorithms retain their empty-result schema contract.
+    for name in ["pagerankDelta", "wccRandomized", "wccRandomizedFused"] {
         let (batches, _) = execute(&graph, name, serde_json::json!({}));
         assert_eq!(batches.len(), 1);
         assert_eq!(batches[0].num_rows(), 0);

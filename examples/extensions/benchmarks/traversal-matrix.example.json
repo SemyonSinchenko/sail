@@ -1,0 +1,114 @@
+{
+  "run_id": "traversal-qualification",
+  "docker_context": "colima-sail-gate",
+  "image": "sail-pecan-benchmark:release",
+  "target_volume": "sail-extension-targets",
+  "container_python": "/targets/pecan-benchmark/venv/bin/python",
+  "container_repo": "/targets/pecan-benchmark/candidate",
+  "container_sail_binary": "/targets/pecan-benchmark/release/host/release/sail",
+  "runtime_source_sha": "0000000000000000000000000000000000000000",
+  "native_source_sha": "0000000000000000000000000000000000000000",
+  "harness_source_sha": "0000000000000000000000000000000000000000",
+  "container_root": "/targets/traversal-qualification",
+  "host_output": "/ABSOLUTE/HOST/PATH/traversal-qualification",
+  "seed": 20260927,
+  "limits": {
+    "cpus": 16,
+    "cpuset_cpus": "0-15",
+    "memory_gib": 56,
+    "outer_timeout_seconds": 2400
+  },
+  "defaults": {
+    "partitions": 16,
+    "threads": 16,
+    "worker_task_slots": 64,
+    "sail_pool_bytes": 51539607552,
+    "native_quota": 34359738368,
+    "tolerance": 1e-08,
+    "damping": 0.85,
+    "max_iterations": 1000,
+    "timeout": 1800,
+    "seed": 42,
+    "delta": 4.0
+  },
+  "datasets": {
+    "skew-small": {
+      "family": "traversal",
+      "vertices": 256,
+      "degree": 4,
+      "seed": 42,
+      "source": 0,
+      "directed": true
+    }
+  },
+  "suites": [
+    {
+      "name": "local-bfs",
+      "mode": "local",
+      "repetitions": 1,
+      "datasets": [
+        "skew-small"
+      ],
+      "algorithms": [
+        "bfs"
+      ],
+      "variants": [
+        "reference",
+        "frontier",
+        "push_pull"
+      ],
+      "max_iterations": 1000
+    },
+    {
+      "name": "local-sssp",
+      "mode": "local",
+      "repetitions": 1,
+      "datasets": [
+        "skew-small"
+      ],
+      "algorithms": [
+        "sssp"
+      ],
+      "variants": [
+        "reference",
+        "frontier",
+        "delta_star"
+      ],
+      "max_iterations": 1000
+    },
+    {
+      "name": "process-cluster-bfs",
+      "mode": "process-cluster",
+      "repetitions": 1,
+      "datasets": [
+        "skew-small"
+      ],
+      "algorithms": [
+        "bfs"
+      ],
+      "variants": [
+        "reference",
+        "frontier",
+        "push_pull"
+      ],
+      "max_iterations": 1000
+    },
+    {
+      "name": "process-cluster-sssp",
+      "mode": "process-cluster",
+      "repetitions": 1,
+      "datasets": [
+        "skew-small"
+      ],
+      "algorithms": [
+        "sssp"
+      ],
+      "variants": [
+        "reference",
+        "frontier",
+        "delta_star"
+      ],
+      "max_iterations": 1000
+    }
+  ]
+}

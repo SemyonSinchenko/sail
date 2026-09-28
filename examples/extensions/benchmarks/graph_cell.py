@@ -112,6 +112,9 @@ def validate(spark, output, dataset, algorithm, expected_rows, tolerance, dampin
 
 
 def execute(spark, args, manifest, receipt, sampler):
+    if args.algorithm in ('bfs', 'sssp'):
+        from traversal_cell import execute as traversal_execute
+        return traversal_execute(spark, args, receipt, sampler)
     vertices = spark.read.parquet((args.dataset / 'vertices.parquet').as_uri())
     edges = spark.read.parquet((args.dataset / 'edges.parquet').as_uri())
     output = args.output / 'result'
@@ -205,8 +208,13 @@ def main():
     parser.add_argument('--dataset', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--engine', choices=['pecan', 'nutmeg-native', 'nutmeg-datafusion'], required=True)
-    parser.add_argument('--algorithm', choices=['pagerank', 'wcc'], required=True)
-    parser.add_argument('--variant', choices=['reference', 'optimized', 'fused'], default='reference')
+    parser.add_argument('--algorithm', choices=['pagerank', 'wcc', 'bfs', 'sssp'], required=True)
+    parser.add_argument('--variant', choices=['reference', 'optimized', 'fused', 'frontier', 'delta_star', 'push_pull'], default='reference')
+    parser.add_argument('--source', type=int, default=0)
+    parser.add_argument('--directed', action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument('--delta', type=float, default=1.0)
+    parser.add_argument('--traversal-validation', choices=['reference', 'certificate'], default='reference')
+    parser.add_argument('--certificate-max-rounds', type=int, default=10000)
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--mode', choices=['local', 'process-cluster'], default='process-cluster')
     parser.add_argument('--partitions', type=int, default=8)
@@ -239,10 +247,13 @@ def main():
         parser.error('benchmark source must be a clean frozen checkout')
     args.output.mkdir(parents=True, exist_ok=False)
     manifest = json.loads((args.dataset / 'manifest.json').read_text())
-    for name in ('damping', 'tolerance'):
+    for name in (() if args.algorithm in ('bfs', 'sssp') else ('damping', 'tolerance')):
         assert manifest['pagerank'][name] == getattr(args, name), f'reference {name} differs'
     for name, details in manifest['files'].items():
         assert sha256(args.dataset / name) == details['sha256'], f'dataset changed: {name}'
+    if args.algorithm in ('bfs', 'sssp'):
+        assert manifest['traversal']['source'] == args.source
+        assert manifest['traversal']['directed'] == args.directed
     receipt = dict(started_utc=utc(), arguments={k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
                    harness_source_sha=git(REPO, 'rev-parse', 'HEAD'), source_dirty=dirty,
                    runtime_source_sha=args.runtime_source_sha, binary_sha256=sha256(args.sail_binary),
@@ -286,9 +297,16 @@ def main():
                     signal.alarm(args.timeout)
                     receipt['cgroup_execution_after'] = cgroup_snapshot()
                     record_result_evidence(result, nm, receipt['kernel'], manifest['counts']['vertices'], receipt)
-                    receipt['correctness'] = validate(spark, result, args.dataset, args.algorithm,
-                        manifest['counts']['vertices'], args.tolerance, args.damping,
-                        args.max_iterations, args.engine == 'nutmeg-native', args.variant != 'reference')
+                    if args.algorithm in ('bfs', 'sssp'):
+                        from traversal_cell import validate as traversal_validate
+                        receipt['correctness'] = traversal_validate(spark, result, args.dataset, args.algorithm,
+                            manifest['counts']['vertices'], args.source, args.directed, args.engine == 'nutmeg-native',
+                            policy=args.traversal_validation, certificate_max_rounds=args.certificate_max_rounds,
+                            partitions=args.partitions)
+                    else:
+                        receipt['correctness'] = validate(spark, result, args.dataset, args.algorithm,
+                            manifest['counts']['vertices'], args.tolerance, args.damping,
+                            args.max_iterations, args.engine == 'nutmeg-native', args.variant != 'reference')
                     receipt['outcome'] = 'passed'
                 finally:
                     active_error = sys.exc_info()[1]

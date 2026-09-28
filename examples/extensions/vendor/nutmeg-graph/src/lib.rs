@@ -1460,6 +1460,13 @@ impl Store {
                 emit,
             );
         }
+        if algorithm == "ssspDeltaStar" {
+            optimized::check_options(algorithm, args)?;
+            let (cached, weights, _reservation) =
+                self.stepping_projection(graph_name, args, context)?;
+            let view = cached.with_execution(context).map_err(err)?;
+            return optimized::stepping::run(&view, &weights, args, query, emit);
+        }
         let cached = self.projection(graph_name, args)?;
         // The projection is the pool's and may be shared by any number of
         // reads; the view runs this read's kernel on this read's execution.

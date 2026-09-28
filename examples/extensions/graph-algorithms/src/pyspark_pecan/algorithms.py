@@ -31,9 +31,9 @@ def _check_input_schema(spark, vertices, edges):
                 raise ValueError(f"graph column {column!r} must have BIGINT type")
 
 
-def _snapshot(run, vertices, edges):
+def _snapshot(run, vertices, edges, edge_columns=("src", "dst")):
     _, vertices = run.materialize(vertices.select("id"))
-    _, edges = run.materialize(edges.select("src", "dst"))
+    _, edges = run.materialize(edges.select(*edge_columns))
     run.cancellation.check()
     if vertices.where(F.col("id").isNull()).limit(1).count():
         raise ValueError("vertex IDs must not be null")
@@ -52,7 +52,7 @@ def _snapshot(run, vertices, edges):
 
 
 class GraphAlgorithms:
-    """PageRank and WCC over BIGINT id/src/dst tables.
+    """Graph algorithms over BIGINT id/src/dst tables.
 
     Input tables are separately materialized once before validation. This is
     stable during an algorithm, but is not an atomic snapshot across mutable
@@ -69,7 +69,7 @@ class GraphAlgorithms:
             self.observer({"kind": kind, "algorithm": algorithm,
                            "iteration": step, "run_path": run.path, **metrics})
 
-    def _run(self, vertices, edges, partitions, cancellation, body):
+    def _run(self, vertices, edges, partitions, cancellation, body, *, edge_columns=("src", "dst")):
         _positive_integer(partitions, "partitions")
         cancellation = cancellation or CancellationToken()
         cancellation.check()
@@ -78,7 +78,7 @@ class GraphAlgorithms:
         run = None
         try:
             run = StagingRun(self.spark, self.utils, cancellation, partitions)
-            vertices, edges, size = _snapshot(run, vertices, edges)
+            vertices, edges, size = _snapshot(run, vertices, edges, edge_columns)
             return body(run, vertices, edges, size)
         except BaseException as error:
             # Remove the query tag before issuing cleanup, so cancellation of
@@ -251,3 +251,36 @@ class GraphAlgorithms:
             raise ConvergenceError(f"WCC did not reach a fixed point in {max_iterations} iterations")
 
         return self._run(vertices, edges, partitions, cancellation, execute)
+
+    def bfs(self, vertices, edges, *, source, method="frontier", directed=True,
+            max_iterations=1000, partitions=4, cancellation=None):
+        """Single-source hop distances and a parent tree; unreachable rows are null.
+
+        method="reference" relaxes all reached vertices each round; "frontier"
+        expands only changed vertices. "push_pull" switches relational join
+        orientation; it does not promise native adjacency early exit.
+        The source must exist and has parent=source.
+        The cap includes the final round certifying no further changes.
+        """
+        from .traversal import execute
+        return execute(self, vertices, edges, source=source, weighted=False,
+                       method=method, directed=directed, max_iterations=max_iterations,
+                       partitions=partitions, cancellation=cancellation)
+
+    def sssp(self, vertices, edges, *, source, method="frontier", directed=True,
+             max_iterations=1000, partitions=4, cancellation=None, delta=1.0):
+        """Single-source shortest distances for finite nonnegative DOUBLE weights.
+
+        Edges require a `weight` column. Reference is synchronous Bellman–Ford;
+        frontier relaxes only changed vertices. "delta_star" processes the lowest
+        pending distance bucket with width delta, relaxing all outgoing edges;
+        this differs from classical light/heavy delta-stepping. Equal-distance
+        paths prefer fewer hops, then the smaller parent ID, preventing parent
+        cycles on zero-weight edges. Unreachable distance/parent/hops are null.
+        Finite-distance overflow raises an error rather than marking a vertex
+        unreachable. Both methods require an explicit convergence certificate.
+        """
+        from .traversal import execute
+        return execute(self, vertices, edges, source=source, weighted=True,
+                       method=method, directed=directed, max_iterations=max_iterations,
+                       partitions=partitions, cancellation=cancellation, delta=delta)

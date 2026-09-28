@@ -21,8 +21,8 @@ from runtime import algorithm_method, validate_admission_settings
 
 
 ENGINES = ('pecan', 'nutmeg-native', 'nutmeg-datafusion')
-ALGORITHMS = ('pagerank', 'wcc')
-VARIANTS = ('reference', 'optimized', 'fused')
+ALGORITHMS = ('pagerank', 'wcc', 'bfs', 'sssp')
+VARIANTS = ('reference', 'optimized', 'fused', 'frontier', 'delta_star', 'push_pull')
 DEFAULT_VARIANTS = ('reference', 'optimized')
 
 
@@ -72,8 +72,13 @@ def validate_config(config):
     for name, dataset in config['datasets'].items():
         if not re.fullmatch(r'[a-z0-9][a-z0-9-]*', name):
             raise ValueError(f'invalid dataset name: {name}')
-        if dataset['family'] not in ('sparse', 'chain', 'edge-list') or dataset['vertices'] <= 0:
+        if dataset['family'] not in ('sparse', 'chain', 'edge-list', 'traversal') or dataset['vertices'] <= 0:
             raise ValueError(f'invalid dataset: {name}')
+        if dataset['family'] == 'traversal':
+            if not 8 <= dataset['vertices'] <= 100000:
+                raise ValueError('bounded traversal oracle requires 8..100000 vertices')
+            if not 0 <= dataset.get('source', 0) < dataset['vertices']:
+                raise ValueError('traversal source outside graph')
         if dataset['family'] == 'edge-list':
             path = PurePosixPath(dataset.get('edge_file', ''))
             if not path.is_absolute() or '..' in path.parts:
@@ -91,6 +96,11 @@ def validate_config(config):
             raise ValueError('suite names an unknown engine')
         if set(suite['algorithms']) - set(ALGORITHMS):
             raise ValueError('suite names an unknown algorithm')
+        for dataset_name in suite['datasets']:
+            family = config['datasets'][dataset_name]['family']
+            if any((algorithm in ('bfs', 'sssp')) != (family == 'traversal')
+                   for algorithm in suite['algorithms']):
+                raise ValueError('algorithm and fixture reference family are incompatible')
         variants = suite.get('variants', config.get('variants', DEFAULT_VARIANTS))
         if set(variants) - set(VARIANTS):
             raise ValueError('suite names an unknown variant')
@@ -156,6 +166,10 @@ def cell_command(config, cell):
     for name in ('partitions', 'threads', 'worker_task_slots', 'sail_pool_bytes',
                  'native_quota', 'tolerance', 'damping', 'timeout', 'seed'):
         command.extend(['--' + name.replace('_', '-'), str(defaults[name])])
+    if cell['algorithm'] in ('bfs', 'sssp'):
+        dataset = config['datasets'][cell['dataset']]
+        command.extend(['--source', str(dataset.get('source', 0)), '--delta', str(defaults.get('delta', 1.0))])
+        command.append('--directed' if dataset.get('directed', True) else '--no-directed')
     return command + config.get('extra_cell_args', [])
 
 
@@ -282,12 +296,20 @@ def preflight(config, output):
 def prepare_datasets(config, output, image):
     for name, options in config['datasets'].items():
         dataset_path = str(PurePosixPath(config['container_root']) / 'datasets' / name)
-        command = [str(PurePosixPath(config['container_repo']) / 'examples/extensions/benchmarks/graph_fixtures.py'),
+        traversal = options['family'] == 'traversal'
+        script = 'traversal_fixture.py' if traversal else 'graph_fixtures.py'
+        command = [str(PurePosixPath(config['container_repo']) / 'examples/extensions/benchmarks' / script),
                    '--output', dataset_path]
         for key, value in options.items():
+            if traversal and key == 'family':
+                continue
+            if traversal and key == 'directed':
+                command.append('--directed' if value else '--no-directed')
+                continue
             command.extend(['--' + key.replace('_', '-'), str(value)])
-        for key in ('tolerance', 'damping'):
-            command.extend(['--' + key, str(config['defaults'][key])])
+        if not traversal:
+            for key in ('tolerance', 'damping'):
+                command.extend(['--' + key, str(config['defaults'][key])])
         result = run_container(config, 'sail-' + config['run_id'] + '-prepare-' + name, command,
             output / 'datasets' / name, image, config['limits']['outer_timeout_seconds'], {'dataset': dataset_path})
         if result.get('attach_returncode') != 0 or result['transport_errors']:

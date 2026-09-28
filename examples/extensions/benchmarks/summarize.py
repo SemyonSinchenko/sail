@@ -101,6 +101,10 @@ def integrity_errors(cell, summary, receipt, config):
     expected.update({key: config['defaults'][key] for key in
                      ('partitions', 'threads', 'worker_task_slots', 'sail_pool_bytes',
                       'native_quota', 'tolerance', 'damping', 'timeout', 'seed')})
+    if cell['algorithm'] in ('bfs', 'sssp'):
+        dataset_options = config['datasets'][cell['dataset']]
+        expected.update(source=dataset_options.get('source', 0), directed=dataset_options.get('directed', True),
+                        delta=config['defaults'].get('delta', 1.0))
     root = PurePosixPath(config['container_root'])
     expected.update(dataset=str(root / 'datasets' / cell['dataset']),
                     output=str(root / 'cells' / cell['cell_id']),
@@ -144,7 +148,8 @@ def integrity_errors(cell, summary, receipt, config):
     if options['family'] == 'edge-list':
         imported = manifest.get('input') or {}
         observed.update(edge_file=imported.get('source_path'), edge_sha256=imported.get('sha256'))
-    for key, value in dict(options, **{k: config['defaults'][k] for k in ('damping', 'tolerance')}).items():
+    algorithm_parameters = {} if options['family'] == 'traversal' else {k: config['defaults'][k] for k in ('damping', 'tolerance')}
+    for key, value in dict(options, **algorithm_parameters).items():
         if observed.get(key) != value:
             errors.append(f'dataset configuration differs: {key}')
     return errors

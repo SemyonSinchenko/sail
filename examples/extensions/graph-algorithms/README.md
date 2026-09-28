@@ -1,4 +1,4 @@
-# Pecan: relational PageRank and weakly connected components
+# Pecan: relational graph algorithms
 
 The [benchmark report](../../../docs/development/extensions/pecan-nutmeg-benchmark.md)
 compares reference, advanced and fused methods through Pecan, Banda and Grenada.
@@ -11,6 +11,10 @@ receipts. It does not build a local graph representation.
 PageRank offers reference power iteration and an active-frontier delta method.
 WCC offers reference minimum-label propagation and seeded randomized contraction,
 including an optional fused representative plan.
+The traversal branch adds BFS and nonnegative weighted SSSP with reference,
+frontier, and explicit advanced methods; follow the
+[BFS/SSSP tutorial](../benchmarks/TRAVERSAL-TUTORIAL.md) for that branch and its
+local/process-worker checks.
 The reference methods remain the defaults. This is a new API, not a GraphFrames
 wire or behavioral compatibility layer.
 

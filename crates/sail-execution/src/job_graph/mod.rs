@@ -1,4 +1,5 @@
 mod planner;
+mod worker_groups;
 
 use std::fmt;
 use std::sync::Arc;

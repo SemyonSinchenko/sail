@@ -59,6 +59,7 @@ impl JobGraph {
             distribution: OutputDistribution::RoundRobinBatch { channels: 1 },
             placement: TaskPlacement::Worker,
         });
+        super::worker_groups::assign(&mut graph.stages);
         Ok(graph)
     }
 }

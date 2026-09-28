@@ -8,7 +8,7 @@ pub struct TaskAssignerOptions {
 
 #[cfg(test)]
 impl TaskAssignerOptions {
-    pub(super) fn new(worker_task_slots: usize, worker_max_count: usize) -> Self {
+    pub(crate) fn new(worker_task_slots: usize, worker_max_count: usize) -> Self {
         Self {
             worker_task_slots,
             worker_max_count,

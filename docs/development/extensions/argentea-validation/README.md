@@ -419,3 +419,14 @@ information disabled. Runs used Linux ARM64 under Docker Desktop on Capitola,
 three container CPUs and a 10 GiB container memory limit without swap. These are
 functional results, not release-profile performance measurements. They do not
 replace physical Capitola/Morrobay qualification.
+
+## Intel macOS artifact checks (8154357)
+
+`intel-functional-8154357.tar.gz` and its JSON index retain three process-cluster
+runs on Capitola under Rosetta: WCC star correctness, SSSP delta-star cancellation,
+and native memory refusal followed by three successful session reuse operations.
+All three passed final-log native audits, process cleanup, and owned storage
+cleanup. The archive includes the Intel Sail build log and executable/wheel
+identity receipts. Both artifacts use source `8154357553af2147e16fdea650e013379b0af2cf`
+and the development profile; these are functional checks, not timing evidence.
+Physical Capitola–Morrobay qualification remains pending.

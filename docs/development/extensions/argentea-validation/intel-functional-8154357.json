@@ -1,0 +1,86 @@
+{
+  "archive": "intel-functional-8154357.tar.gz",
+  "sha256": "83bb9ce6dae1c7207d1adc9e2afc1f64edad3954a4b6760b85abf8bb3b548050",
+  "included_files": 199,
+  "cases": [
+    {
+      "case": "resources",
+      "outcome": "passed",
+      "controller_host": "Capitola.local",
+      "source_commit": "8154357553af2147e16fdea650e013379b0af2cf",
+      "arguments": {
+        "algorithm": "sssp_delta_star",
+        "allow_working_tree": false,
+        "failure_vertices": 524288,
+        "iterations": 2,
+        "mode": "process-cluster",
+        "native_quota": 33554432,
+        "native_source_sha": "8154357553af2147e16fdea650e013379b0af2cf",
+        "output": "/private/tmp/sail-argentea-intel-815-resources",
+        "partitions": 2,
+        "runtime_source_sha": "8154357553af2147e16fdea650e013379b0af2cf",
+        "sail_binary": "/tmp/sail-argentea-worker-x86-target/x86_64-apple-darwin/debug/sail",
+        "sail_pool_bytes": 50331648,
+        "threads": 4,
+        "two_host_config": null,
+        "worker_task_slots": 32
+      },
+      "binary_sha256": "6107a87ba0ae22e003951b0552600d0c64ebe7351bd301e3af46a965242b9189"
+    },
+    {
+      "case": "wcc-star",
+      "outcome": "passed",
+      "controller_host": "Capitola.local",
+      "source_commit": "8154357553af2147e16fdea650e013379b0af2cf",
+      "arguments": {
+        "allow_working_tree": false,
+        "batch_rows": 2,
+        "case": "graph",
+        "expect_cap": false,
+        "max_rounds": 19,
+        "method": "star",
+        "mode": "process-cluster",
+        "native_quota": 268435456,
+        "native_source_sha": "8154357553af2147e16fdea650e013379b0af2cf",
+        "output": "/private/tmp/sail-argentea-intel-815-wcc-star",
+        "partitions": 5,
+        "runtime_source_sha": "8154357553af2147e16fdea650e013379b0af2cf",
+        "sail_binary": "/tmp/sail-argentea-worker-x86-target/x86_64-apple-darwin/debug/sail",
+        "sail_pool_bytes": 2147483648,
+        "seed": 42,
+        "threads": 4,
+        "two_host_config": null,
+        "worker_task_slots": 512
+      },
+      "binary_sha256": "6107a87ba0ae22e003951b0552600d0c64ebe7351bd301e3af46a965242b9189"
+    },
+    {
+      "case": "cancel",
+      "outcome": "passed",
+      "controller_host": "Capitola.local",
+      "source_commit": "8154357553af2147e16fdea650e013379b0af2cf",
+      "arguments": {
+        "algorithm": "sssp_delta_star",
+        "allow_working_tree": false,
+        "case": "cancel",
+        "heartbeat_interval_seconds": 1,
+        "heartbeat_timeout_seconds": 10,
+        "mode": "process-cluster",
+        "native_quota": 268435456,
+        "native_source_sha": "8154357553af2147e16fdea650e013379b0af2cf",
+        "output": "/private/tmp/sail-argentea-intel-815-cancel",
+        "partitions": 2,
+        "runtime_source_sha": "8154357553af2147e16fdea650e013379b0af2cf",
+        "sail_binary": "/tmp/sail-argentea-worker-x86-target/x86_64-apple-darwin/debug/sail",
+        "sail_pool_bytes": 2147483648,
+        "threads": 4,
+        "two_host_config": null,
+        "victim_owner": null,
+        "worker_task_slots": 32
+      },
+      "binary_sha256": "6107a87ba0ae22e003951b0552600d0c64ebe7351bd301e3af46a965242b9189"
+    }
+  ],
+  "boundary": "Three Intel macOS process-cluster runs under Rosetta on Capitola; not physical two-host or Linux qualification and not timing evidence.",
+  "reaudit": "All native fault/resource audits rerun on complete final logs; process and storage teardown receipts checked."
+}

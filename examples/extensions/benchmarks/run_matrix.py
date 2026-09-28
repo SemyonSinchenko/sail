@@ -72,13 +72,34 @@ def validate_config(config):
     for name, dataset in config['datasets'].items():
         if not re.fullmatch(r'[a-z0-9][a-z0-9-]*', name):
             raise ValueError(f'invalid dataset name: {name}')
-        if dataset['family'] not in ('sparse', 'chain', 'edge-list', 'traversal') or dataset['vertices'] <= 0:
+        if dataset['family'] not in ('sparse', 'chain', 'edge-list', 'traversal', 'graph500') or dataset['vertices'] <= 0:
             raise ValueError(f'invalid dataset: {name}')
         if dataset['family'] == 'traversal':
             if not 8 <= dataset['vertices'] <= 100000:
                 raise ValueError('bounded traversal oracle requires 8..100000 vertices')
             if not 0 <= dataset.get('source', 0) < dataset['vertices']:
                 raise ValueError('traversal source outside graph')
+        if dataset['family'] == 'graph500':
+            scale = dataset.get('scale', 0)
+            if not isinstance(scale, int) or not 1 <= scale <= 40 or dataset['vertices'] != 2 ** scale:
+                raise ValueError('Graph500 vertices must equal 2^scale, with scale in 1..40')
+            edge_factor = dataset.get('edge_factor', 16)
+            if not isinstance(edge_factor, int) or edge_factor <= 0:
+                raise ValueError('Graph500 edge factor must be a positive integer')
+            if not 0 <= dataset.get('source', 0) < dataset['vertices']:
+                raise ValueError('Graph500 source outside graph')
+            generator = PurePosixPath(dataset.get('generator', ''))
+            if not generator.is_absolute() or '..' in generator.parts:
+                raise ValueError('Graph500 generator must be an absolute container path without ..')
+            validation = dataset.get('validation')
+            if validation not in ('reference', 'certificate'):
+                raise ValueError('Graph500 validation must explicitly be reference or certificate')
+            if validation == 'reference' and (dataset['vertices'] > 100000 or dataset['vertices'] * edge_factor > 1000000):
+                raise ValueError('Graph500 reference oracle is restricted to 100000 vertices and 1000000 tuples')
+            if dataset.get('certificate_max_rounds', 10000) <= 0:
+                raise ValueError('Graph500 certificate round cap must be positive')
+            if 'expected_edge_sha256' in dataset and not re.fullmatch(r'[a-f0-9]{64}', dataset['expected_edge_sha256']):
+                raise ValueError('Graph500 expected_edge_sha256 must pin the canonical edge bytes')
         if dataset['family'] == 'edge-list':
             path = PurePosixPath(dataset.get('edge_file', ''))
             if not path.is_absolute() or '..' in path.parts:
@@ -98,7 +119,7 @@ def validate_config(config):
             raise ValueError('suite names an unknown algorithm')
         for dataset_name in suite['datasets']:
             family = config['datasets'][dataset_name]['family']
-            if any((algorithm in ('bfs', 'sssp')) != (family == 'traversal')
+            if any((algorithm in ('bfs', 'sssp')) != (family in ('traversal', 'graph500'))
                    for algorithm in suite['algorithms']):
                 raise ValueError('algorithm and fixture reference family are incompatible')
         variants = suite.get('variants', config.get('variants', DEFAULT_VARIANTS))
@@ -154,11 +175,14 @@ def container_options(config, name, image=None):
 def cell_command(config, cell):
     root = PurePosixPath(config['container_root'])
     defaults = config['defaults']
+    dataset = config['datasets'][cell['dataset']]
     command = [str(PurePosixPath(config['container_repo']) / 'examples/extensions/benchmarks/graph_cell.py'),
                '--sail-binary', config['container_sail_binary'],
                '--runtime-source-sha', config['runtime_source_sha'],
                '--native-source-sha', config['native_source_sha'],
                '--dataset', str(root / 'datasets' / cell['dataset']),
+               '--expected-dataset-family', dataset['family'],
+               '--expected-vertices', str(dataset['vertices']),
                '--output', str(root / 'cells' / cell['cell_id']),
                '--engine', cell['engine'], '--algorithm', cell['algorithm'], '--variant', cell['variant'],
                '--mode', cell['mode'],
@@ -167,9 +191,13 @@ def cell_command(config, cell):
                  'native_quota', 'tolerance', 'damping', 'timeout', 'seed'):
         command.extend(['--' + name.replace('_', '-'), str(defaults[name])])
     if cell['algorithm'] in ('bfs', 'sssp'):
-        dataset = config['datasets'][cell['dataset']]
         command.extend(['--source', str(dataset.get('source', 0)), '--delta', str(defaults.get('delta', 1.0))])
-        command.append('--directed' if dataset.get('directed', True) else '--no-directed')
+        command.append('--directed' if dataset.get('directed', dataset['family'] != 'graph500') else '--no-directed')
+        if dataset['family'] == 'graph500':
+            command.extend(['--traversal-validation', dataset['validation'],
+                            '--certificate-max-rounds', str(dataset.get('certificate_max_rounds', 10000))])
+            if 'expected_edge_sha256' in dataset:
+                command.extend(['--expected-graph500-sha256', dataset['expected_edge_sha256']])
     return command + config.get('extra_cell_args', [])
 
 
@@ -293,23 +321,34 @@ def preflight(config, output):
     return image
 
 
+def dataset_command(config, name):
+    options = config['datasets'][name]
+    family = options['family']
+    script = {'traversal': 'traversal_fixture.py', 'graph500': 'graph500_fixture.py'}.get(family, 'graph_fixtures.py')
+    dataset_path = str(PurePosixPath(config['container_root']) / 'datasets' / name)
+    command = [str(PurePosixPath(config['container_repo']) / 'examples/extensions/benchmarks' / script),
+               '--output', dataset_path]
+    for key, value in options.items():
+        if family in ('traversal', 'graph500') and key == 'family':
+            continue
+        if family == 'graph500' and key in ('vertices', 'validation', 'certificate_max_rounds'):
+            continue
+        if family in ('traversal', 'graph500') and key == 'directed':
+            command.append('--directed' if value else '--no-directed')
+            continue
+        command.extend(['--' + key.replace('_', '-'), str(value)])
+    if family == 'graph500' and options['validation'] == 'reference':
+        command.append('--reference')
+    if family not in ('traversal', 'graph500'):
+        for key in ('tolerance', 'damping'):
+            command.extend(['--' + key, str(config['defaults'][key])])
+    return command
+
+
 def prepare_datasets(config, output, image):
-    for name, options in config['datasets'].items():
+    for name in config['datasets']:
         dataset_path = str(PurePosixPath(config['container_root']) / 'datasets' / name)
-        traversal = options['family'] == 'traversal'
-        script = 'traversal_fixture.py' if traversal else 'graph_fixtures.py'
-        command = [str(PurePosixPath(config['container_repo']) / 'examples/extensions/benchmarks' / script),
-                   '--output', dataset_path]
-        for key, value in options.items():
-            if traversal and key == 'family':
-                continue
-            if traversal and key == 'directed':
-                command.append('--directed' if value else '--no-directed')
-                continue
-            command.extend(['--' + key.replace('_', '-'), str(value)])
-        if not traversal:
-            for key in ('tolerance', 'damping'):
-                command.extend(['--' + key, str(config['defaults'][key])])
+        command = dataset_command(config, name)
         result = run_container(config, 'sail-' + config['run_id'] + '-prepare-' + name, command,
             output / 'datasets' / name, image, config['limits']['outer_timeout_seconds'], {'dataset': dataset_path})
         if result.get('attach_returncode') != 0 or result['transport_errors']:
@@ -339,6 +378,7 @@ def main():
                 randomized_order='Python random.Random(seed), shuffle independently within each suite/repetition')
     if args.dry_run:
         plan['commands'] = {cell['cell_id']: cell_command(config, cell) for cell in cells}
+        plan['preparation_commands'] = {name: dataset_command(config, name) for name in config['datasets']}
         print(json.dumps(plan, indent=2))
         return 0
     output = Path(config['host_output'])

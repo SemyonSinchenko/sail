@@ -1,0 +1,18 @@
+
+running 1 test
+test queue::tests::batched_decreases_keep_minimum_order_independent_of_notification_order ... FAILED
+
+failures:
+
+---- queue::tests::batched_decreases_keep_minimum_order_independent_of_notification_order stdout ----
+
+thread 'queue::tests::batched_decreases_keep_minimum_order_independent_of_notification_order' (44915242) panicked at /tmp/sail-traversal-queue-original.rs:122:21:
+assertion failed: !Queue::less(queue.heap[i], queue.heap[(i - 1) / 2], &distance)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    queue::tests::batched_decreases_keep_minimum_order_independent_of_notification_order
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

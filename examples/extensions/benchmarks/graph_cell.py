@@ -200,12 +200,29 @@ def execute(spark, args, manifest, receipt, sampler):
         receipt['iteration_events'] = events
 
 
+def validate_dataset_identity(manifest, *, family=None, vertices=None, graph500_sha256=None):
+    """Check matrix expectations even when input preparation was skipped."""
+    if family is not None and manifest.get('family') != family:
+        raise ValueError('dataset family differs from matrix configuration')
+    if vertices is not None and manifest.get('counts', {}).get('vertices') != vertices:
+        raise ValueError('dataset vertex count differs from matrix configuration')
+    if graph500_sha256 is not None:
+        if manifest.get('family') != 'graph500':
+            raise ValueError('Graph500 input pin requires a Graph500 manifest')
+        actual = manifest.get('canonical', {}).get('edges', {}).get('sha256')
+        if actual != graph500_sha256:
+            raise ValueError('Graph500 canonical edge bytes differ from matrix configuration')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--sail-binary', type=Path, required=True)
     parser.add_argument('--runtime-source-sha', required=True)
     parser.add_argument('--native-source-sha', help='source revision used for the installed native Nutmeg wheel')
     parser.add_argument('--dataset', type=Path, required=True)
+    parser.add_argument('--expected-dataset-family')
+    parser.add_argument('--expected-vertices', type=int)
+    parser.add_argument('--expected-graph500-sha256')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--engine', choices=['pecan', 'nutmeg-native', 'nutmeg-datafusion'], required=True)
     parser.add_argument('--algorithm', choices=['pagerank', 'wcc', 'bfs', 'sssp'], required=True)
@@ -247,6 +264,9 @@ def main():
         parser.error('benchmark source must be a clean frozen checkout')
     args.output.mkdir(parents=True, exist_ok=False)
     manifest = json.loads((args.dataset / 'manifest.json').read_text())
+    validate_dataset_identity(manifest, family=args.expected_dataset_family,
+                              vertices=args.expected_vertices,
+                              graph500_sha256=args.expected_graph500_sha256)
     for name in (() if args.algorithm in ('bfs', 'sssp') else ('damping', 'tolerance')):
         assert manifest['pagerank'][name] == getattr(args, name), f'reference {name} differs'
     for name, details in manifest['files'].items():

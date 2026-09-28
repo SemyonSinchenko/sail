@@ -37,6 +37,21 @@ Argentea physical plan has the required topology or that workers ran a kernel.
 The integration gate must inspect the actual job graph and retain worker PIDs,
 partition IDs, native adjacency identities and round receipts.
 
+The host now also has a pre-admission topology validator. It examines the
+completed `JobGraph` and `JobTopology` before creating the output task or
+inserting a job. Every worker descriptor must match its containing worker
+stage's partition count. For all occurrences of the same package and operation,
+each logical partition must map to the same region, slot group and task-set
+bucket. Validation and scheduling call the same `StageGroup` construction and
+bucket method, including the effects of ordinary intervening stages. Independent
+operations remain independent, and ordinary jobs receive no placement
+restriction. Forward-only regions may remain sliced by partition when ownership
+is preserved. Actual-graph tests cover aligned widths, a scalar or wider
+intermediate stage, a blocking boundary, nested descriptors and independent
+operation/package identities. This validator and its tests await the combined
+host gate; native allocation/worker receipts are still required for runtime
+qualification.
+
 ## Round shape and barrier
 
 Each partition retains its outgoing CSR and rank vector. Its round emits native

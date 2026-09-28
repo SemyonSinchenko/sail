@@ -1,0 +1,1217 @@
+{
+  "sha": "b2e7e0faf86b64b8c7a54fb14210db7485c9fe99",
+  "checkout": "/tmp/sail-traversal-gate-validated",
+  "host": "Capitola.local",
+  "platform": "Darwin-25.2.0-arm64-arm-64bit-Mach-O",
+  "logical_cpus": 10,
+  "binary": "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+  "started_utc": "2026-09-28T01:54:27.810282+00:00",
+  "runs": [
+    {
+      "phase": "idle",
+      "repetition": 0,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "idle-00-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 1.571822667028755
+    },
+    {
+      "phase": "idle",
+      "repetition": 0,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "idle-00-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.017487125005573034
+    },
+    {
+      "phase": "idle",
+      "repetition": 0,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "idle-00-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 0.2740007920656353
+    },
+    {
+      "phase": "idle",
+      "repetition": 0,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "idle-00-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.018244874896481633
+    },
+    {
+      "phase": "saturated",
+      "repetition": 0,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-00-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.30840945802628994
+    },
+    {
+      "phase": "saturated",
+      "repetition": 0,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-00-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.021667541936039925
+    },
+    {
+      "phase": "saturated",
+      "repetition": 0,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-00-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 0.9933963329531252
+    },
+    {
+      "phase": "saturated",
+      "repetition": 0,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-00-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.07656604098156095
+    },
+    {
+      "phase": "saturated",
+      "repetition": 1,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-01-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.22601737501099706
+    },
+    {
+      "phase": "saturated",
+      "repetition": 1,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-01-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.02349708299152553
+    },
+    {
+      "phase": "saturated",
+      "repetition": 1,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-01-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 0.7127173340413719
+    },
+    {
+      "phase": "saturated",
+      "repetition": 1,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-01-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.027555415872484446
+    },
+    {
+      "phase": "saturated",
+      "repetition": 2,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-02-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.1547109999228269
+    },
+    {
+      "phase": "saturated",
+      "repetition": 2,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-02-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.029239082941785455
+    },
+    {
+      "phase": "saturated",
+      "repetition": 2,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-02-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 0.5738227078691125
+    },
+    {
+      "phase": "saturated",
+      "repetition": 2,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-02-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.04523504199460149
+    },
+    {
+      "phase": "saturated",
+      "repetition": 3,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-03-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.12530549988150597
+    },
+    {
+      "phase": "saturated",
+      "repetition": 3,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-03-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.02781991707161069
+    },
+    {
+      "phase": "saturated",
+      "repetition": 3,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-03-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 1.7064317499753088
+    },
+    {
+      "phase": "saturated",
+      "repetition": 3,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-03-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.03253974998369813
+    },
+    {
+      "phase": "saturated",
+      "repetition": 4,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-04-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.1182285831309855
+    },
+    {
+      "phase": "saturated",
+      "repetition": 4,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-04-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.028025666950270534
+    },
+    {
+      "phase": "saturated",
+      "repetition": 4,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-04-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 1.1339079579338431
+    },
+    {
+      "phase": "saturated",
+      "repetition": 4,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-04-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.11698833294212818
+    },
+    {
+      "phase": "saturated",
+      "repetition": 5,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-05-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.18450849992223084
+    },
+    {
+      "phase": "saturated",
+      "repetition": 5,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-05-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.049274333054199815
+    },
+    {
+      "phase": "saturated",
+      "repetition": 5,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-05-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 1.0929839999880642
+    },
+    {
+      "phase": "saturated",
+      "repetition": 5,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-05-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.06722162500955164
+    },
+    {
+      "phase": "saturated",
+      "repetition": 6,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-06-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.1402455000206828
+    },
+    {
+      "phase": "saturated",
+      "repetition": 6,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-06-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.056561166886240244
+    },
+    {
+      "phase": "saturated",
+      "repetition": 6,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-06-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 0.5204742501955479
+    },
+    {
+      "phase": "saturated",
+      "repetition": 6,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-06-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.029782416997477412
+    },
+    {
+      "phase": "saturated",
+      "repetition": 7,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-07-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.13788504200056195
+    },
+    {
+      "phase": "saturated",
+      "repetition": 7,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-07-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.019727290840819478
+    },
+    {
+      "phase": "saturated",
+      "repetition": 7,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-07-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 1.2228969170246273
+    },
+    {
+      "phase": "saturated",
+      "repetition": 7,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-07-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.03489133296534419
+    },
+    {
+      "phase": "saturated",
+      "repetition": 8,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-08-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.13726241700351238
+    },
+    {
+      "phase": "saturated",
+      "repetition": 8,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-08-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.02368562505580485
+    },
+    {
+      "phase": "saturated",
+      "repetition": 8,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-08-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 1.3991612498648465
+    },
+    {
+      "phase": "saturated",
+      "repetition": 8,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-08-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.03842520900070667
+    },
+    {
+      "phase": "saturated",
+      "repetition": 9,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-09-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.12867716699838638
+    },
+    {
+      "phase": "saturated",
+      "repetition": 9,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-09-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.02159812510944903
+    },
+    {
+      "phase": "saturated",
+      "repetition": 9,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-09-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 0.7145525829400867
+    },
+    {
+      "phase": "saturated",
+      "repetition": 9,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-09-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.035888707963749766
+    },
+    {
+      "phase": "saturated",
+      "repetition": 10,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-10-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.12567933299578726
+    },
+    {
+      "phase": "saturated",
+      "repetition": 10,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-10-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.023050958989188075
+    },
+    {
+      "phase": "saturated",
+      "repetition": 10,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-10-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 0.6319079170934856
+    },
+    {
+      "phase": "saturated",
+      "repetition": 10,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-10-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.048678416991606355
+    },
+    {
+      "phase": "saturated",
+      "repetition": 11,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-11-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.13204562501050532
+    },
+    {
+      "phase": "saturated",
+      "repetition": 11,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-11-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.02969600004144013
+    },
+    {
+      "phase": "saturated",
+      "repetition": 11,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-11-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 0.41384300007484853
+    },
+    {
+      "phase": "saturated",
+      "repetition": 11,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-11-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.030642541125416756
+    },
+    {
+      "phase": "saturated",
+      "repetition": 12,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-12-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.12002387503162026
+    },
+    {
+      "phase": "saturated",
+      "repetition": 12,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-12-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.030701708048582077
+    },
+    {
+      "phase": "saturated",
+      "repetition": 12,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-12-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 0.5206008749082685
+    },
+    {
+      "phase": "saturated",
+      "repetition": 12,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-12-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.03165549994446337
+    },
+    {
+      "phase": "saturated",
+      "repetition": 13,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-13-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.11528570903465152
+    },
+    {
+      "phase": "saturated",
+      "repetition": 13,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-13-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.026059458032250404
+    },
+    {
+      "phase": "saturated",
+      "repetition": 13,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-13-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 0.5238839997909963
+    },
+    {
+      "phase": "saturated",
+      "repetition": 13,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-13-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.0810990419704467
+    },
+    {
+      "phase": "saturated",
+      "repetition": 14,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-14-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.17491987510584295
+    },
+    {
+      "phase": "saturated",
+      "repetition": 14,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-14-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.026641917182132602
+    },
+    {
+      "phase": "saturated",
+      "repetition": 14,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-14-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 0.7586693749763072
+    },
+    {
+      "phase": "saturated",
+      "repetition": 14,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-14-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.12231833394616842
+    },
+    {
+      "phase": "saturated",
+      "repetition": 15,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-15-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.305366582935676
+    },
+    {
+      "phase": "saturated",
+      "repetition": 15,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-15-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.04085337487049401
+    },
+    {
+      "phase": "saturated",
+      "repetition": 15,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-15-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 2.5001231669448316
+    },
+    {
+      "phase": "saturated",
+      "repetition": 15,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-15-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.07066941587254405
+    },
+    {
+      "phase": "saturated",
+      "repetition": 16,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-16-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.15210833284072578
+    },
+    {
+      "phase": "saturated",
+      "repetition": 16,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-16-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.02109516691416502
+    },
+    {
+      "phase": "saturated",
+      "repetition": 16,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-16-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 1.2698552501387894
+    },
+    {
+      "phase": "saturated",
+      "repetition": 16,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-16-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.10212279111146927
+    },
+    {
+      "phase": "saturated",
+      "repetition": 17,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-17-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.18681295891292393
+    },
+    {
+      "phase": "saturated",
+      "repetition": 17,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-17-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.022789291804656386
+    },
+    {
+      "phase": "saturated",
+      "repetition": 17,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-17-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 1.4962855419144034
+    },
+    {
+      "phase": "saturated",
+      "repetition": 17,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-17-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.03962687496095896
+    },
+    {
+      "phase": "saturated",
+      "repetition": 18,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-18-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.10089337499812245
+    },
+    {
+      "phase": "saturated",
+      "repetition": 18,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-18-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.022200583014637232
+    },
+    {
+      "phase": "saturated",
+      "repetition": 18,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-18-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 0.5059547079727054
+    },
+    {
+      "phase": "saturated",
+      "repetition": 18,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-18-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.04393237503245473
+    },
+    {
+      "phase": "saturated",
+      "repetition": 19,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-19-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+      "duration_seconds": 0.21890566707588732
+    },
+    {
+      "phase": "saturated",
+      "repetition": 19,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-19-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+      "duration_seconds": 0.03326379111967981
+    },
+    {
+      "phase": "saturated",
+      "repetition": 19,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-19-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+      "duration_seconds": 1.089860500069335
+    },
+    {
+      "phase": "saturated",
+      "repetition": 19,
+      "command": [
+        "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+        "--exact",
+        "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "log": "saturated-19-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+      "duration_seconds": 0.036530917044728994
+    }
+  ],
+  "binary_sha256": "f66484ca916359f7e89bfde6ff4c8bf883b50410501f07f0c6d2a3763458789f",
+  "free_disk_before": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s1   3.6Ti   3.5Ti    71Gi    99%     13M  746M    2%   /System/Volumes/Data",
+  "observed_utc": "2026-09-28T01:54:56.338481+00:00",
+  "saturation_processes": "PID  %CPU COMMAND\n  393  45.7 yes\n  394  47.5 yes\n  395  64.9 yes\n  397  48.9 yes\n  398  58.1 yes\n  403  47.1 yes\n  406  56.4 yes\n  407  44.8 yes\n  408  46.2 yes\n  411  56.4 yes",
+  "saturation_pids": [
+    393,
+    394,
+    395,
+    397,
+    398,
+    403,
+    406,
+    407,
+    408,
+    411
+  ],
+  "saturation_cleanup": {
+    "393": -15,
+    "394": -15,
+    "395": -15,
+    "397": -15,
+    "398": -15,
+    "403": -15,
+    "406": -15,
+    "407": -15,
+    "408": -15,
+    "411": -15
+  },
+  "verdict": "PASS idle and fully CPU-saturated release traversal at b2e7e0faf86b64b8c7a54fb14210db7485c9fe99",
+  "completed_utc": "2026-09-28T01:54:56.338436+00:00"
+}

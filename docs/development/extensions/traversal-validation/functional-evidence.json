@@ -1,0 +1,3222 @@
+{
+  "recorded_utc": "2026-09-28T01:51:26.934795+00:00",
+  "purpose": "Functional qualification only; shared Capitola host, x86_64 Sail/Python via Rosetta. No publishable performance timings.",
+  "harness_and_native_source_sha": "b2e7e0faf86b64b8c7a54fb14210db7485c9fe99",
+  "controls_source_sha": "ebd3e669136fb954d1076430212a71d6f0c119fd",
+  "unfinished": [
+    "Linux traversal qualification",
+    "isolated performance measurements",
+    "large Graph500 capacity runs",
+    "Argentea Sail integration"
+  ],
+  "cases": [
+    {
+      "case": "local-bfs-r1-skew-small-nutmeg-datafusion-bfs-push_pull",
+      "receipt_sha256": "929f5cb8b5babc7e6da95914af4a44883240e956a9567dde463e8d2c312f0c2d",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-bfs-r1-skew-small-nutmeg-datafusion-bfs-push_pull/receipt.json",
+      "mode": "local",
+      "engine": "nutmeg-datafusion",
+      "algorithm": "bfs",
+      "variant": "push_pull",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "6FjlW3rzYyDvNovr_0.zst.parquet",
+          "bytes": 1534,
+          "sha256": "24129bc532cc01274e7de11bf52257eaa8006b3e620aad5478d01c39d5cba2b3"
+        },
+        {
+          "name": "6FjlW3rzYyDvNovr_1.zst.parquet",
+          "bytes": 1540,
+          "sha256": "993fa609fa23568ed2058b8e196d8b4b7e6fdd0eb429471cf6d94c61a3594180"
+        },
+        {
+          "name": "6FjlW3rzYyDvNovr_2.zst.parquet",
+          "bytes": 1560,
+          "sha256": "6007e53ab11bb8fe3a34efa10f7e350fef2e82f8b67b99edb41ef9d6c51e17f9"
+        },
+        {
+          "name": "6FjlW3rzYyDvNovr_3.zst.parquet",
+          "bytes": 1558,
+          "sha256": "7ef668bd48a74db05f3ee86284a520a9be5a4bc3f7305575f8c90e5f4b59ab65"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-bfs-r1-skew-small-nutmeg-datafusion-bfs-reference",
+      "receipt_sha256": "47bb2c4d2170299ed5f0ecabae33215047356f4bcb3a961ebed71905d8dfb509",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-bfs-r1-skew-small-nutmeg-datafusion-bfs-reference/receipt.json",
+      "mode": "local",
+      "engine": "nutmeg-datafusion",
+      "algorithm": "bfs",
+      "variant": "reference",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "62MdDfIZcOZ63wmW_0.zst.parquet",
+          "bytes": 1536,
+          "sha256": "2ae9944aa9f88ad60488b9b86cceb4b9535617c4663065c142eea2430258e556"
+        },
+        {
+          "name": "62MdDfIZcOZ63wmW_1.zst.parquet",
+          "bytes": 1524,
+          "sha256": "fa9a46952fbd548195686c897855c3f5a220592a98f2edbdaf83d663ff05161c"
+        },
+        {
+          "name": "62MdDfIZcOZ63wmW_2.zst.parquet",
+          "bytes": 1566,
+          "sha256": "240b0bfba53f6731393248c4e3eed57785bcdde1b6482903356685cc15ba7f73"
+        },
+        {
+          "name": "62MdDfIZcOZ63wmW_3.zst.parquet",
+          "bytes": 1558,
+          "sha256": "bde3bc222e8179729274845435cff66b5a1b602f111d94e64cc5cc1d5f487d7e"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-bfs-r1-skew-small-pecan-bfs-frontier",
+      "receipt_sha256": "745bd4767cb5bd0894c524bb9d9ee025efb8f42d2930b3ced3a7cc0b3fe9ef88",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-bfs-r1-skew-small-pecan-bfs-frontier/receipt.json",
+      "mode": "local",
+      "engine": "pecan",
+      "algorithm": "bfs",
+      "variant": "frontier",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "RyjKsqpif9Q2I21D_0.zst.parquet",
+          "bytes": 1533,
+          "sha256": "a4c4f537023eaba4127cb89c281b9e7bf09b91d66d35287bf6d4f46bee0b942d"
+        },
+        {
+          "name": "RyjKsqpif9Q2I21D_1.zst.parquet",
+          "bytes": 1542,
+          "sha256": "03e3ae1db0c02a4471d074eea0984b88329ad8f5a32378e2e3eed2cbe17374a6"
+        },
+        {
+          "name": "RyjKsqpif9Q2I21D_2.zst.parquet",
+          "bytes": 1551,
+          "sha256": "c6827a53225c756193ab967fd9f0a3bdf6b77f8a71913d7eebdc0d208e39f155"
+        },
+        {
+          "name": "RyjKsqpif9Q2I21D_3.zst.parquet",
+          "bytes": 1557,
+          "sha256": "f70638eb92d6e71edf9e37ed72cc94a6dac88d6021d155b45e817ccb7e39ff90"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-bfs-r1-skew-small-nutmeg-native-bfs-frontier",
+      "receipt_sha256": "0acb4077fd8909640d767f1ea43ada283ed91122a4551a97c7d7c551a8025b3a",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-bfs-r1-skew-small-nutmeg-native-bfs-frontier/receipt.json",
+      "mode": "local",
+      "engine": "nutmeg-native",
+      "algorithm": "bfs",
+      "variant": "frontier",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": false,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "F1EWhoAE2rMwwRH2_0.zst.parquet",
+          "bytes": 927,
+          "sha256": "087b142c5496f7756b275c225ccd6790a903f3edb91f2cda306641b69383944c"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-bfs-r1-skew-small-nutmeg-native-bfs-push_pull",
+      "receipt_sha256": "119a61f5e12728996785232fc96ff5779bb496f5219208bc78b0f9108fa2ce5a",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-bfs-r1-skew-small-nutmeg-native-bfs-push_pull/receipt.json",
+      "mode": "local",
+      "engine": "nutmeg-native",
+      "algorithm": "bfs",
+      "variant": "push_pull",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "BsKKlCqqqdgORawc_0.zst.parquet",
+          "bytes": 1652,
+          "sha256": "e650e2c2e9689659c0652fd48a0b800bbb3d2c898ed3aefce663fe46148a167f"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-bfs-r1-skew-small-pecan-bfs-reference",
+      "receipt_sha256": "c9dfe00add72fbbd1bb9ec06970a16c88da07b63dd7ec3e4938e351562561b95",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-bfs-r1-skew-small-pecan-bfs-reference/receipt.json",
+      "mode": "local",
+      "engine": "pecan",
+      "algorithm": "bfs",
+      "variant": "reference",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "5adp2yCkBba5EVUX_0.zst.parquet",
+          "bytes": 1542,
+          "sha256": "fd0462f08a32cb0f8ce7e0423fdfa9e4cb6a54b886887b2112f41d5d89e2d308"
+        },
+        {
+          "name": "5adp2yCkBba5EVUX_1.zst.parquet",
+          "bytes": 1540,
+          "sha256": "3ff0852098abb3743c67c37323dca4e6e3b604746eec55e7c70a5194f78a1aea"
+        },
+        {
+          "name": "5adp2yCkBba5EVUX_2.zst.parquet",
+          "bytes": 1555,
+          "sha256": "0c5c979d165a8e0069d0015d47477b87d07958e3a1a2802c0bcd81916d942172"
+        },
+        {
+          "name": "5adp2yCkBba5EVUX_3.zst.parquet",
+          "bytes": 1549,
+          "sha256": "88dfac2b6fec1997472bd9708584f1bfac0cf3eed728bde97629a8652b07c099"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-bfs-r1-skew-small-pecan-bfs-push_pull",
+      "receipt_sha256": "5bcea940a3051706d6a42d043780f6e65e2b63597bca1098045e397d1f22cc01",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-bfs-r1-skew-small-pecan-bfs-push_pull/receipt.json",
+      "mode": "local",
+      "engine": "pecan",
+      "algorithm": "bfs",
+      "variant": "push_pull",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "xpVD2nHYY2nLNG4E_0.zst.parquet",
+          "bytes": 1535,
+          "sha256": "115f8f28e879086aa145cf7bc0755765cd613925a516bd3fab90df60e3b71a09"
+        },
+        {
+          "name": "xpVD2nHYY2nLNG4E_1.zst.parquet",
+          "bytes": 1532,
+          "sha256": "77b3e36ed1b32edac3d037d2c345fe6ecd3518c2f3a79881173ef9b614306179"
+        },
+        {
+          "name": "xpVD2nHYY2nLNG4E_2.zst.parquet",
+          "bytes": 1553,
+          "sha256": "15a380fe980c71f3391e71e54fb5fc9d5757a038d8e1765335f477f603bea5ea"
+        },
+        {
+          "name": "xpVD2nHYY2nLNG4E_3.zst.parquet",
+          "bytes": 1558,
+          "sha256": "8e2e162839b9cfa2ba9666f7adc1bd23ace4321a92f394d6e9a1068b6dca6c82"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-bfs-r1-skew-small-nutmeg-datafusion-bfs-frontier",
+      "receipt_sha256": "38f73a8b60ec9f07e310fe575275929cefed893e0e6a7261a0b912a261442aab",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-bfs-r1-skew-small-nutmeg-datafusion-bfs-frontier/receipt.json",
+      "mode": "local",
+      "engine": "nutmeg-datafusion",
+      "algorithm": "bfs",
+      "variant": "frontier",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "FZPGwpJ7ftHFh44B_0.zst.parquet",
+          "bytes": 1541,
+          "sha256": "57130a62908642932556f577a21452d8af8836cfb44d5beda745f87752a20cbb"
+        },
+        {
+          "name": "FZPGwpJ7ftHFh44B_1.zst.parquet",
+          "bytes": 1534,
+          "sha256": "1968426bbdbda3b89e60e904b04eddce048f3443bd2c8f5b31659465e20e4a3f"
+        },
+        {
+          "name": "FZPGwpJ7ftHFh44B_2.zst.parquet",
+          "bytes": 1551,
+          "sha256": "59e76a794d00de996a0af534b5f0684e0e638c8701d229b352d54fabfcce153e"
+        },
+        {
+          "name": "FZPGwpJ7ftHFh44B_3.zst.parquet",
+          "bytes": 1549,
+          "sha256": "73bb8c9292181a5220fb10fe28788eb379f0f3ca01ae2d3583c764dfe720cfc9"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-bfs-r1-skew-small-nutmeg-native-bfs-reference",
+      "receipt_sha256": "e48017177f6d13f91015dea393bc0cf8d85157f993b6a8704a600d91c6e7fbec",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-bfs-r1-skew-small-nutmeg-native-bfs-reference/receipt.json",
+      "mode": "local",
+      "engine": "nutmeg-native",
+      "algorithm": "bfs",
+      "variant": "reference",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": false,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "E4mtYxihN94t2Lrk_0.zst.parquet",
+          "bytes": 927,
+          "sha256": "087b142c5496f7756b275c225ccd6790a903f3edb91f2cda306641b69383944c"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-sssp-r1-skew-small-nutmeg-datafusion-sssp-delta_star",
+      "receipt_sha256": "83efc54400793a774d18fd8d8201f8de1bbbf162eb31e436581cd772ccd5ae65",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-sssp-r1-skew-small-nutmeg-datafusion-sssp-delta_star/receipt.json",
+      "mode": "local",
+      "engine": "nutmeg-datafusion",
+      "algorithm": "sssp",
+      "variant": "delta_star",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "JZag8pNf9qQtC5TE_0.zst.parquet",
+          "bytes": 1541,
+          "sha256": "64e8da5d8a03d8c632e3f73f8a16e0957491f1fb4ff32c0c3086e122a3d05b81"
+        },
+        {
+          "name": "JZag8pNf9qQtC5TE_1.zst.parquet",
+          "bytes": 1549,
+          "sha256": "665439b9fc9f68e3cca585a11acec809ece0bee2f0e84b3633946f8efc5d99ba"
+        },
+        {
+          "name": "JZag8pNf9qQtC5TE_2.zst.parquet",
+          "bytes": 1561,
+          "sha256": "7a6facfef81cf44d8642b955c00b442b6d3573b1b6bf48f93547a61d40ec67f8"
+        },
+        {
+          "name": "JZag8pNf9qQtC5TE_3.zst.parquet",
+          "bytes": 1550,
+          "sha256": "52a7b16e19ba5778e9a696935c88d56c5ed4152a6902d681d7561be63d3fd0bc"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-sssp-r1-skew-small-nutmeg-datafusion-sssp-reference",
+      "receipt_sha256": "d7761c7ab764a2f5d4089923ce2d4a265fe75b4f1000a28e4f1cca4643db4f9b",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-sssp-r1-skew-small-nutmeg-datafusion-sssp-reference/receipt.json",
+      "mode": "local",
+      "engine": "nutmeg-datafusion",
+      "algorithm": "sssp",
+      "variant": "reference",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "Z8dhcSnqHpz7pjmx_0.zst.parquet",
+          "bytes": 1544,
+          "sha256": "750cc012e52f765d7da8181f4943e68b39ac44db62e10318004e951710fa12e0"
+        },
+        {
+          "name": "Z8dhcSnqHpz7pjmx_1.zst.parquet",
+          "bytes": 1545,
+          "sha256": "6404a4c70d6f7552ec3349ae57b80d913222dd79d7ecdad0eb6bd2d9ac302f49"
+        },
+        {
+          "name": "Z8dhcSnqHpz7pjmx_2.zst.parquet",
+          "bytes": 1570,
+          "sha256": "3d44b423cfc3f09d3f5bb821de1b57f86d94b028fa62b9c6f1cd90b18f051e0b"
+        },
+        {
+          "name": "Z8dhcSnqHpz7pjmx_3.zst.parquet",
+          "bytes": 1561,
+          "sha256": "0c67897be11bbec18587fb65dc69dc70c06d5f91f324df9b421b3d86eda8fbe2"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-sssp-r1-skew-small-nutmeg-native-sssp-frontier",
+      "receipt_sha256": "47331c2490adf907ac199277aee550f868ab6d1a1e1786eca88fc1129fcb0aa6",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-sssp-r1-skew-small-nutmeg-native-sssp-frontier/receipt.json",
+      "mode": "local",
+      "engine": "nutmeg-native",
+      "algorithm": "sssp",
+      "variant": "frontier",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": false,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "2PfZRnId0BT165DD_0.zst.parquet",
+          "bytes": 960,
+          "sha256": "6686422cb42e1888092c6457478ebfa402f446b4ebf1bb017ad067cdeb7ec946"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-sssp-r1-skew-small-nutmeg-native-sssp-reference",
+      "receipt_sha256": "e5e9b5f53c7587b77118233a7863446731476edf077ffdf904fc2f47fe12eb3d",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-sssp-r1-skew-small-nutmeg-native-sssp-reference/receipt.json",
+      "mode": "local",
+      "engine": "nutmeg-native",
+      "algorithm": "sssp",
+      "variant": "reference",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": false,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "2J2ZXCnBniFycwbD_0.zst.parquet",
+          "bytes": 960,
+          "sha256": "6686422cb42e1888092c6457478ebfa402f446b4ebf1bb017ad067cdeb7ec946"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-sssp-r1-skew-small-nutmeg-datafusion-sssp-frontier",
+      "receipt_sha256": "078434837f7ab2eb41a0e6b1f1c5a916fca601204c849324e59ffcc04b21b3fc",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-sssp-r1-skew-small-nutmeg-datafusion-sssp-frontier/receipt.json",
+      "mode": "local",
+      "engine": "nutmeg-datafusion",
+      "algorithm": "sssp",
+      "variant": "frontier",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "C0k3GgPT75tnfc19_0.zst.parquet",
+          "bytes": 1545,
+          "sha256": "83e1f14e22459653d6a465a72a801486b4a275d5a39c687fa2c07a4ddb5efba9"
+        },
+        {
+          "name": "C0k3GgPT75tnfc19_1.zst.parquet",
+          "bytes": 1546,
+          "sha256": "1b45300d4b07eb6e32a3be64a76140cdbf04b4a0f0fcccbe617b64d861617a5f"
+        },
+        {
+          "name": "C0k3GgPT75tnfc19_2.zst.parquet",
+          "bytes": 1553,
+          "sha256": "b80102e95343c8213d4f85e3f26d2532e76d922bc93680adf3713990c6664794"
+        },
+        {
+          "name": "C0k3GgPT75tnfc19_3.zst.parquet",
+          "bytes": 1558,
+          "sha256": "08766966ac76b60679f7b00b4fe554a6d79572ebf91bafb23b5dbac94e47ddfb"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-sssp-r1-skew-small-pecan-sssp-reference",
+      "receipt_sha256": "4b8267f7971d9640b1e857057279aa87484e2719558ca02422d72560e4191d5a",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-sssp-r1-skew-small-pecan-sssp-reference/receipt.json",
+      "mode": "local",
+      "engine": "pecan",
+      "algorithm": "sssp",
+      "variant": "reference",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "3KbqfxEni4CrkrHV_0.zst.parquet",
+          "bytes": 1544,
+          "sha256": "41810225551613670b66e8c1b8a980d71ed703a6443833941933a2da0603a1bb"
+        },
+        {
+          "name": "3KbqfxEni4CrkrHV_1.zst.parquet",
+          "bytes": 1552,
+          "sha256": "dc52aa134ad56f39b8b6f4eb483b367a0580426c5353db5cac2fe143a164495c"
+        },
+        {
+          "name": "3KbqfxEni4CrkrHV_2.zst.parquet",
+          "bytes": 1558,
+          "sha256": "8bf06c6f7af9b02357cb58e5c6d2128633b412a585494e5da070349e401f9fd3"
+        },
+        {
+          "name": "3KbqfxEni4CrkrHV_3.zst.parquet",
+          "bytes": 1561,
+          "sha256": "7fb64dd81c33d65acfd3ee99189badf687fa5888bb6e450743b31a462ac976d3"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-sssp-r1-skew-small-pecan-sssp-delta_star",
+      "receipt_sha256": "7066a051d9dca3d8d9cf6cfe3efd6f3827f771e88511f09bed1f16685769f04c",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-sssp-r1-skew-small-pecan-sssp-delta_star/receipt.json",
+      "mode": "local",
+      "engine": "pecan",
+      "algorithm": "sssp",
+      "variant": "delta_star",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "sik38sKpDH4TWEsR_0.zst.parquet",
+          "bytes": 1525,
+          "sha256": "a1a208ab1c53c1dae12fee14abc50e30339803241861f2c207cd8e3171a116f7"
+        },
+        {
+          "name": "sik38sKpDH4TWEsR_1.zst.parquet",
+          "bytes": 1549,
+          "sha256": "b4d61ed1cb1fa600f8317466aa8f14ef7aca17560705088aa0f73b25ba97f9eb"
+        },
+        {
+          "name": "sik38sKpDH4TWEsR_2.zst.parquet",
+          "bytes": 1563,
+          "sha256": "59c5461ea59a4bfe94b7d7c377797b894ed3f5b72a70ded237cc9c5f6b616498"
+        },
+        {
+          "name": "sik38sKpDH4TWEsR_3.zst.parquet",
+          "bytes": 1564,
+          "sha256": "a4c21a06b81e3ae816511d54b0033392cd2cc84a8aa6265db2140d5d28cf32f9"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-sssp-r1-skew-small-pecan-sssp-frontier",
+      "receipt_sha256": "c4a10ade6099306a4b5c4085eb5f23f3865918fc3c9f0c0749700b56cd69fd34",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-sssp-r1-skew-small-pecan-sssp-frontier/receipt.json",
+      "mode": "local",
+      "engine": "pecan",
+      "algorithm": "sssp",
+      "variant": "frontier",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "jrVkmoy9qm8cADJw_0.zst.parquet",
+          "bytes": 1538,
+          "sha256": "84cb2e8cdf39adb13c6692e1b8d2f52ba774567b65bddc246210ebebc52a2556"
+        },
+        {
+          "name": "jrVkmoy9qm8cADJw_1.zst.parquet",
+          "bytes": 1538,
+          "sha256": "ad923072094ccbdbc7b67a48e3b19ed6f58d7442fc128f10714e5b9572fb52b3"
+        },
+        {
+          "name": "jrVkmoy9qm8cADJw_2.zst.parquet",
+          "bytes": 1562,
+          "sha256": "6f7314e6f2c87b06a4e6ee9cd00a2adc92bd62ccf6a7c64eb43db22dcf17c3fe"
+        },
+        {
+          "name": "jrVkmoy9qm8cADJw_3.zst.parquet",
+          "bytes": 1563,
+          "sha256": "632305346129fefeddcee7cf6bace39631888ed03ba84d5daa60f8bbb5fae695"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "local-sssp-r1-skew-small-nutmeg-native-sssp-delta_star",
+      "receipt_sha256": "8c8466a70b5445392e69f3fe07b1fa136afc7dee44dbc5d285ec852d156b366d",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/local-sssp-r1-skew-small-nutmeg-native-sssp-delta_star/receipt.json",
+      "mode": "local",
+      "engine": "nutmeg-native",
+      "algorithm": "sssp",
+      "variant": "delta_star",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": false,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "JD5286w8V3Pjj3yH_0.zst.parquet",
+          "bytes": 960,
+          "sha256": "6686422cb42e1888092c6457478ebfa402f446b4ebf1bb017ad067cdeb7ec946"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-bfs-r1-skew-small-nutmeg-native-bfs-reference",
+      "receipt_sha256": "2c563482761dd76dd520b30c6927a65f5963ac9ed44388182ac2b58e7b89fdc0",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-bfs-r1-skew-small-nutmeg-native-bfs-reference/receipt.json",
+      "mode": "process-cluster",
+      "engine": "nutmeg-native",
+      "algorithm": "bfs",
+      "variant": "reference",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": false,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "dfHi1Qqd38dnPIu2_0.zst.parquet",
+          "bytes": 927,
+          "sha256": "087b142c5496f7756b275c225ccd6790a903f3edb91f2cda306641b69383944c"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-bfs-r1-skew-small-nutmeg-datafusion-bfs-push_pull",
+      "receipt_sha256": "716217f25bfcaf5ef61a16989bccb4b47a429f6bde7ddc8efe9f0c9e8258d3f7",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-bfs-r1-skew-small-nutmeg-datafusion-bfs-push_pull/receipt.json",
+      "mode": "process-cluster",
+      "engine": "nutmeg-datafusion",
+      "algorithm": "bfs",
+      "variant": "push_pull",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "mha454B1VzcnhDXZ_0.zst.parquet",
+          "bytes": 1672,
+          "sha256": "fed275879a57d5838b16d51eda1d1d9fb58163543052246a6c2686b70cae048e"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-bfs-r1-skew-small-nutmeg-datafusion-bfs-reference",
+      "receipt_sha256": "e0c1cd7fd5a13033480e7cc47b728bd4f4b492bd4fde9f942be99cb80ab2f397",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-bfs-r1-skew-small-nutmeg-datafusion-bfs-reference/receipt.json",
+      "mode": "process-cluster",
+      "engine": "nutmeg-datafusion",
+      "algorithm": "bfs",
+      "variant": "reference",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "zFtrzKrPZhLiKoru_0.zst.parquet",
+          "bytes": 1679,
+          "sha256": "eaed6ec1f758a12d45cacbcc86c6b593a57355e6c5b37039fc9e404a5a154f85"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-bfs-r1-skew-small-pecan-bfs-frontier",
+      "receipt_sha256": "1ac030d6a6ce5b974589f683ea6eae99b66773e8dbe310a23c21d5e8ab263d0d",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-bfs-r1-skew-small-pecan-bfs-frontier/receipt.json",
+      "mode": "process-cluster",
+      "engine": "pecan",
+      "algorithm": "bfs",
+      "variant": "frontier",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "S6knmAIABAPJPFGm_0.zst.parquet",
+          "bytes": 1653,
+          "sha256": "e5daa3eed9c3c037f443125e1422be44d34f8154db259bddddf3427824de49b4"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-bfs-r1-skew-small-nutmeg-native-bfs-push_pull",
+      "receipt_sha256": "9ac535b29994726ffda6ff6ba1582368faa9987795c3e36520bf2ff60402ce6d",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-bfs-r1-skew-small-nutmeg-native-bfs-push_pull/receipt.json",
+      "mode": "process-cluster",
+      "engine": "nutmeg-native",
+      "algorithm": "bfs",
+      "variant": "push_pull",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "4Tp7NrMhVMmKJoE4_0.zst.parquet",
+          "bytes": 1652,
+          "sha256": "e650e2c2e9689659c0652fd48a0b800bbb3d2c898ed3aefce663fe46148a167f"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-bfs-r1-skew-small-nutmeg-native-bfs-frontier",
+      "receipt_sha256": "b0fee603e257a4b1f8c9f30ff1fd683b9e60023ed080a2074626af1eea016037",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-bfs-r1-skew-small-nutmeg-native-bfs-frontier/receipt.json",
+      "mode": "process-cluster",
+      "engine": "nutmeg-native",
+      "algorithm": "bfs",
+      "variant": "frontier",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": false,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "Tw7B4utTiWiaaac3_0.zst.parquet",
+          "bytes": 927,
+          "sha256": "087b142c5496f7756b275c225ccd6790a903f3edb91f2cda306641b69383944c"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-bfs-r1-skew-small-nutmeg-datafusion-bfs-frontier",
+      "receipt_sha256": "769a5f908250e279932deaa4b8286c3aa4f0700ba2ced29cda2a158544eb9bb0",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-bfs-r1-skew-small-nutmeg-datafusion-bfs-frontier/receipt.json",
+      "mode": "process-cluster",
+      "engine": "nutmeg-datafusion",
+      "algorithm": "bfs",
+      "variant": "frontier",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "8ZYEhNMzeZtcsG6M_0.zst.parquet",
+          "bytes": 1671,
+          "sha256": "91ed15b6476944e0b21a11f84a0c1d3fe4c426874baf55ed0b6d967f0b19a18c"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-bfs-r1-skew-small-pecan-bfs-push_pull",
+      "receipt_sha256": "5c726183b15860274aa82a00ca979e782ff75ccc3ca78b212654fc3b7249695f",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-bfs-r1-skew-small-pecan-bfs-push_pull/receipt.json",
+      "mode": "process-cluster",
+      "engine": "pecan",
+      "algorithm": "bfs",
+      "variant": "push_pull",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "uRNKBqlUEnFPt2yL_0.zst.parquet",
+          "bytes": 1675,
+          "sha256": "f249bba5adb78e2b7fb3ba130cf949f5d8744ac7a38977055c301e27a38a1ce0"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-bfs-r1-skew-small-pecan-bfs-reference",
+      "receipt_sha256": "a58f19b0571f6a419d8b5f1de4904d1b66d7a6bf8f1c68200f83e24e0da4994d",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-bfs-r1-skew-small-pecan-bfs-reference/receipt.json",
+      "mode": "process-cluster",
+      "engine": "pecan",
+      "algorithm": "bfs",
+      "variant": "reference",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "eZHu517oqPl5RX1x_0.zst.parquet",
+          "bytes": 1674,
+          "sha256": "ca8b693fa0822df9b0249d8942207bc75aedc91b0d1a74780f4852e862dfa7e8"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-sssp-r1-skew-small-nutmeg-native-sssp-delta_star",
+      "receipt_sha256": "31435e1507e06aa65462bc5d2eaf315ebf52b8c908fc76049cb5f85c3b12e207",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-sssp-r1-skew-small-nutmeg-native-sssp-delta_star/receipt.json",
+      "mode": "process-cluster",
+      "engine": "nutmeg-native",
+      "algorithm": "sssp",
+      "variant": "delta_star",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": false,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "pTI6YI8fkOvDqC3n_0.zst.parquet",
+          "bytes": 960,
+          "sha256": "6686422cb42e1888092c6457478ebfa402f446b4ebf1bb017ad067cdeb7ec946"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-sssp-r1-skew-small-nutmeg-native-sssp-reference",
+      "receipt_sha256": "e378fcee77ceb9ee98321f7489decb62918ce43a25040480ee49b44ff848e313",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-sssp-r1-skew-small-nutmeg-native-sssp-reference/receipt.json",
+      "mode": "process-cluster",
+      "engine": "nutmeg-native",
+      "algorithm": "sssp",
+      "variant": "reference",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": false,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "CdXMWeiK1kuZxqQC_0.zst.parquet",
+          "bytes": 960,
+          "sha256": "6686422cb42e1888092c6457478ebfa402f446b4ebf1bb017ad067cdeb7ec946"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-sssp-r1-skew-small-nutmeg-datafusion-sssp-reference",
+      "receipt_sha256": "d1e4487c5d0472418f11a7a317b16aa3c6eb82ec05e52aa7a8b51f37ddf0843e",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-sssp-r1-skew-small-nutmeg-datafusion-sssp-reference/receipt.json",
+      "mode": "process-cluster",
+      "engine": "nutmeg-datafusion",
+      "algorithm": "sssp",
+      "variant": "reference",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "7bgznGkAlkxapVHN_0.zst.parquet",
+          "bytes": 1708,
+          "sha256": "754d869db3a5bf432b07aa516e97b1b2e46bc3c6f8b774fd0baa5682e348c599"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-sssp-r1-skew-small-pecan-sssp-frontier",
+      "receipt_sha256": "a21809788e58092dbb6b3badbfbfe40937e59d106cf713b306a06014d8d79afd",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-sssp-r1-skew-small-pecan-sssp-frontier/receipt.json",
+      "mode": "process-cluster",
+      "engine": "pecan",
+      "algorithm": "sssp",
+      "variant": "frontier",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "5zxCFUxesrPoXfI3_0.zst.parquet",
+          "bytes": 1715,
+          "sha256": "4164383e386a86c82d180a9378d91947b8fed372d8f4ab80ef7181a94da47317"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-sssp-r1-skew-small-nutmeg-datafusion-sssp-frontier",
+      "receipt_sha256": "2245d43c53167659336ea2a7ba34d6bb87b3299d09b16f2f39ac8045c08a562d",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-sssp-r1-skew-small-nutmeg-datafusion-sssp-frontier/receipt.json",
+      "mode": "process-cluster",
+      "engine": "nutmeg-datafusion",
+      "algorithm": "sssp",
+      "variant": "frontier",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "amCczjg6RgAgyzoz_0.zst.parquet",
+          "bytes": 1691,
+          "sha256": "c2992b47f56ba6c775e22b54d0220c5ab1f0d94f01460b409cfcd156e5982111"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-sssp-r1-skew-small-pecan-sssp-reference",
+      "receipt_sha256": "79ba2b0d3122a3d2b54e102099c8d520e4f0bf6ddf8e2a1515674ce74cb9f536",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-sssp-r1-skew-small-pecan-sssp-reference/receipt.json",
+      "mode": "process-cluster",
+      "engine": "pecan",
+      "algorithm": "sssp",
+      "variant": "reference",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "gwmlAZ0tQb21xKFK_0.zst.parquet",
+          "bytes": 1687,
+          "sha256": "4537e1b1f603bb58f21bd5f55ef153c27235dd186caacefcce84e677f32c8c56"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-sssp-r1-skew-small-nutmeg-native-sssp-frontier",
+      "receipt_sha256": "e3f72debb0862c3a6b70691d2f0e8fad2f4d4dd39897e3eb4c0fb2e13ef4be40",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-sssp-r1-skew-small-nutmeg-native-sssp-frontier/receipt.json",
+      "mode": "process-cluster",
+      "engine": "nutmeg-native",
+      "algorithm": "sssp",
+      "variant": "frontier",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": false,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "uDpCV7jzgoFzrsPB_0.zst.parquet",
+          "bytes": 960,
+          "sha256": "6686422cb42e1888092c6457478ebfa402f446b4ebf1bb017ad067cdeb7ec946"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-sssp-r1-skew-small-pecan-sssp-delta_star",
+      "receipt_sha256": "d7343d4820f68d227c50ec9f2e1e1618e2c369720b655d22a6f2a496b2c7a1ca",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-sssp-r1-skew-small-pecan-sssp-delta_star/receipt.json",
+      "mode": "process-cluster",
+      "engine": "pecan",
+      "algorithm": "sssp",
+      "variant": "delta_star",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "6BgyQf4kZ6zYthgf_0.zst.parquet",
+          "bytes": 1715,
+          "sha256": "7b80b6d578cf1ed399a46e867732033320e99185a57bb9cf5b592a81936c9fdd"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "process-cluster-sssp-r1-skew-small-nutmeg-datafusion-sssp-delta_star",
+      "receipt_sha256": "f2657f57b5092679da6fe793140173d8e22a1958a8a6fa7b216512b9ffa25f4f",
+      "local_receipt": "/tmp/sail-traversal-all-paths-b2e7/process-cluster-sssp-r1-skew-small-nutmeg-datafusion-sssp-delta_star/receipt.json",
+      "mode": "process-cluster",
+      "engine": "nutmeg-datafusion",
+      "algorithm": "sssp",
+      "variant": "delta_star",
+      "dataset": {
+        "vertices": 32,
+        "edges": 79
+      },
+      "correctness": {
+        "rows": 32,
+        "unique": 32,
+        "parent_tree_checked": true,
+        "reference": "independent BFS/heap-Dijkstra"
+      },
+      "result_files": [
+        {
+          "name": "RDKcYVkjYVu0mZba_0.zst.parquet",
+          "bytes": 1708,
+          "sha256": "ff2c7cdf1ce407f46341104283c11a0782a67db2361d016246623bc546dd12ef"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "pecan-bfs",
+      "receipt_sha256": "d3e3b16650b8dfdc2ed44ca2a35cd0a96a16b31c036bad7c6de6620d40d5e27f",
+      "local_receipt": "/tmp/sail-traversal-certified-b2e7/pecan-bfs/receipt.json",
+      "mode": "process-cluster",
+      "engine": "pecan",
+      "algorithm": "bfs",
+      "variant": "push_pull",
+      "dataset": {
+        "edges": 256,
+        "vertices": 64
+      },
+      "correctness": {
+        "rows": 64,
+        "unique": 64,
+        "reached": 48,
+        "certificate": "all-edge inequalities and rooted tight-edge reachability",
+        "witness_rounds": 4,
+        "relative_edge_tolerance": 0.0,
+        "max_edge_slack": 0.0,
+        "conservative_absolute_distance_error_bound": 0.0,
+        "reference": "distributed certificate; no precomputed reference vector",
+        "parent_tree_checked": true
+      },
+      "result_files": [
+        {
+          "name": "ytZl4TYVoIms6vCG_0.zst.parquet",
+          "bytes": 1784,
+          "sha256": "552ad35133737283560a8638dbeda775ca474e9e1a50b5c28c1d81cc0e04e406"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "pecan-sssp",
+      "receipt_sha256": "117b3dd61fac1bb81b864d13b38632424a5aea95207641b90769e1cbc6cf7ae0",
+      "local_receipt": "/tmp/sail-traversal-certified-b2e7/pecan-sssp/receipt.json",
+      "mode": "process-cluster",
+      "engine": "pecan",
+      "algorithm": "sssp",
+      "variant": "delta_star",
+      "dataset": {
+        "edges": 256,
+        "vertices": 64
+      },
+      "correctness": {
+        "rows": 64,
+        "unique": 64,
+        "reached": 48,
+        "certificate": "all-edge inequalities and rooted tight-edge reachability",
+        "witness_rounds": 5,
+        "relative_edge_tolerance": 1e-12,
+        "max_edge_slack": 4.290715306997299e-12,
+        "conservative_absolute_distance_error_bound": 2.703430419610504e-10,
+        "reference": "distributed certificate; no precomputed reference vector",
+        "parent_tree_checked": true
+      },
+      "result_files": [
+        {
+          "name": "MxJwtxPKwY07XKJq_0.zst.parquet",
+          "bytes": 2075,
+          "sha256": "c5a79f23c1ab531d64a786b954da4df6342015b8b06ae000a0b317bb611c6708"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "nutmeg-native-bfs",
+      "receipt_sha256": "fdfb8f23b3cf2143a89e63cce4f402b05ea1b169482bc1b52882653b3a9ae50b",
+      "local_receipt": "/tmp/sail-traversal-certified-b2e7/nutmeg-native-bfs/receipt.json",
+      "mode": "process-cluster",
+      "engine": "nutmeg-native",
+      "algorithm": "bfs",
+      "variant": "push_pull",
+      "dataset": {
+        "edges": 256,
+        "vertices": 64
+      },
+      "correctness": {
+        "rows": 64,
+        "unique": 64,
+        "reached": 48,
+        "certificate": "all-edge inequalities and rooted tight-edge reachability",
+        "witness_rounds": 4,
+        "relative_edge_tolerance": 0.0,
+        "max_edge_slack": 0.0,
+        "conservative_absolute_distance_error_bound": 0.0,
+        "reference": "distributed certificate; no precomputed reference vector",
+        "parent_tree_checked": true
+      },
+      "result_files": [
+        {
+          "name": "GA0UYT4IDAB01VNw_0.zst.parquet",
+          "bytes": 1749,
+          "sha256": "886854e3601d256d20836eda97144160fbec91deeac6b079cabaf088d70905e7"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "nutmeg-native-sssp",
+      "receipt_sha256": "cd8bb63b3183443122ba43defe1d3c61ad90bcf57bf2bda5c45c51f761810fbd",
+      "local_receipt": "/tmp/sail-traversal-certified-b2e7/nutmeg-native-sssp/receipt.json",
+      "mode": "process-cluster",
+      "engine": "nutmeg-native",
+      "algorithm": "sssp",
+      "variant": "delta_star",
+      "dataset": {
+        "edges": 256,
+        "vertices": 64
+      },
+      "correctness": {
+        "rows": 64,
+        "unique": 64,
+        "reached": 48,
+        "certificate": "all-edge inequalities and rooted tight-edge reachability",
+        "witness_rounds": 5,
+        "relative_edge_tolerance": 1e-12,
+        "max_edge_slack": 4.290715306997299e-12,
+        "conservative_absolute_distance_error_bound": 2.703430419610504e-10,
+        "reference": "distributed certificate; no precomputed reference vector",
+        "parent_tree_checked": false
+      },
+      "result_files": [
+        {
+          "name": "LQCLqRaTlIeEGJsB_0.zst.parquet",
+          "bytes": 1267,
+          "sha256": "50a8c91f68908185c92e727a2f644cd24fa25e8cb8fca6e11fe38b6eb609be86"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "nutmeg-datafusion-bfs",
+      "receipt_sha256": "475550c32cf59639bc6f683bdcc8de2f136975532099ca19e1f6d98b9118453f",
+      "local_receipt": "/tmp/sail-traversal-certified-b2e7/nutmeg-datafusion-bfs/receipt.json",
+      "mode": "process-cluster",
+      "engine": "nutmeg-datafusion",
+      "algorithm": "bfs",
+      "variant": "push_pull",
+      "dataset": {
+        "edges": 256,
+        "vertices": 64
+      },
+      "correctness": {
+        "rows": 64,
+        "unique": 64,
+        "reached": 48,
+        "certificate": "all-edge inequalities and rooted tight-edge reachability",
+        "witness_rounds": 4,
+        "relative_edge_tolerance": 0.0,
+        "max_edge_slack": 0.0,
+        "conservative_absolute_distance_error_bound": 0.0,
+        "reference": "distributed certificate; no precomputed reference vector",
+        "parent_tree_checked": true
+      },
+      "result_files": [
+        {
+          "name": "bxTZFdDVqtPmBjop_0.zst.parquet",
+          "bytes": 1787,
+          "sha256": "a47d7df28d6bc3530355cb518478b07fe45fed9e5100b191a057ecfe55e67da5"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    },
+    {
+      "case": "nutmeg-datafusion-sssp",
+      "receipt_sha256": "22151b904fb90467637ed411fd477a51912b40147a357a8698848c52a981f671",
+      "local_receipt": "/tmp/sail-traversal-certified-b2e7/nutmeg-datafusion-sssp/receipt.json",
+      "mode": "process-cluster",
+      "engine": "nutmeg-datafusion",
+      "algorithm": "sssp",
+      "variant": "delta_star",
+      "dataset": {
+        "edges": 256,
+        "vertices": 64
+      },
+      "correctness": {
+        "rows": 64,
+        "unique": 64,
+        "reached": 48,
+        "certificate": "all-edge inequalities and rooted tight-edge reachability",
+        "witness_rounds": 5,
+        "relative_edge_tolerance": 1e-12,
+        "max_edge_slack": 4.290715306997299e-12,
+        "conservative_absolute_distance_error_bound": 2.703430419610504e-10,
+        "reference": "distributed certificate; no precomputed reference vector",
+        "parent_tree_checked": true
+      },
+      "result_files": [
+        {
+          "name": "WqcuLkSBXAgA1qlo_0.zst.parquet",
+          "bytes": 2074,
+          "sha256": "62a4b4fc111dc1cfc6d0a6f2ac0cda65af5116c210f056a7d375b4c87b58fa1e"
+        }
+      ],
+      "cleanup_errors": [],
+      "staging_files_after_shutdown": [],
+      "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+      "binary_sha256": "3018463966771e0b2118effc82de5bf80037f46bb8b4c06ca889bdb52e4c32cf",
+      "native_package_identity": {
+        "root": "/tmp/sail-traversal-x86-venv/lib/python3.12/site-packages/sail_nutmeg",
+        "files_sha256": {
+          "__init__.py": "8ab1469a2f7411203604d2faaae29b30a35689599eb62d0bb397ab672cdb53ab",
+          "_native.cpython-312-darwin.so": "cf7f6dca1234bd35651b2b1b2e45b0b7e8e4d5cc4ec168a5d07706edf6a3284c",
+          "client.py": "8f12cc9d89333342056f656dbec1fa871d9419dd6e10b9e1091ba39995970624",
+          "graph.py": "6ec3cb51c88dcbf677bde93bc2320dead5703e3f586d1b0a59b34919dc20cb57"
+        }
+      },
+      "outcome": "passed"
+    }
+  ],
+  "logs": {
+    "sail-traversal-portable-validated.log": "d3b4b5adcd7f14fe7d51dfe24f99502c6f94ed25433c412159c9e4273faf3ebd",
+    "sail-traversal-harness-validated.log": "c4b1e875d1c14b9a759d4d290860b17ea30730b2e4f0d9500041239c84bcecf6",
+    "sail-traversal-controls-frozen.log": "7aea8dad8bfdf682ca740da1b1944e1646ad872cb26889e9103703f73e3e5278",
+    "sail-traversal-all-paths-validated.log": "e3af8b160677929c4016c0cefe10350c48cde141ad1c256a7ddc86d3b14475b5",
+    "sail-traversal-certified.log": "90fb311478950be25a2fb4afbe742160f075b1830df1613bbeb0596fefe1dbb5",
+    "sail-traversal-queue-original.log": "e07e7ae4ea68592d4cca996405244117f18a1279b25ae83111b86f06347626cc",
+    "sail-traversal-clippy-b2e7.log": "ae7c702f386eecd1fb85caf7234ae30b50bca965496829eca927ce860833e01e",
+    "sail-traversal-native-gate-b2e7.log": "915f8944d8e554c25244ee07f7301480b57cd374481a424b59782eff8313153c",
+    "release-stress/saturated-09-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "afd51c4a1589ab8737e5cbc279c00208c58844cbf899460f661c44d256ab1e3d",
+    "release-stress/saturated-14-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "64d5fef1a2f4fd74356f5c78a5453bf559715076c7dc326db0dbd8ec14fc89f2",
+    "release-stress/saturated-06-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "10acf12590ee738ff8cb72f5312f86e6dc81ddd93e43d78b38399b1e7817ea4c",
+    "release-stress/saturated-03-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/saturated-15-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "42c5c764e64b81e8963cf636fa002f7146e5f6a2468af838218f9ed44db8c31d",
+    "release-stress/saturated-04-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "19a668f6fc74da773f38855a6d25d1ce943ff070ac2fcb7ad4ddb52b6ef9819f",
+    "release-stress/saturated-11-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "845fab273a78b981584890a0108f03fabf5af0225c5c54799a8bcb66533d47d8",
+    "release-stress/saturated-16-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "a2427a4772c71490ee42d42c3d2dd8e14a05e4bbfe660a605770fe14b5b903bc",
+    "release-stress/saturated-13-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "19a668f6fc74da773f38855a6d25d1ce943ff070ac2fcb7ad4ddb52b6ef9819f",
+    "release-stress/saturated-07-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "390d1752311f41afcd71ba66c1ed1a30ec31f74b6c2db70e517313d5256b13bb",
+    "release-stress/saturated-09-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "845fab273a78b981584890a0108f03fabf5af0225c5c54799a8bcb66533d47d8",
+    "release-stress/saturated-19-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "c3ead8435b7fb566e5d4546c06e31d20d77428c2908aa68f253c9991c720070c",
+    "release-stress/saturated-04-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "b344a07b59809cc365d733976f13456a8b51433bceeb71d0ec5793ba6ad940ee",
+    "release-stress/saturated-04-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/saturated-01-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/idle-00-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "6553107ff8fa71196192431eb8642d99072b0dc7709564b33d0d77a1cdb2f7b1",
+    "release-stress/saturated-10-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "afd51c4a1589ab8737e5cbc279c00208c58844cbf899460f661c44d256ab1e3d",
+    "release-stress/saturated-14-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "dade74853039cc9f8718ba0d7791598052b62c95ae7898ea0791155e3d36033d",
+    "release-stress/saturated-05-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "8bb5e3e94e18b2e63f440dddd7733e791b144eaf78949dc85572d85d4a0ea3c0",
+    "release-stress/saturated-13-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "a2618d556a07769e4c176963e3b6e017a5bbc94c5a213e8650d3c5ac8d44c181",
+    "release-stress/saturated-11-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "a4aaaee676c9f6eb4546384df591586eac2f3a97255a705a66d1450aa87f8a8f",
+    "release-stress/saturated-11-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "9661b85dc89cf40290306e6ed632318b286a56f9d42eeceef0bd1afd6d237e1f",
+    "release-stress/saturated-01-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "1de6945fb580b62e9478f538f62229c5d5d5ac49f1eeb2d28921d8d568639d1f",
+    "release-stress/saturated-10-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "b0612bca29ced24b914fd0bf16514e420adcda9b5feeb92ee0d4151f7b99f9ce",
+    "release-stress/saturated-06-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "1de6945fb580b62e9478f538f62229c5d5d5ac49f1eeb2d28921d8d568639d1f",
+    "release-stress/saturated-06-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "390d1752311f41afcd71ba66c1ed1a30ec31f74b6c2db70e517313d5256b13bb",
+    "release-stress/saturated-08-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "79142bee7f98bec6f094618b9e08ce594872f38a31f1f763356c0a7403ea1469",
+    "release-stress/saturated-17-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/saturated-12-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/saturated-09-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "e266bc527a27970f05ddc1cde2ef4732d0d685e9860ad0ab177fb9bbc6195ded",
+    "release-stress/saturated-15-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "c3ead8435b7fb566e5d4546c06e31d20d77428c2908aa68f253c9991c720070c",
+    "release-stress/saturated-10-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/saturated-04-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "dade74853039cc9f8718ba0d7791598052b62c95ae7898ea0791155e3d36033d",
+    "release-stress/saturated-18-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "216433a569c77e7f425c25f13fbafef3fdde12118b92d96767b45408397e67f0",
+    "release-stress/saturated-12-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "afd51c4a1589ab8737e5cbc279c00208c58844cbf899460f661c44d256ab1e3d",
+    "release-stress/saturated-19-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "8bb5e3e94e18b2e63f440dddd7733e791b144eaf78949dc85572d85d4a0ea3c0",
+    "release-stress/saturated-03-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "845fab273a78b981584890a0108f03fabf5af0225c5c54799a8bcb66533d47d8",
+    "release-stress/saturated-08-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "9661b85dc89cf40290306e6ed632318b286a56f9d42eeceef0bd1afd6d237e1f",
+    "release-stress/saturated-01-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "e266bc527a27970f05ddc1cde2ef4732d0d685e9860ad0ab177fb9bbc6195ded",
+    "release-stress/saturated-05-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "83692e8a1d6824b5a01df9f22a91bdbcbc415b9866a506a21ba674384a43cb2f",
+    "release-stress/saturated-08-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/saturated-19-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "845fab273a78b981584890a0108f03fabf5af0225c5c54799a8bcb66533d47d8",
+    "release-stress/saturated-00-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "0969a5de5d43e0f1f8a76c2fe28250a78388a744f39ae871a58e88e47949be2f",
+    "release-stress/saturated-07-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "845fab273a78b981584890a0108f03fabf5af0225c5c54799a8bcb66533d47d8",
+    "release-stress/saturated-19-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "cc8645c5920a9a5a121d571b7ff9f04dfcdac3cb472d0499663b9d4a7d947fdf",
+    "release-stress/saturated-00-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "8a90288ef216c8a8b8d05f4ee4d281c5cdb9d0f76c986cc112167a153435619e",
+    "release-stress/saturated-14-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "f2154d45d3d8a5bcb0f83bc17c8759375706244ee059359e9d01db7c0c531314",
+    "release-stress/saturated-06-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "ee152bb2a887233f09691e6feeabceaf29da32a8d9bfd15c78fbf534f158bc5b",
+    "release-stress/idle-00-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/saturated-03-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "afd51c4a1589ab8737e5cbc279c00208c58844cbf899460f661c44d256ab1e3d",
+    "release-stress/saturated-07-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "814afb3c4f9ac4d803212f5e076bf635bc271a035d1da870c6215927500b7d32",
+    "release-stress/saturated-13-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/saturated-16-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/saturated-16-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "a38c810f1865b5c46a6136b6785b70365e0b02690186921e28ac5e9a635339f2",
+    "release-stress/saturated-02-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "788ee27683d8da632deaf8c1e55c2256b3672f87a3a0be9f8ae5817e8ed7056b",
+    "release-stress/saturated-17-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "83692e8a1d6824b5a01df9f22a91bdbcbc415b9866a506a21ba674384a43cb2f",
+    "release-stress/saturated-11-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/saturated-14-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/saturated-17-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "2125ff8346358b1639606e6901e9b1919558fe6ed3ee48e0f29ecd4e8d72d6f6",
+    "release-stress/saturated-05-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "d6f61bf5d6bf65d4ef165ab12ec22bc1674f4cdbc8d7e38457a8d3cb1fa69ca9",
+    "release-stress/saturated-18-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "788ee27683d8da632deaf8c1e55c2256b3672f87a3a0be9f8ae5817e8ed7056b",
+    "release-stress/saturated-00-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "eddfb834d9ccbde267e59051797512229ab3de5698124b759f4bde2fc17b6d07",
+    "release-stress/saturated-09-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/saturated-01-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "cc8645c5920a9a5a121d571b7ff9f04dfcdac3cb472d0499663b9d4a7d947fdf",
+    "release-stress/saturated-02-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/saturated-07-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/idle-00-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "17c1fb47aae8760e4723646871efb7bb82cb7c20fcf292962a2c730a1f21dc14",
+    "release-stress/saturated-16-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "ea794e05ea5988693972e605611a8023dbe0df9d23ef99e2a738639edd7b8e4b",
+    "release-stress/saturated-03-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "9515328c20a4439aa9390c650bb30d56bea439f7dfc1e02d27d49fec14f836aa",
+    "release-stress/saturated-17-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "845fab273a78b981584890a0108f03fabf5af0225c5c54799a8bcb66533d47d8",
+    "release-stress/saturated-02-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "d9fd1329e3e5bd6597fea05a86ebd96b26303790a2ab785ee9bbf4dbf3bd3fc1",
+    "release-stress/saturated-10-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "788ee27683d8da632deaf8c1e55c2256b3672f87a3a0be9f8ae5817e8ed7056b",
+    "release-stress/saturated-08-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "845fab273a78b981584890a0108f03fabf5af0225c5c54799a8bcb66533d47d8",
+    "release-stress/saturated-13-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "ee152bb2a887233f09691e6feeabceaf29da32a8d9bfd15c78fbf534f158bc5b",
+    "release-stress/saturated-02-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "ea794e05ea5988693972e605611a8023dbe0df9d23ef99e2a738639edd7b8e4b",
+    "release-stress/saturated-18-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/saturated-12-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log": "ee152bb2a887233f09691e6feeabceaf29da32a8d9bfd15c78fbf534f158bc5b",
+    "release-stress/idle-00-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "1de6945fb580b62e9478f538f62229c5d5d5ac49f1eeb2d28921d8d568639d1f",
+    "release-stress/saturated-18-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "0d717139c673007fa14c0455dba9ef91a0cb5c0366c33214aa6634cdc21b2225",
+    "release-stress/saturated-12-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "845fab273a78b981584890a0108f03fabf5af0225c5c54799a8bcb66533d47d8",
+    "release-stress/saturated-00-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "dd8d8e2f514716f3bf1cc2f12a1c525d625ddf48bdd1bb9e012e899db0b09d47",
+    "release-stress/saturated-05-direction_bfs_pull_charges_and_checks_blocks_without_edges.log": "a5148e0d829dbce594889ce8ac228653b464059abc133bb8a36b3a8a4b9aa037",
+    "release-stress/saturated-15-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log": "d6f61bf5d6bf65d4ef165ab12ec22bc1674f4cdbc8d7e38457a8d3cb1fa69ca9",
+    "release-stress/saturated-15-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log": "eddfb834d9ccbde267e59051797512229ab3de5698124b759f4bde2fc17b6d07"
+  },
+  "updated_utc": "2026-09-28T01:56:01.941105+00:00",
+  "release_stress": {
+    "sha": "b2e7e0faf86b64b8c7a54fb14210db7485c9fe99",
+    "checkout": "/tmp/sail-traversal-gate-validated",
+    "host": "Capitola.local",
+    "platform": "Darwin-25.2.0-arm64-arm-64bit-Mach-O",
+    "logical_cpus": 10,
+    "binary": "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+    "started_utc": "2026-09-28T01:54:27.810282+00:00",
+    "runs": [
+      {
+        "phase": "idle",
+        "repetition": 0,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "idle-00-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 1.571822667028755
+      },
+      {
+        "phase": "idle",
+        "repetition": 0,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "idle-00-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.017487125005573034
+      },
+      {
+        "phase": "idle",
+        "repetition": 0,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "idle-00-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 0.2740007920656353
+      },
+      {
+        "phase": "idle",
+        "repetition": 0,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "idle-00-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.018244874896481633
+      },
+      {
+        "phase": "saturated",
+        "repetition": 0,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-00-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.30840945802628994
+      },
+      {
+        "phase": "saturated",
+        "repetition": 0,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-00-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.021667541936039925
+      },
+      {
+        "phase": "saturated",
+        "repetition": 0,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-00-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 0.9933963329531252
+      },
+      {
+        "phase": "saturated",
+        "repetition": 0,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-00-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.07656604098156095
+      },
+      {
+        "phase": "saturated",
+        "repetition": 1,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-01-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.22601737501099706
+      },
+      {
+        "phase": "saturated",
+        "repetition": 1,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-01-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.02349708299152553
+      },
+      {
+        "phase": "saturated",
+        "repetition": 1,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-01-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 0.7127173340413719
+      },
+      {
+        "phase": "saturated",
+        "repetition": 1,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-01-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.027555415872484446
+      },
+      {
+        "phase": "saturated",
+        "repetition": 2,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-02-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.1547109999228269
+      },
+      {
+        "phase": "saturated",
+        "repetition": 2,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-02-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.029239082941785455
+      },
+      {
+        "phase": "saturated",
+        "repetition": 2,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-02-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 0.5738227078691125
+      },
+      {
+        "phase": "saturated",
+        "repetition": 2,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-02-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.04523504199460149
+      },
+      {
+        "phase": "saturated",
+        "repetition": 3,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-03-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.12530549988150597
+      },
+      {
+        "phase": "saturated",
+        "repetition": 3,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-03-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.02781991707161069
+      },
+      {
+        "phase": "saturated",
+        "repetition": 3,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-03-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 1.7064317499753088
+      },
+      {
+        "phase": "saturated",
+        "repetition": 3,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-03-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.03253974998369813
+      },
+      {
+        "phase": "saturated",
+        "repetition": 4,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-04-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.1182285831309855
+      },
+      {
+        "phase": "saturated",
+        "repetition": 4,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-04-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.028025666950270534
+      },
+      {
+        "phase": "saturated",
+        "repetition": 4,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-04-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 1.1339079579338431
+      },
+      {
+        "phase": "saturated",
+        "repetition": 4,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-04-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.11698833294212818
+      },
+      {
+        "phase": "saturated",
+        "repetition": 5,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-05-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.18450849992223084
+      },
+      {
+        "phase": "saturated",
+        "repetition": 5,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-05-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.049274333054199815
+      },
+      {
+        "phase": "saturated",
+        "repetition": 5,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-05-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 1.0929839999880642
+      },
+      {
+        "phase": "saturated",
+        "repetition": 5,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-05-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.06722162500955164
+      },
+      {
+        "phase": "saturated",
+        "repetition": 6,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-06-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.1402455000206828
+      },
+      {
+        "phase": "saturated",
+        "repetition": 6,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-06-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.056561166886240244
+      },
+      {
+        "phase": "saturated",
+        "repetition": 6,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-06-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 0.5204742501955479
+      },
+      {
+        "phase": "saturated",
+        "repetition": 6,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-06-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.029782416997477412
+      },
+      {
+        "phase": "saturated",
+        "repetition": 7,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-07-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.13788504200056195
+      },
+      {
+        "phase": "saturated",
+        "repetition": 7,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-07-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.019727290840819478
+      },
+      {
+        "phase": "saturated",
+        "repetition": 7,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-07-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 1.2228969170246273
+      },
+      {
+        "phase": "saturated",
+        "repetition": 7,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-07-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.03489133296534419
+      },
+      {
+        "phase": "saturated",
+        "repetition": 8,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-08-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.13726241700351238
+      },
+      {
+        "phase": "saturated",
+        "repetition": 8,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-08-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.02368562505580485
+      },
+      {
+        "phase": "saturated",
+        "repetition": 8,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-08-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 1.3991612498648465
+      },
+      {
+        "phase": "saturated",
+        "repetition": 8,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-08-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.03842520900070667
+      },
+      {
+        "phase": "saturated",
+        "repetition": 9,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-09-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.12867716699838638
+      },
+      {
+        "phase": "saturated",
+        "repetition": 9,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-09-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.02159812510944903
+      },
+      {
+        "phase": "saturated",
+        "repetition": 9,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-09-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 0.7145525829400867
+      },
+      {
+        "phase": "saturated",
+        "repetition": 9,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-09-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.035888707963749766
+      },
+      {
+        "phase": "saturated",
+        "repetition": 10,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-10-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.12567933299578726
+      },
+      {
+        "phase": "saturated",
+        "repetition": 10,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-10-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.023050958989188075
+      },
+      {
+        "phase": "saturated",
+        "repetition": 10,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-10-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 0.6319079170934856
+      },
+      {
+        "phase": "saturated",
+        "repetition": 10,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-10-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.048678416991606355
+      },
+      {
+        "phase": "saturated",
+        "repetition": 11,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-11-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.13204562501050532
+      },
+      {
+        "phase": "saturated",
+        "repetition": 11,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-11-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.02969600004144013
+      },
+      {
+        "phase": "saturated",
+        "repetition": 11,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-11-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 0.41384300007484853
+      },
+      {
+        "phase": "saturated",
+        "repetition": 11,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-11-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.030642541125416756
+      },
+      {
+        "phase": "saturated",
+        "repetition": 12,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-12-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.12002387503162026
+      },
+      {
+        "phase": "saturated",
+        "repetition": 12,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-12-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.030701708048582077
+      },
+      {
+        "phase": "saturated",
+        "repetition": 12,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-12-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 0.5206008749082685
+      },
+      {
+        "phase": "saturated",
+        "repetition": 12,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-12-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.03165549994446337
+      },
+      {
+        "phase": "saturated",
+        "repetition": 13,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-13-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.11528570903465152
+      },
+      {
+        "phase": "saturated",
+        "repetition": 13,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-13-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.026059458032250404
+      },
+      {
+        "phase": "saturated",
+        "repetition": 13,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-13-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 0.5238839997909963
+      },
+      {
+        "phase": "saturated",
+        "repetition": 13,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-13-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.0810990419704467
+      },
+      {
+        "phase": "saturated",
+        "repetition": 14,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-14-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.17491987510584295
+      },
+      {
+        "phase": "saturated",
+        "repetition": 14,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-14-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.026641917182132602
+      },
+      {
+        "phase": "saturated",
+        "repetition": 14,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-14-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 0.7586693749763072
+      },
+      {
+        "phase": "saturated",
+        "repetition": 14,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-14-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.12231833394616842
+      },
+      {
+        "phase": "saturated",
+        "repetition": 15,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-15-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.305366582935676
+      },
+      {
+        "phase": "saturated",
+        "repetition": 15,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-15-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.04085337487049401
+      },
+      {
+        "phase": "saturated",
+        "repetition": 15,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-15-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 2.5001231669448316
+      },
+      {
+        "phase": "saturated",
+        "repetition": 15,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-15-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.07066941587254405
+      },
+      {
+        "phase": "saturated",
+        "repetition": 16,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-16-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.15210833284072578
+      },
+      {
+        "phase": "saturated",
+        "repetition": 16,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-16-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.02109516691416502
+      },
+      {
+        "phase": "saturated",
+        "repetition": 16,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-16-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 1.2698552501387894
+      },
+      {
+        "phase": "saturated",
+        "repetition": 16,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-16-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.10212279111146927
+      },
+      {
+        "phase": "saturated",
+        "repetition": 17,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-17-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.18681295891292393
+      },
+      {
+        "phase": "saturated",
+        "repetition": 17,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-17-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.022789291804656386
+      },
+      {
+        "phase": "saturated",
+        "repetition": 17,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-17-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 1.4962855419144034
+      },
+      {
+        "phase": "saturated",
+        "repetition": 17,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-17-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.03962687496095896
+      },
+      {
+        "phase": "saturated",
+        "repetition": 18,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-18-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.10089337499812245
+      },
+      {
+        "phase": "saturated",
+        "repetition": 18,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-18-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.022200583014637232
+      },
+      {
+        "phase": "saturated",
+        "repetition": 18,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-18-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 0.5059547079727054
+      },
+      {
+        "phase": "saturated",
+        "repetition": 18,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-18-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.04393237503245473
+      },
+      {
+        "phase": "saturated",
+        "repetition": 19,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-19-direction_bfs_matches_reference_and_exercises_parallel_push_pull.log",
+        "duration_seconds": 0.21890566707588732
+      },
+      {
+        "phase": "saturated",
+        "repetition": 19,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-19-direction_bfs_pull_charges_and_checks_blocks_without_edges.log",
+        "duration_seconds": 0.03326379111967981
+      },
+      {
+        "phase": "saturated",
+        "repetition": 19,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-19-parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles.log",
+        "duration_seconds": 1.089860500069335
+      },
+      {
+        "phase": "saturated",
+        "repetition": 19,
+        "command": [
+          "/tmp/sail-traversal-native-target/release/deps/nutmeg_graph-868dd3fee4c33679",
+          "--exact",
+          "optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "log": "saturated-19-traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays.log",
+        "duration_seconds": 0.036530917044728994
+      }
+    ],
+    "binary_sha256": "f66484ca916359f7e89bfde6ff4c8bf883b50410501f07f0c6d2a3763458789f",
+    "free_disk_before": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s1   3.6Ti   3.5Ti    71Gi    99%     13M  746M    2%   /System/Volumes/Data",
+    "observed_utc": "2026-09-28T01:54:56.338481+00:00",
+    "saturation_processes": "PID  %CPU COMMAND\n  393  45.7 yes\n  394  47.5 yes\n  395  64.9 yes\n  397  48.9 yes\n  398  58.1 yes\n  403  47.1 yes\n  406  56.4 yes\n  407  44.8 yes\n  408  46.2 yes\n  411  56.4 yes",
+    "saturation_pids": [
+      393,
+      394,
+      395,
+      397,
+      398,
+      403,
+      406,
+      407,
+      408,
+      411
+    ],
+    "saturation_cleanup": {
+      "393": -15,
+      "394": -15,
+      "395": -15,
+      "397": -15,
+      "398": -15,
+      "403": -15,
+      "406": -15,
+      "407": -15,
+      "408": -15,
+      "411": -15
+    },
+    "verdict": "PASS idle and fully CPU-saturated release traversal at b2e7e0faf86b64b8c7a54fb14210db7485c9fe99",
+    "completed_utc": "2026-09-28T01:54:56.338436+00:00"
+  }
+}

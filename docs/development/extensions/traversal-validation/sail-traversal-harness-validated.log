@@ -1,0 +1,9 @@
+........................................................................ [ 53%]
+............................................sssssssss..........          [100%]
+=============================== warnings summary ===============================
+examples/extensions/benchmarks/test_imported_fixture.py::test_empty_edge_list_retains_vertices
+  /private/tmp/sail-traversal-gate-validated/examples/extensions/benchmarks/imported_fixture.py:29: UserWarning: loadtxt: input contained no data: "<_io.TextIOWrapper name='/private/var/folders/pv/1m08mp_x2cg0p9qg0skptk8r0000gn/T/pytest-of-alexy/pytest-96/test_empty_edge_list_retains_v0/input.edges' mode='r' encoding='ascii'>"
+    rows = np.loadtxt(stream, dtype=np.int64, ndmin=2, comments=None)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+126 passed, 9 skipped, 1 warning in 2.80s

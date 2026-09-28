@@ -23,7 +23,7 @@ use crate::driver::DriverActor;
 use crate::driver::job_scheduler::state::{
     JobDescriptor, StageState, TaskAttemptDescriptor, TaskRegionState, TaskState,
 };
-use crate::driver::job_scheduler::topology::TaskRegionTopology;
+use crate::driver::job_scheduler::topology::{JobTopology, TaskRegionTopology};
 use crate::driver::job_scheduler::{JobAction, JobScheduler, JobSchedulerOptions, JobState};
 use crate::driver::output::{JobOutputOutcome, build_job_output};
 use crate::error::{ExecutionError, ExecutionResult};
@@ -42,6 +42,9 @@ use crate::task::definition::{
 use crate::task::scheduling::{
     TaskAssignment, TaskAssignmentGetter, TaskOutputKind, TaskRegion, TaskSet, TaskSetEntry,
 };
+
+#[path = "worker_topology.rs"]
+mod worker_topology;
 
 impl JobScheduler {
     fn next_job_id(&mut self) -> ExecutionResult<JobId> {
@@ -68,8 +71,10 @@ impl JobScheduler {
         )?;
         debug!("job {job_id} job graph \n{graph}");
 
+        let topology = JobTopology::try_new(&graph)?;
+        worker_topology::validate(&graph, &topology)?;
         let (output, stream) = build_job_output(ctx, job_id, graph.schema().clone());
-        let descriptor = JobDescriptor::try_new(graph, JobState::Running { output }, context)?;
+        let descriptor = JobDescriptor::new(graph, topology, JobState::Running { output }, context);
         self.jobs.insert(job_id, descriptor);
 
         if let Some(job) = self.jobs.get(&job_id) {
@@ -485,25 +490,7 @@ impl JobScheduler {
         job: &JobDescriptor,
         region: &TaskRegionTopology,
     ) -> TaskRegion {
-        let stages = region
-            .tasks
-            .iter()
-            .map(|t| t.stage)
-            .collect::<IndexSet<_>>();
-        let mut stage_partitions: IndexMap<StageGroupKey, IndexMap<usize, usize>> = IndexMap::new();
-        for s in stages {
-            let stage = &job.graph.stages()[s];
-            let key = StageGroupKey {
-                placement: stage.placement,
-                group: stage.group.clone(),
-            };
-            let p = stage.plan.output_partitioning().partition_count();
-            stage_partitions.entry(key).or_default().insert(s, p);
-        }
-        let mut stage_groups = stage_partitions
-            .into_iter()
-            .map(|(key, partitions)| (key, StageGroup::new(partitions)))
-            .collect::<IndexMap<_, _>>();
+        let mut stage_groups = build_stage_groups(&job.graph, region);
 
         for t in &region.tasks {
             if let Some(attempt) = Self::get_latest_task_attempt(job, t.stage, t.partition) {
@@ -1116,10 +1103,35 @@ impl<'a> TaskOutputBuilder<'a> {
     }
 }
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct StageGroupKey {
     placement: TaskPlacement,
     group: String,
+}
+
+fn build_stage_groups(
+    graph: &JobGraph,
+    region: &TaskRegionTopology,
+) -> IndexMap<StageGroupKey, StageGroup> {
+    let stages = region
+        .tasks
+        .iter()
+        .map(|t| t.stage)
+        .collect::<IndexSet<_>>();
+    let mut stage_partitions: IndexMap<StageGroupKey, IndexMap<usize, usize>> = IndexMap::new();
+    for s in stages {
+        let stage = &graph.stages()[s];
+        let key = StageGroupKey {
+            placement: stage.placement,
+            group: stage.group.clone(),
+        };
+        let p = stage.plan.output_partitioning().partition_count();
+        stage_partitions.entry(key).or_default().insert(s, p);
+    }
+    stage_partitions
+        .into_iter()
+        .map(|(key, partitions)| (key, StageGroup::new(partitions)))
+        .collect()
 }
 
 struct StageGroup {
@@ -1150,9 +1162,12 @@ impl StageGroup {
         // of a stage sharing a bucket. For partition-sliced forward regions, all stages
         // have the same partition count, so offsets are zero and matching partitions
         // continue to share a bucket.
-        let bucket =
-            (self.partition_offsets[&entry.key.stage] + entry.key.partition) % self.buckets.len();
+        let bucket = self.bucket(entry.key.stage, entry.key.partition);
         self.buckets[bucket].push(entry);
+    }
+
+    fn bucket(&self, stage: usize, partition: usize) -> usize {
+        (self.partition_offsets[&stage] + partition) % self.buckets.len()
     }
 }
 

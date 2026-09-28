@@ -1,0 +1,25 @@
+...................................................                      [100%]
+=============================== warnings summary ===============================
+../../../tmp/sail-traversal-gate-validated/examples/extensions/graph-algorithms/tests/test_traversal.py:5
+  /tmp/sail-traversal-gate-validated/examples/extensions/graph-algorithms/tests/test_traversal.py:5: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    pytestmark = pytest.mark.integration
+
+../../../tmp/sail-traversal-gate-validated/examples/extensions/graph-algorithms/tests/test_algorithms.py:7
+  /tmp/sail-traversal-gate-validated/examples/extensions/graph-algorithms/tests/test_algorithms.py:7: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    pytestmark = pytest.mark.integration
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+51 passed, 2 warnings in 45.27s
+...................................................                      [100%]
+=============================== warnings summary ===============================
+../../../tmp/sail-traversal-gate-validated/examples/extensions/graph-algorithms/tests/test_traversal.py:5
+  /tmp/sail-traversal-gate-validated/examples/extensions/graph-algorithms/tests/test_traversal.py:5: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    pytestmark = pytest.mark.integration
+
+../../../tmp/sail-traversal-gate-validated/examples/extensions/graph-algorithms/tests/test_algorithms.py:7
+  /tmp/sail-traversal-gate-validated/examples/extensions/graph-algorithms/tests/test_algorithms.py:7: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    pytestmark = pytest.mark.integration
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+51 passed, 2 warnings in 69.99s (0:01:09)
+PASS local/process-cluster traversal and existing reference algorithms at b2e7e0faf86b64b8c7a54fb14210db7485c9fe99

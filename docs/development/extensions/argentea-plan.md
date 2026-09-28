@@ -1,6 +1,7 @@
 # Argentea: distributed native graph execution
 
-Status: scoped work in the active extension goal; not implemented or qualified.
+Status: active implementation. Partition primitives and focused host hooks are
+under qualification; distributed native execution is not yet established.
 Repository: `querygraph/sail`, branch `work/extensions-traversal-bench`.
 
 Argentea is distributed Banda: native Rust graph partitions execute on Sail
@@ -23,7 +24,7 @@ by itself prove support for stateful native physical operators.
 
 | Existing foundation | Intended reuse | Feasibility check before a Sail change |
 | --- | --- | --- |
-| Connect extensions and Pecan controller | Submit rounds, collect bounded convergence scalars | Can each round be expressed with current plans? |
+| Connect extensions and Pecan input/staging code | Submit the operation plan; retain bounded control metadata | Can the operation use one existing job lifetime? |
 | DataFusion plans and Sail remote codecs | Native partition input/output as Arrow batches | Can extension-owned physical nodes round-trip with package identity? |
 | Sail scheduling and shuffles | Route updates by destination partition | Can successive rounds reliably reach the owner of retained state? |
 | Native resource domains and leases | Reserve adjacency, scratch, messages and retained output | Are domains and final-owner lifetimes available on remote workers? |
@@ -59,11 +60,18 @@ Apply a round once, expose its output only on successful completion, and require
 all expected partitions to finish before convergence is declared. Empty local
 frontiers alone do not establish global completion.
 
-Begin with bulk-synchronous rounds controlled through the existing client path.
-Workers emit Arrow update batches; Sail shuffles and aggregates them. Combine
-updates locally where algorithm semantics allow. Collect only bounded scalar
-reductions at the controller, never the full graph or frontier. Keep network
-queues bounded and include their buffers in admission/backpressure accounting.
+The first integration uses two bulk-synchronous rounds unrolled into one query
+and one existing Sail job lifetime. Equal-width stages reuse Sail's task-set
+placement; Arrow update batches and completion markers use existing shuffles.
+The [integration design](argentea-integration.md) explains why separate client
+queries do not currently preserve native ownership. This bounded experiment
+does not yet provide adaptive convergence over arbitrarily many rounds.
+
+Combine updates locally where algorithm semantics allow. A later adaptive
+controller may receive bounded scalar reductions, never the full graph or
+frontier. Its continuation strategy must preserve operation ownership explicitly.
+Keep network queues bounded and include their buffers in admission/backpressure
+accounting.
 
 Admit graph construction and round scratch before allocation, with a budget per
 worker. Reuse native leases and DataFusion reservations without double counting;

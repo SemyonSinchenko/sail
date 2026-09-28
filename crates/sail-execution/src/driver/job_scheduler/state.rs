@@ -6,6 +6,7 @@ use sail_common_datafusion::error::CommonErrorCause;
 
 use crate::driver::job_scheduler::topology::JobTopology;
 use crate::driver::output::{JobOutputManager, JobOutputOutcome};
+#[cfg(test)]
 use crate::error::ExecutionResult;
 use crate::job_graph::JobGraph;
 
@@ -53,11 +54,22 @@ impl JobState {
 }
 
 impl JobDescriptor {
+    #[cfg(test)]
     pub fn try_new(
         graph: JobGraph,
         state: JobState,
         context: Arc<TaskContext>,
     ) -> ExecutionResult<Self> {
+        let topology = JobTopology::try_new(&graph)?;
+        Ok(Self::new(graph, topology, state, context))
+    }
+
+    pub(super) fn new(
+        graph: JobGraph,
+        topology: JobTopology,
+        state: JobState,
+        context: Arc<TaskContext>,
+    ) -> Self {
         let mut stages = vec![];
         for stage in graph.stages().iter() {
             let mut descriptor = StageDescriptor {
@@ -69,20 +81,19 @@ impl JobDescriptor {
             }
             stages.push(descriptor);
         }
-        let topology = JobTopology::try_new(&graph)?;
         let regions = (0..topology.regions.len())
             .map(|_| TaskRegionDescriptor {
                 state: TaskRegionState::Running,
             })
             .collect();
-        Ok(Self {
+        Self {
             context,
             graph,
             topology,
             stages,
             regions,
             state,
-        })
+        }
     }
 }
 

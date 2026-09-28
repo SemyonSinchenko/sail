@@ -182,3 +182,34 @@ relational path. For a functional run outside a private Linux container, add
 The default per-process pool/quota still needs to fit the intended host envelope.
 Begin with scale10 before a capacity pilot. A capacity refusal, timeout, or
 certificate cap is retained as its actual outcome, never a completed benchmark.
+
+## Run the complete matrix
+
+Copy [graph500-matrix.example.json](graph500-matrix.example.json) outside the
+checkout and replace the machine paths, image and three exact source commits.
+Build the pinned generator **inside the Linux environment** and place it with
+its build receipt at the configured `datasets.scale10.generator` path in the
+mounted target volume. A macOS generator cannot run inside a Linux container.
+
+```bash
+python examples/extensions/benchmarks/run_matrix.py \
+  --config /absolute/path/graph500-config.json --dry-run
+python examples/extensions/benchmarks/run_matrix.py \
+  --config /absolute/path/graph500-config.json --prepare-only
+python examples/extensions/benchmarks/run_matrix.py \
+  --config /absolute/path/graph500-config.json --skip-prepare
+```
+
+The example runs all 36 combinations of local/process mode, Pecan/Banda/Grenada,
+and the three methods for each algorithm. Every trial uses a fresh container;
+generation runs separately before the trials. The dry run includes both
+preparation and trial commands. All outcomes and cleanup records are retained.
+
+For a larger input, set `scale` and `vertices = 2^scale`, then change the
+dataset's `validation` to `"certificate"`. Large reference-oracle requests are
+rejected before preparation. Optional `certificate_max_rounds` limits the
+outside-timing certificate computation; exhausting it fails validation.
+`expected_edge_sha256` can pin the canonical edge-stream hash from a previous
+preparation across machines. Leave `source`, `directed`, seeds and edge factor
+identical for every compared path. The matrix still uses a fixed source and
+does not claim an official Graph500 run.

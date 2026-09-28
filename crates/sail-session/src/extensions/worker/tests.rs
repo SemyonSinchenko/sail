@@ -189,8 +189,10 @@ fn job_isolation_and_host_pool_contention_precede_binding() -> Result<()> {
     )?;
     let first = factory.owner(&scope(1), "operation")?;
     let host = MemoryConsumer::new("DataFusion input").register(&pool);
-    host.try_grow(65)
-        .expect_err("native state already reserves half of the same pool");
+    assert!(
+        host.try_grow(65).is_err(),
+        "native state already reserves half of the same pool"
+    );
     host.try_grow(1)?;
     assert!(factory.owner(&scope(2), "operation").is_err());
     drop(host);

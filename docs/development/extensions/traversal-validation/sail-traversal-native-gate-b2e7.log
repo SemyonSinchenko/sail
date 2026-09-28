@@ -1,0 +1,111 @@
+   Compiling nutmeg-graph v0.1.0 (/private/tmp/sail-traversal-gate-validated/examples/extensions/vendor/nutmeg-graph)
+warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `nutmeg-graph` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized] target(s) in 28.07s
+     Running unittests src/lib.rs (/tmp/sail-traversal-native-target/debug/deps/nutmeg_graph-632ee069e5b8ec03)
+
+running 85 tests
+test admission::tests::empty_casts_also_require_admission_before_their_builder_allocations ... ok
+test graph_tables::tests::unsorted_staging_keeps_legacy_heterogeneous_properties ... ok
+test admission::tests::normalized_output_is_within_preallocation_bounds_for_expanding_types ... ok
+test admission::tests::expanding_integer_ids_are_refused_before_normalization_and_leave_no_admission ... ok
+test optimized::tests::contraction_preserves_components_and_numeric_minimum_labels ... ok
+test graph_tables::tests::raw_buffers_pin_old_revision_and_host_lease_after_every_other_owner_drops ... ok
+test graph_tables::tests::empty_declarations_merge_with_later_heterogeneous_property_batches ... ok
+test optimized::tests::delta_uses_tolerance_scaled_cutoff_and_reduces_frontier_work ... ok
+test optimized::tests::delta_matches_reference_with_dangling_isolates_duplicates_and_loop ... ok
+test optimized::tests::delta_zero_push_stationary_and_capped_failure_are_explicit ... ok
+test optimized::tests::empty_graphs_keep_declared_output_schemas ... ok
+test optimized::stepping_queue::tests::batched_decreases_keep_minimum_order_independent_of_notification_order ... ok
+test graph_tables::tests::empty_tables_keep_their_normalized_property_schema ... ok
+test optimized::tests::unsigned_maximum_seed_preserves_every_bit ... ok
+test optimized::tests::unsupported_optimized_options_are_rejected_before_execution ... ok
+test optimized::tests::local_catalog_is_documented_separately_from_upstream ... ok
+test graph_tables::tests::ordinary_relational_scan_preserves_nodes_edges_and_never_builds_csr ... ok
+test optimized::tests_bfs::direction_bfs_rejects_missing_source_and_iteration_exhaustion ... ok
+test optimized::tests_bfs::direction_bfs_pull_charges_and_checks_blocks_without_edges ... ok
+test optimized::tests_stepping::stepping_reports_overflow_and_caps_without_emitting_partial_results ... ok
+test graph_tables::tests::algorithm_results_also_pin_the_host_lease ... ok
+test optimized::tests_stepping_weights::lazy_stepping_read_keeps_original_weights_after_drop_and_recreate ... ok
+test optimized::tests::output_retains_reservation_and_limits_leave_registry_usable ... ok
+test optimized::tests_stepping_weights::stepping_requires_double_weight_even_when_integer_projection_is_valid ... ok
+test admission::tests::repeated_view_and_encoded_values_are_admitted_at_their_expanded_size ... ok
+test optimized::tests_stepping_weights::stepping_weights_follow_filtered_ordinals_across_batches_and_undirected_arcs ... ok
+test optimized::tests_traversal_resources::traversal_invalid_options_are_rejected_before_execution ... ok
+test optimized::tests_stepping_weights::stepping_rejects_invalid_weights_and_releases_capture_reservations ... ok
+test graph_tables::tests::separately_planned_concurrent_reads_share_one_revision_cache ... ok
+test optimized::tests_wcc_fused::fused_caps_preserve_diagnostics_and_release_scratch_without_output ... ok
+test optimized::tests_wcc_fused::fused_matches_complete_contractions_and_labels_with_full_width_ids_and_seeds ... ok
+test optimized::tests_wcc_fused::fused_stream_cancellation_stops_between_admitted_output_batches ... ok
+test optimized::wcc::coefficient_and_field_vectors ... ok
+test session::tests::admission_refusal_preserves_both_parts_and_revision ... ok
+test optimized::tests_wcc_fused::fused_refusals_cancellation_and_output_ownership_leave_registry_usable ... ok
+test session::tests::isolated_sessions_atomic_refusal_and_pinned_reads ... ok
+test tests::a_bad_precision_is_refused_like_any_other_bad_option ... ok
+test tests::a_limit_stops_the_read_once_it_has_its_rows ... ok
+test tests::a_sorted_part_returns_what_its_bound_overestimated ... ok
+test tests::a_streamed_write_is_refused_at_the_batch_that_crosses_the_budget ... ok
+test optimized::tests::parallel_push_work_limit_and_stream_cancellation_are_query_scoped ... ok
+test tests::appends_of_different_shapes_are_sorted_as_one_part ... ok
+test tests::a_write_over_the_budget_is_refused_and_leaves_the_graph_as_it_was ... ok
+test optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays ... ok
+test tests::canonical_order_is_text_order_on_ids_and_breaks_ties_by_the_other_columns ... ok
+test optimized::tests::contraction_reduces_a_long_path_and_is_deterministic ... ok
+test tests::concurrency_is_a_read_option_and_reaches_the_read_that_asked_for_it ... ok
+test optimized::tests_bfs::direction_bfs_matches_reference_and_exercises_parallel_push_pull ... ok
+test tests::concurrent_writes_to_different_graphs_never_exceed_the_budget ... ok
+test optimized::tests_wcc_fused::fused_matches_at_actual_parallel_widths_and_with_only_loops ... ok
+test tests::declared_nullable_outputs_are_nullable_whatever_the_rows_hold ... ok
+test tests::drop_and_restage_return_their_bytes_and_the_budget_recovers ... ok
+test tests::every_algorithm_grust_registers_is_served_with_its_declared_columns ... ok
+test tests::concurrent_reads_never_exceed_the_budget_together ... ok
+test tests::every_algorithm_reports_the_columns_its_scan_returns_under_either_naming ... ok
+test tests::explicit_nodes_make_unknown_endpoints_an_error ... ok
+test tests::f32_and_f64_scores_agree_within_f32_resolution ... ok
+test tests::gds_aliases_name_declared_columns_and_never_collide ... ok
+test tests::gds_names_are_chosen_per_read_and_grust_names_stay_reachable ... ok
+test tests::grust_sail_table_columns_are_recognized_without_a_mapping ... ok
+test tests::held_bytes_counts_each_allocation_once_at_its_capacity ... ok
+test tests::link_prediction_and_all_pairs_serve_their_values ... ok
+test tests::names_resolve_in_either_spelling ... ok
+test tests::no_column_nutmeg_serves_is_unsigned ... ok
+test tests::every_algorithm_runs_through_sql ... ok
+test tests::planning_and_explaining_a_read_run_no_kernel ... ok
+test tests::precision_is_a_read_option_and_the_declared_schema_follows_it ... ok
+test tests::projections_are_cached_per_option_set_and_dropped_on_restage ... ok
+test tests::read_limits_are_read_options ... ok
+test tests::staged_node_columns_reach_the_kernels_that_read_them ... ok
+test tests::string_options_take_the_declared_type_and_spelling ... ok
+test tests::the_catalog_is_served_whole_and_is_larger_than_the_twelve ... ok
+test tests::the_order_option_parses_in_either_case ... ok
+test tests::dropping_a_read_stream_cancels_its_kernel ... ok
+test tests::the_listing_reports_bytes_per_graph_and_in_total ... ok
+test tests::unknown_options_are_rejected_by_grusts_validator ... ok
+test tests::the_sorts_working_space_is_admitted_before_the_sort ... ok
+test tests::upstream_readme_catalog_matches_reference_algorithms ... ok
+test tests::canonical_order_covers_the_whole_part_across_appends ... ok
+test optimized::tests_stepping::parallel_stepping_matches_dijkstra_across_buckets_widths_and_zero_cycles ... ok
+test optimized::tests::delta_is_bitwise_stable_across_actual_parallel_widths ... ok
+test tests::canonical_order_makes_every_kernel_independent_of_arrival_order ... ok
+test tests::a_reads_own_limits_stop_it_alone ... ok
+test tests::cancelling_one_read_leaves_a_concurrent_read_and_the_pool_running ... ok
+test tests::a_slow_consumer_holds_a_streaming_read_to_a_few_batches ... ok
+
+test result: ok. 85 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.34s
+
+     Running tests/admission_before_allocation.rs (/tmp/sail-traversal-native-target/debug/deps/admission_before_allocation-6c444bf1c2bbdfbb)
+
+running 1 test
+test rejected_expanding_batch_never_allocates_its_normalized_buffers ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.13s
+
+   Doc-tests nutmeg_graph
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,6 @@
+
+running 1 test
+test optimized::tests_traversal_resources::traversal_refusals_and_stream_stop_release_scratch_but_retain_exported_arrays ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 84 filtered out; finished in 0.09s
+

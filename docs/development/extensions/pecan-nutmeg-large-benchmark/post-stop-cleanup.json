@@ -1,0 +1,8 @@
+{
+  "recorded_utc": "2026-09-28T02:38:29.096396+00:00",
+  "harness_source_sha": "aa4b5fa6bd1a8e0ac833ec9db0862386777575c2",
+  "run": "/targets/pecan-benchmark/runs/large-qualified-full-aa4b5fa6",
+  "completed_cell_directories": 180,
+  "remaining_staging_regular_files": [],
+  "scope": "Persistent container-volume cell directories after all trial containers stopped; no files removed"
+}

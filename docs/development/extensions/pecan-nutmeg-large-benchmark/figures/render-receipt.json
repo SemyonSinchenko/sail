@@ -1,0 +1,80 @@
+{
+  "recorded_utc": "2026-09-28T03:05:46.953898+00:00",
+  "boundary": "Prepared from completed campaign summary; independent raw audit pending. No publication verdict.",
+  "renderer": {
+    "path": "/Users/alexy/src/sail-large-graphs/examples/extensions/benchmarks/render_large.py",
+    "bytes": 6708,
+    "sha256": "518edb73b647ebc9bee948a16ee99ceadd53da0643611a97aee108b728f3dc77"
+  },
+  "summary": {
+    "path": "/tmp/graphframes-large-handoff-aa4b5fa6/summary/summary.json",
+    "bytes": 103302,
+    "sha256": "3ffdafffda8a7ac3d95a2b35cab7e1f7819488e58a1454cee2e72cae1c5f5b78"
+  },
+  "configuration": {
+    "path": "/tmp/graphframes-large-handoff-aa4b5fa6/evidence/configuration.json",
+    "bytes": 3074,
+    "sha256": "ad90347e772f13592666d17909b5af69c3c58f14ccbd0c0c92de98f0fde1906e"
+  },
+  "packages": {
+    "numpy": "2.5.3",
+    "kiwisolver": "1.5.1",
+    "packaging": "26.3",
+    "fonttools": "4.66.0",
+    "contourpy": "1.4.0",
+    "python-dateutil": "2.9.0.post0",
+    "matplotlib": "3.11.2",
+    "cycler": "0.12.1",
+    "pillow": "12.3.0",
+    "pyparsing": "3.3.3",
+    "six": "1.17.0"
+  },
+  "visual_review": "All four PNGs checked for labels, ranges, legend and layout; uniform-2097152 explicitly marks the Pecan reference WCC timeout and n=2/3 for each metric.",
+  "outputs": [
+    {
+      "path": "/tmp/sail-large-aa4b-figures-v3/hub-2097152.png",
+      "bytes": 129891,
+      "sha256": "05ada637e7129e5201da80a884e0ccc407c26a9ac8deaea60de20a8197dc02af"
+    },
+    {
+      "path": "/tmp/sail-large-aa4b-figures-v3/hub-2097152.svg",
+      "bytes": 109703,
+      "sha256": "25f4cf5d6d389a9f97a87ca8a403336b727cec039fe43bdc9147faea95a8e5d1"
+    },
+    {
+      "path": "/tmp/sail-large-aa4b-figures-v3/hub-4194304.png",
+      "bytes": 128054,
+      "sha256": "f9afb6b3ba234b43d0f6cc158e2b7820244f2d6776de71caeed99be3664e8abe"
+    },
+    {
+      "path": "/tmp/sail-large-aa4b-figures-v3/hub-4194304.svg",
+      "bytes": 109316,
+      "sha256": "874cc2ea1502012414909d51fa9f1aa6e661cf913b3baea33cc9ea0d84204419"
+    },
+    {
+      "path": "/tmp/sail-large-aa4b-figures-v3/tables.md",
+      "bytes": 7191,
+      "sha256": "c1ffcf6071f8424b36064912d902ebf81b57b117db782fff9a701f101682d359"
+    },
+    {
+      "path": "/tmp/sail-large-aa4b-figures-v3/uniform-2097152.png",
+      "bytes": 132821,
+      "sha256": "fd035b9c1c3cfaf49b1f8029979b839382390c7876de75d37e3cd9b45c935be4"
+    },
+    {
+      "path": "/tmp/sail-large-aa4b-figures-v3/uniform-2097152.svg",
+      "bytes": 110993,
+      "sha256": "805f2f8a5a9452feab6b58666524781c52c437b42e2ca418e6c5f4980c28715b"
+    },
+    {
+      "path": "/tmp/sail-large-aa4b-figures-v3/uniform-4194304.png",
+      "bytes": 130118,
+      "sha256": "219738056ddeabfbc95bb02e4f3a2cbcd705ead0da5fd6a7d2637ce975b7cb4b"
+    },
+    {
+      "path": "/tmp/sail-large-aa4b-figures-v3/uniform-4194304.svg",
+      "bytes": 111284,
+      "sha256": "978a3f3827e7edf8a8c44f8baa0c83f84919a0cf2b1afb9a376a52796a9800e1"
+    }
+  ]
+}

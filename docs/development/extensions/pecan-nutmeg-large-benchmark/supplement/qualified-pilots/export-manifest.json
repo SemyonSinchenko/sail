@@ -1,0 +1,2061 @@
+{
+  "recorded_utc": "2026-09-28T03:19:33.585870+00:00",
+  "source_root": "/Users/alexy/src/sail-extensions-gates/pecan-benchmark/large-qualified-pilots-aa4b5fa6",
+  "boundary": "All original regular files inventoried; logs, memory samples, configuration, plans and receipts copied byte-for-byte; Parquet bytes omitted.",
+  "included_files": 195,
+  "omitted_parquet_files": 126,
+  "files": [
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-optimized/artifacts/memory-samples.jsonl",
+      "bytes": 563578,
+      "sha256": "66a2848f6d0b21a46291d010723e3114fa02c69be31476d4d9867ae96b22d662",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-optimized/artifacts/receipt.json",
+      "bytes": 29026,
+      "sha256": "ca6264f035589ac604476b390bd9dbf40bd7b6d762a523ec04fedaa3c050b678",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-optimized/artifacts/result/3gD6K2EiwhhOtsmO_0.zst.parquet",
+      "bytes": 12039281,
+      "sha256": "1482d8040017bc9008697f2299e5dc22a09e54810dfad1d5a3dac4e6ede04e61",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-optimized/artifacts/result/3gD6K2EiwhhOtsmO_1.zst.parquet",
+      "bytes": 12017221,
+      "sha256": "0c016b8e6340778ac4755b1d11ef7494a72e9cae94417404048fbf2750ffbf18",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-optimized/artifacts/result/3gD6K2EiwhhOtsmO_2.zst.parquet",
+      "bytes": 12020859,
+      "sha256": "a310ae755716f0763aef68b1a310b3b3e60fb2d5c0fac45de493831de895d49f",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-optimized/artifacts/result/3gD6K2EiwhhOtsmO_3.zst.parquet",
+      "bytes": 12018212,
+      "sha256": "57f5386f42ed1f90f98536754cddbbad6b4ae02213d53267bff52d1152bfcb8b",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-optimized/artifacts/server.log",
+      "bytes": 7595,
+      "sha256": "6f16de80446aadf981b2d5fb6c3eefef1ae6964c288103441d9328036d2b4507",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-optimized/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-optimized/orchestration.json",
+      "bytes": 3243,
+      "sha256": "53016a4eab837c379ddb1a12b15d70101276530638b6643f3dfd88f2d9b6137e",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-optimized/summary.json",
+      "bytes": 773,
+      "sha256": "8b7bf6076b07624706dad843572f9f883a27883740603c4a1ac8a2bd0e635a10",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-reference/artifacts/memory-samples.jsonl",
+      "bytes": 530364,
+      "sha256": "bb43b07b61aa864da6119e519d1e5f57da582064fd769eaad4715ef6e036c17e",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-reference/artifacts/receipt.json",
+      "bytes": 23280,
+      "sha256": "f5f29a97d4c6c35a330bb7411903bbec751ae0b0ec7821e2b3150cb190c30f7f",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-reference/artifacts/result/zVYb6fLtPoBXrnkx_0.zst.parquet",
+      "bytes": 12002519,
+      "sha256": "88838f59eb1399ad3459b1bb51440c4d61a9319d17b9350b97684d359fdec368",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-reference/artifacts/result/zVYb6fLtPoBXrnkx_1.zst.parquet",
+      "bytes": 12003928,
+      "sha256": "44d502ad1c122cf7005df3c636af72a3ac0dbc0d789ab0a7c0ee5541e008ba19",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-reference/artifacts/result/zVYb6fLtPoBXrnkx_2.zst.parquet",
+      "bytes": 12002086,
+      "sha256": "2d15f01ed81afb1ed41ad55d32a408a6d99be8cdaec2d1f640e0d4d6f5551760",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-reference/artifacts/result/zVYb6fLtPoBXrnkx_3.zst.parquet",
+      "bytes": 12004936,
+      "sha256": "80c3406c2d9091c262cbc05858e6141a58f5271f9e2b550483c9807a278a4450",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-reference/artifacts/server.log",
+      "bytes": 9621,
+      "sha256": "12499181543c078fda7850a2de8964b9fd1d4b032c32631d175b7e34414ba91d",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-reference/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-reference/orchestration.json",
+      "bytes": 3241,
+      "sha256": "bc72d71b305f3d23525a4d5e5c958c2d66e4479a3307564355ed0fb45fd2ab90",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-datafusion-pagerank-reference/summary.json",
+      "bytes": 772,
+      "sha256": "e379e47a91344321577986fa7e71f84bd19be80cdf5c85e646323c43468f91ff",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-optimized/artifacts/memory-samples.jsonl",
+      "bytes": 516827,
+      "sha256": "453cd2ce29fee8e72295a5479d609ecf456b7d5f2a1b11d583d5d57aae83ce8e",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-optimized/artifacts/receipt.json",
+      "bytes": 27535,
+      "sha256": "d85819dcc1e989bad1e62649bef46bbb1a8323840b8b2eed4ec1fbd787134928",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-optimized/artifacts/result/JGxrNw6mxBR4Oc32_0.zst.parquet",
+      "bytes": 10277279,
+      "sha256": "6953cd8bf1567a65fdcb6c39ef56f89502ab42b5ed5f0b514f5172e4e2096013",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-optimized/artifacts/result/JGxrNw6mxBR4Oc32_1.zst.parquet",
+      "bytes": 10277312,
+      "sha256": "be8728d3801de1eccb7c66d215ac56b529981ccc01d984e044c23a386074cfdc",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-optimized/artifacts/result/JGxrNw6mxBR4Oc32_2.zst.parquet",
+      "bytes": 10274352,
+      "sha256": "07915ffecc892b808bb1d3a9138802231807ce156bdb5d88774b306be539016c",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-optimized/artifacts/result/JGxrNw6mxBR4Oc32_3.zst.parquet",
+      "bytes": 10267005,
+      "sha256": "5851eb3cfae4e3899d5538c26954862c7249b3ecfef78a16fc7103b580e3eedb",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-optimized/artifacts/server.log",
+      "bytes": 4588,
+      "sha256": "b79b2ffc8c865bbe6168a562ae5a3efd257224153fe95ae559fdd55b6f687b27",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-optimized/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-optimized/orchestration.json",
+      "bytes": 3236,
+      "sha256": "5675f24b39b137b81f37547d58f1e32fe7000bde23ed7bf8a5ecd0df99e3d93b",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-optimized/summary.json",
+      "bytes": 761,
+      "sha256": "09e9fe285203cde8bfa65920eda09f05853014ef50f1ff2dd8592326150a25db",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-reference/artifacts/memory-samples.jsonl",
+      "bytes": 384926,
+      "sha256": "867ffa855eef25f50830ecfa446cb6ebb7ac4f6debcd2bd167843baf9977f160",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-reference/artifacts/receipt.json",
+      "bytes": 19876,
+      "sha256": "03513a2b08df14a5ec0154f4891a0c459c4d550a3da828ef8c36a5aec2d686d5",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-reference/artifacts/result/iquL0Xg9wccziU39_0.zst.parquet",
+      "bytes": 10256115,
+      "sha256": "c69af0cec21f089d90a30e731994635f6ce5dfc23ed6fdc291215be40c542f07",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-reference/artifacts/result/iquL0Xg9wccziU39_1.zst.parquet",
+      "bytes": 10261517,
+      "sha256": "eb0921f52c9a8c6183ca9a7c6a1b010807fe8c04900d98486b7d58f182361661",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-reference/artifacts/result/iquL0Xg9wccziU39_2.zst.parquet",
+      "bytes": 10271481,
+      "sha256": "c804ee085c9ca21a10397fb48a07e67c30e846e86018fa742978dcb18a61fd9f",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-reference/artifacts/result/iquL0Xg9wccziU39_3.zst.parquet",
+      "bytes": 10266954,
+      "sha256": "e2bde894b1a13640f4692f6b4aac2dec237d7e056a17e2d4847831448e04d8a4",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-reference/artifacts/server.log",
+      "bytes": 4304,
+      "sha256": "87ea83fe3e33b8b526c214f8575dcddc777777f0d53ba34479c6639fc0665535",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-reference/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-reference/orchestration.json",
+      "bytes": 3233,
+      "sha256": "6b6cb11a6dd80ee7eebb3f7c7519950185784dcf9debe1a838370e75c0bc2fff",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-nutmeg-native-pagerank-reference/summary.json",
+      "bytes": 760,
+      "sha256": "422ede9f595745a8d0401e3b2488aa3a78adfa315fb8e6987a45e8f7ad88bf7f",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-optimized/artifacts/memory-samples.jsonl",
+      "bytes": 574719,
+      "sha256": "552e9f2522ab561431c2a79390d1908123e09a3992ce4ed756940dc2f973dad1",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-optimized/artifacts/receipt.json",
+      "bytes": 28804,
+      "sha256": "c071a22ea7afd64312d99ca0f24fc401bccfa2aed3284a1dc5251de917d13f6f",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-optimized/artifacts/result/9lzZ3OIP1NaDdhXM_0.zst.parquet",
+      "bytes": 12019724,
+      "sha256": "c70427aac083517952c4928eac4a518ba45680e83f81a409ad2ba69bce348af0",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-optimized/artifacts/result/9lzZ3OIP1NaDdhXM_1.zst.parquet",
+      "bytes": 12018487,
+      "sha256": "46da91918b89989423699cd75648065a739b1993c613f0f2eec0de310de99049",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-optimized/artifacts/result/9lzZ3OIP1NaDdhXM_2.zst.parquet",
+      "bytes": 12018214,
+      "sha256": "59350b0aef3cb0a740c66d5d5c7e5801fdbd25b0898bcdb5f74635c28cca814a",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-optimized/artifacts/result/9lzZ3OIP1NaDdhXM_3.zst.parquet",
+      "bytes": 12019172,
+      "sha256": "d7cd083031b36c0596ada89e5c05d835164b2c2dfd219bd15db2634e285c8e6c",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-optimized/artifacts/server.log",
+      "bytes": 7842,
+      "sha256": "5f0a006b0b44f0d5e7b776f03729ea3f682c04063dc36cfeeb0c8617d9e6ddbd",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-optimized/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-optimized/orchestration.json",
+      "bytes": 3216,
+      "sha256": "6ce2d1e05801d029b28e925a4a24e2e06b7ddc2891f8bb22d7963952382069f5",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-optimized/summary.json",
+      "bytes": 736,
+      "sha256": "fca005b7d1b43658b439473bbf16b40f8f015af1fd75d1c16ed5cb45f879bdfd",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-reference/artifacts/memory-samples.jsonl",
+      "bytes": 543239,
+      "sha256": "32a202f0f235d576c8ab399c764223b8a95974f4dd983deec99eddea4d14c21e",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-reference/artifacts/receipt.json",
+      "bytes": 23403,
+      "sha256": "ac516f540dc648328099bcfba630793c2663cb82ef7b6947f3c6f5decc2a950f",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-reference/artifacts/result/AA8x5RnU7ki249u7_0.zst.parquet",
+      "bytes": 12000512,
+      "sha256": "39351b0997444483c6ff3b8d73a98080b7700d6b7a594a640d898058f2a47a24",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-reference/artifacts/result/AA8x5RnU7ki249u7_1.zst.parquet",
+      "bytes": 12001956,
+      "sha256": "56c5bf468bbef3279d9c919a127c1d0f7040690501a15353ab7baee7096a2ec6",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-reference/artifacts/result/AA8x5RnU7ki249u7_2.zst.parquet",
+      "bytes": 12005114,
+      "sha256": "441fd3f8e6e82adc7ec55b5beec5587c2eafa7f4da20bfcf52ffdaa9619cbfa6",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-reference/artifacts/result/AA8x5RnU7ki249u7_3.zst.parquet",
+      "bytes": 12003216,
+      "sha256": "1f7a22f61200c938100de0afb2dcf192f674d1c2507603a0602ec056266c9e07",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-reference/artifacts/server.log",
+      "bytes": 9481,
+      "sha256": "90de1c39a479b2eae6aed39779db59995dcafe15286749e556cc2d525bf5cf52",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-reference/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-reference/orchestration.json",
+      "bytes": 3218,
+      "sha256": "b978531f979e4c30d4e523ecd3df3313c69d976284dbb90c356c0a7102f791f5",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-hub-4194304-pecan-pagerank-reference/summary.json",
+      "bytes": 736,
+      "sha256": "487bdfafc030a6104a8a3de6239dda33a210905f95150441919fa32940742638",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-optimized/artifacts/memory-samples.jsonl",
+      "bytes": 528344,
+      "sha256": "bd01fb2944e235ee36e9759dff89bf58c1100c0e971a15b9d8f0181a7ca3790c",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-optimized/artifacts/receipt.json",
+      "bytes": 28258,
+      "sha256": "22a518223b195820380348b8dc3ed92ea94c8328d066f04ff09601937bbc6d6d",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-optimized/artifacts/result/yN52xUiTglmYMH7z_0.zst.parquet",
+      "bytes": 12037570,
+      "sha256": "960690aa86a77cd26492bc3b72565071ff4f23718e3da851a60be8f463ce0d41",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-optimized/artifacts/result/yN52xUiTglmYMH7z_1.zst.parquet",
+      "bytes": 12033883,
+      "sha256": "81710c9c587d3b46900e770fbdd6d0124333e7eab6e37bd306395ced7c0d3a71",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-optimized/artifacts/result/yN52xUiTglmYMH7z_2.zst.parquet",
+      "bytes": 12038585,
+      "sha256": "97cd5e5f6f98fe6cf05753c0375e762ccd1a83c27f54df4cf06a939b7b117371",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-optimized/artifacts/result/yN52xUiTglmYMH7z_3.zst.parquet",
+      "bytes": 12037241,
+      "sha256": "7435c964ae2d730ca7f0cc283401bd56f403c3fb317681bb9d5ce0ae1dea64cc",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-optimized/artifacts/server.log",
+      "bytes": 5917,
+      "sha256": "962a84f2ea09263106fe0e4cf0699aab3cdc8b74c7b8dbcb314cf0af6d66e2c0",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-optimized/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-optimized/orchestration.json",
+      "bytes": 3249,
+      "sha256": "28d844008317a5b62f23e809a90ba246c691dcf96ce60f69ecdd7262d6ffb97e",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-optimized/summary.json",
+      "bytes": 784,
+      "sha256": "0f83efadaff53d8e38045f49ffdab8ac9b2ce8acbfb1124ff0689dfad0c18a35",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-reference/artifacts/memory-samples.jsonl",
+      "bytes": 554253,
+      "sha256": "62d1e0d67b3d3d87a4952204ca9e9f1025a5e90bb4c19aa6f61f8b2bed15a90e",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-reference/artifacts/receipt.json",
+      "bytes": 23598,
+      "sha256": "e8e71f6c1db3f518d0e9d3487a1ab69beab4d106ee4fc79c0eec7f6cdc31055c",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-reference/artifacts/result/5F0kanhAEwYCPhCM_0.zst.parquet",
+      "bytes": 11999173,
+      "sha256": "1304cbaef319a7b712483f55f349580af1be0acc98be41ae568aee9b52362baa",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-reference/artifacts/result/5F0kanhAEwYCPhCM_1.zst.parquet",
+      "bytes": 11996305,
+      "sha256": "b214ebf751cdd58043ffe79be39a6cbb5d4a6b7a14b0f7e1d5efde5998e1c931",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-reference/artifacts/result/5F0kanhAEwYCPhCM_2.zst.parquet",
+      "bytes": 11996653,
+      "sha256": "e196a3cee2805b13c27b91ef2e217de9cf2f50ad540dd61c9d3a4b3182c17b00",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-reference/artifacts/result/5F0kanhAEwYCPhCM_3.zst.parquet",
+      "bytes": 11999780,
+      "sha256": "4c1dece127268ece730a63569bbfee1b225e3a33363b608cdd8a58746c99347e",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-reference/artifacts/server.log",
+      "bytes": 9741,
+      "sha256": "940d7b61b17e51c779b493f706dbeb508f8b5f460f6df1b73156ec461215c553",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-reference/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-reference/orchestration.json",
+      "bytes": 3250,
+      "sha256": "6a613ee03002caee773dbb626b36621880dda906cf464006b6edd87adaeae136",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-datafusion-pagerank-reference/summary.json",
+      "bytes": 784,
+      "sha256": "e9de104b9d124d38c1aa3ba0e3f9d1af7f14695207e375f4cae942765667fc75",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-optimized/artifacts/memory-samples.jsonl",
+      "bytes": 512998,
+      "sha256": "0955f9ed757df2dd298b4dfde99d9c378106be14c0e85722b5b4d9c81a4a832b",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-optimized/artifacts/receipt.json",
+      "bytes": 27143,
+      "sha256": "0e4cc22677bb9a1020bfc55db7e44d890ec81e738977ef984d7907d38168dc2c",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-optimized/artifacts/result/v3ozTWlIbBfqWXim_0.zst.parquet",
+      "bytes": 10280437,
+      "sha256": "c2cb6f9c4fd71c4cef581e8903d9a57da79aba5144296c1d66e0b610bd212f2a",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-optimized/artifacts/result/v3ozTWlIbBfqWXim_1.zst.parquet",
+      "bytes": 10273266,
+      "sha256": "979c07b7a8f7994cac4eda1efda532a4608361729db00b862c4668a674629c23",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-optimized/artifacts/result/v3ozTWlIbBfqWXim_2.zst.parquet",
+      "bytes": 10275180,
+      "sha256": "3bcf274adb2f826bdb7a2e827dbaf021c28eb3e7914e71631996f93278e07534",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-optimized/artifacts/result/v3ozTWlIbBfqWXim_3.zst.parquet",
+      "bytes": 10282993,
+      "sha256": "38d57c8c2809d0d1ed8207d8a49974fca46d9cad3c6c66178f7ef5b1bab0e7e2",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-optimized/artifacts/server.log",
+      "bytes": 4692,
+      "sha256": "ba5bcab4ce85f2f33b22394efb565e232ecb68ef045505bf7031ec18c6970fc8",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-optimized/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-optimized/orchestration.json",
+      "bytes": 3240,
+      "sha256": "be017910e496d315bbb7cd2a7493a35d9188fdedf14eaf1cf14842ae447ed047",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-optimized/summary.json",
+      "bytes": 772,
+      "sha256": "4691015b6aa51e4a96feb136c7e8b23f57753a894ceb10d82c28b885a3090699",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-reference/artifacts/memory-samples.jsonl",
+      "bytes": 371174,
+      "sha256": "3f2a4a05c95ce420074109f989a6b04d061ca5e61ba860ec24e8ed083163e69f",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-reference/artifacts/receipt.json",
+      "bytes": 19891,
+      "sha256": "ec0702b2d13d570e95265a12a5b6fc6884409d862fb60c25d314d2cd0a3a5f01",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-reference/artifacts/result/L304jzqXZ3Aw4zx4_0.zst.parquet",
+      "bytes": 10262476,
+      "sha256": "d9d91f991586fc8f59cab47608f4f155f7168c88823230003d242ef38110ca94",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-reference/artifacts/result/L304jzqXZ3Aw4zx4_1.zst.parquet",
+      "bytes": 10264734,
+      "sha256": "b57091e79b01012fc1932d098c1150a35841cb1778b82c7ed94f4fcd14188e95",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-reference/artifacts/result/L304jzqXZ3Aw4zx4_2.zst.parquet",
+      "bytes": 10264521,
+      "sha256": "b1310e246e13f3e08d2f3bda269d9373173a05105ceb1757849794b4ef069989",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-reference/artifacts/result/L304jzqXZ3Aw4zx4_3.zst.parquet",
+      "bytes": 10264299,
+      "sha256": "2086535c24a0d24b1931de2dc01713a37a2cf4ba15ca708b466050e2253e2887",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-reference/artifacts/server.log",
+      "bytes": 3709,
+      "sha256": "85325a59804a0705e7421e47697ed826ba01cc986a29008183bba0416eddb302",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-reference/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-reference/orchestration.json",
+      "bytes": 3241,
+      "sha256": "113915792a1c0c9f70a049065ac15a5414da956f062675f151de3bdb99a6f3a7",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-nutmeg-native-pagerank-reference/summary.json",
+      "bytes": 772,
+      "sha256": "f29317264e67d5d293e38ca7d548f1ca8bec3b70e22817b349cf4442193a272a",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-optimized/artifacts/memory-samples.jsonl",
+      "bytes": 528989,
+      "sha256": "db59841adeaf5933752c014a12601ff6f0619c345b3f2428a93eb03add4a577f",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-optimized/artifacts/receipt.json",
+      "bytes": 28391,
+      "sha256": "f35813c8fb654e720e64d2cd2f70a0d710d68bc02a8bdc8df4710f4b047c05a4",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-optimized/artifacts/result/BBcAVJqpPStW6RHE_0.zst.parquet",
+      "bytes": 12035636,
+      "sha256": "d89614ca4826788df01e6d43d7f1d8534e9e191051bda480c602013270523576",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-optimized/artifacts/result/BBcAVJqpPStW6RHE_1.zst.parquet",
+      "bytes": 12033706,
+      "sha256": "1c8b4c63f19f96d660684596398590120e0cd2d6c2a63827fde1adfe27653e4a",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-optimized/artifacts/result/BBcAVJqpPStW6RHE_2.zst.parquet",
+      "bytes": 12033466,
+      "sha256": "578bd494b7d8783e3e5588ae3ab6c9051c05fc495f77a4cabd377e799edaed0a",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-optimized/artifacts/result/BBcAVJqpPStW6RHE_3.zst.parquet",
+      "bytes": 12033995,
+      "sha256": "c908ad3065f5e7bf34ccaba8e047265546cb39d22f916a6d6d871a70a32cd5d3",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-optimized/artifacts/server.log",
+      "bytes": 5799,
+      "sha256": "d970d869b15e970238519421e3c17b2fe61e9d0f992611805a4222320336aed0",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-optimized/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-optimized/orchestration.json",
+      "bytes": 3223,
+      "sha256": "ee3ba45fdcc948dedffacba48d4c9c25ae5074760246c575c526294cb3b6c3bc",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-optimized/summary.json",
+      "bytes": 749,
+      "sha256": "0efaeec9f99308793bcf82581b3827c68665b9ca703ea593e7b590d66f44932d",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-reference/artifacts/memory-samples.jsonl",
+      "bytes": 508905,
+      "sha256": "270474b5a876ac5856b571d2de3557963d83e4ba5f2228134fd82a7e7af6f7d6",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-reference/artifacts/receipt.json",
+      "bytes": 23590,
+      "sha256": "961a1a0f0c2e6267a4275dbdb64aea808e8b7b295e532b1567c66a540e66fc81",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-reference/artifacts/result/5UUte8r9M9tvpWiQ_0.zst.parquet",
+      "bytes": 12001688,
+      "sha256": "20de5dfd79fcf5f297489b4e857a8e9c73a6cd77a302460892f14be4b3e84a94",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-reference/artifacts/result/5UUte8r9M9tvpWiQ_1.zst.parquet",
+      "bytes": 12001791,
+      "sha256": "77445c70f58ccb745cf1b5d2f8f6157f4f2e259f65a6b9d5235730af036d0cb4",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-reference/artifacts/result/5UUte8r9M9tvpWiQ_2.zst.parquet",
+      "bytes": 12000836,
+      "sha256": "1492aeff0bc6cb7cea37fbac0071b2b03f1aac2c4d0c3c20f1f04bab767bd8b4",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-reference/artifacts/result/5UUte8r9M9tvpWiQ_3.zst.parquet",
+      "bytes": 11998953,
+      "sha256": "c4e238768b28be8290abe60256dba4667ebac9a18068b8b139ea8cecc283540c",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-reference/artifacts/server.log",
+      "bytes": 11020,
+      "sha256": "b62138b1662e3b0896313466c177255d3e3d23f9363f21375dab737f2c7d715a",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-reference/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-reference/orchestration.json",
+      "bytes": 3228,
+      "sha256": "6c7c8ca33813cc4593bc10ec4dc5f81b615277e61c0a759c23723f7e3761cbd2",
+      "included": true
+    },
+    {
+      "path": "cells/large-pagerank-r1-uniform-4194304-pecan-pagerank-reference/summary.json",
+      "bytes": 748,
+      "sha256": "d8214d76acfe65803d3b1d8445aa8df19374e7845c640917b39e0c061c3e1e74",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-fused/artifacts/memory-samples.jsonl",
+      "bytes": 257539,
+      "sha256": "8e31888d086ab0d4f822c3f0db558f54f30bb4cd0ac25e4bbcaa778329284daf",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-fused/artifacts/receipt.json",
+      "bytes": 24830,
+      "sha256": "33e7df27ab7386007248450238c152d3422be4bee9b96d835f89e0f01c89dd86",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-fused/artifacts/result/0LyIEJ78dUauosD3_0.zst.parquet",
+      "bytes": 3891612,
+      "sha256": "9fd073ad1f1bebce4a429060e2e76415975a086f6f4cee42cf5685e16c5d407d",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-fused/artifacts/result/0LyIEJ78dUauosD3_1.zst.parquet",
+      "bytes": 3889654,
+      "sha256": "edbc594761bb2300f248c556489adec1665dc86c544a641bb6c336f5aae35f6f",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-fused/artifacts/result/0LyIEJ78dUauosD3_2.zst.parquet",
+      "bytes": 3891494,
+      "sha256": "e978129e2e3fa085501c8fd5dda5a2f6c8dfcd903f43f1a93111dd2503b4b3ed",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-fused/artifacts/result/0LyIEJ78dUauosD3_3.zst.parquet",
+      "bytes": 3894397,
+      "sha256": "eb8c0ba01307cd7e1097f7f753afc8fb7b0158243b41c33be7cd8308d38b9dfa",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-fused/artifacts/server.log",
+      "bytes": 5537,
+      "sha256": "15a8e0078d98fb27200bae23d785fd9498bf33edba5d535cc433a1e0b9864625",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-fused/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-fused/orchestration.json",
+      "bytes": 3223,
+      "sha256": "15e22da2fe4cbf93ff0a8ca44e3c30e3826b0fe6fd0b1ab411bcb49127ba93d1",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-fused/summary.json",
+      "bytes": 731,
+      "sha256": "9875768577cd5a233b80bdcc645e3b4586105ebbd18f3bf15c6b101acc00c3be",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-optimized/artifacts/memory-samples.jsonl",
+      "bytes": 319393,
+      "sha256": "f5777d0cc55eb96ad76da0bbbfbb9dd11ca5a88443714439c50f87824f2661a8",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-optimized/artifacts/receipt.json",
+      "bytes": 24697,
+      "sha256": "e6e787c74c7f1c213965026dc4d8f416bf9b11b212f3982e328287dca8804d0e",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-optimized/artifacts/result/JIOxoHsQiyQsvdv9_0.zst.parquet",
+      "bytes": 3891100,
+      "sha256": "aee3843855855474c6944b8e66fb2a8263e61586631a2fc5ffb8ded7b95b1258",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-optimized/artifacts/result/JIOxoHsQiyQsvdv9_1.zst.parquet",
+      "bytes": 3891709,
+      "sha256": "58ea32e6744358b19896f504d8b296b585274494fc274ed4e10b845d7b507316",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-optimized/artifacts/result/JIOxoHsQiyQsvdv9_2.zst.parquet",
+      "bytes": 3890627,
+      "sha256": "427d9c6e27d495351ed5a2bb0d02d71b3c72052be059d6c885c6ec26460fffe0",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-optimized/artifacts/result/JIOxoHsQiyQsvdv9_3.zst.parquet",
+      "bytes": 3891186,
+      "sha256": "12cbf9d87909849b36b66558d656de86178686df10cac750699eb0b9d80be406",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-optimized/artifacts/server.log",
+      "bytes": 9608,
+      "sha256": "622b7167eb67b948b21a3f778b4a98052cdca59059ff2f7d16b76a4280266d55",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-optimized/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-optimized/orchestration.json",
+      "bytes": 3228,
+      "sha256": "8bc3bee7047ff0dd5726126a29f2b8515cd0075856e893f2ba99a020464e5da0",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-optimized/summary.json",
+      "bytes": 744,
+      "sha256": "fb7679ec5776697599ea7eaef2748c04ccad7080bf5a4f414ea8079497a7820e",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-reference/artifacts/memory-samples.jsonl",
+      "bytes": 300357,
+      "sha256": "ee7f181505d893cb3a81eef3724482fa70f14fc9d056cf73d90610cded72f8ca",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-reference/artifacts/receipt.json",
+      "bytes": 20367,
+      "sha256": "fc976039d9613e29fa6ee9b3cb53688d0ef5d5f0b2cf6b6a070ac9a4e64a7199",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-reference/artifacts/result/lqpSMl40010txE28_0.zst.parquet",
+      "bytes": 3892810,
+      "sha256": "71bf017352d8f0f673064472766108268e12736e760689052f113052e78b0100",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-reference/artifacts/result/lqpSMl40010txE28_1.zst.parquet",
+      "bytes": 3891810,
+      "sha256": "85f5c518189be88eab377b580e291c3446e6bf022c20428b4ac1bd95b7339388",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-reference/artifacts/result/lqpSMl40010txE28_2.zst.parquet",
+      "bytes": 3890569,
+      "sha256": "261d5dc657d7f60178bbf5d794d99fa987da6d6ed12ed1dbe03afdd9529685eb",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-reference/artifacts/result/lqpSMl40010txE28_3.zst.parquet",
+      "bytes": 3889591,
+      "sha256": "b27bef178fdc35cbb57c17164e4e2ea05bcbbd1eb45629050f676b2fd661c14a",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-reference/artifacts/server.log",
+      "bytes": 5650,
+      "sha256": "4176ef7fb6e2ab9d7cb763d17556b107ad733c8a4069794177a4f4dc26bc06a3",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-reference/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-reference/orchestration.json",
+      "bytes": 3230,
+      "sha256": "0985d9bfac21bec38e0f3b36abbe792c15f842928ae2f797835e256d27264b88",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-datafusion-wcc-reference/summary.json",
+      "bytes": 744,
+      "sha256": "cd495c53b41abd5586703f5012e590e392dd0b7ef161e530d167bef7592e24b3",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-fused/artifacts/memory-samples.jsonl",
+      "bytes": 404411,
+      "sha256": "40a7a26fee88499fdbc30add06fc7b31a59416d99b539524317a317db387b113",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-fused/artifacts/receipt.json",
+      "bytes": 23645,
+      "sha256": "93d36efd64eccfbfcd0eb4f57250b556556f484a6ba1863fa906a9f038199ebe",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-fused/artifacts/result/YqePTSxeM9fnm6Ib_0.zst.parquet",
+      "bytes": 2143419,
+      "sha256": "cfdf51baa30e2e35df1a9d8f6b9809f9803ccdbfd629b4f2b1d4bd87dc704cd8",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-fused/artifacts/result/YqePTSxeM9fnm6Ib_1.zst.parquet",
+      "bytes": 2139944,
+      "sha256": "b62fea2e97cacfbf19dcb0959d64a18e655408a27b205bf1fa48e3e17c481fc5",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-fused/artifacts/result/YqePTSxeM9fnm6Ib_2.zst.parquet",
+      "bytes": 2147326,
+      "sha256": "4d556bcda3a3964230f19a37a54ae310b2bd36f013376b0698b09271a2c9c600",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-fused/artifacts/result/YqePTSxeM9fnm6Ib_3.zst.parquet",
+      "bytes": 2146349,
+      "sha256": "9f0e0ae9c9202165114c92ec5a574ec07708bd4da66c1b3d9a551a2a4a054f41",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-fused/artifacts/server.log",
+      "bytes": 4501,
+      "sha256": "656f68c9c7783cdc3bfbdfe42cd3eaaff4d0404aa7b79e4489995b480d22b52c",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-fused/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-fused/orchestration.json",
+      "bytes": 3207,
+      "sha256": "22784b915c52db5709460cbba8d4bbd05d7ceafbe2a755bb4e341224a7cd2a72",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-fused/summary.json",
+      "bytes": 718,
+      "sha256": "a80b724068265103b77744f94a1fedc027a64f903c1a35ad2683aad4de665d82",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-optimized/artifacts/memory-samples.jsonl",
+      "bytes": 412282,
+      "sha256": "e3e82ea547d711d5f839c250ba355a9ffebc56583eafc00d9719cd14038be6ba",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-optimized/artifacts/receipt.json",
+      "bytes": 23670,
+      "sha256": "21f55c3896981c55030e5edb3221f87e51a4d052d9d656dcb04186c2445dddab",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-optimized/artifacts/result/lUquHNVQEdiwiBbx_0.zst.parquet",
+      "bytes": 2146588,
+      "sha256": "5adc3b15d711adab45900f87f871bafbaf83f204b09199d043e8ef43a3eb9ce7",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-optimized/artifacts/result/lUquHNVQEdiwiBbx_1.zst.parquet",
+      "bytes": 2146460,
+      "sha256": "ff07b5c2df0c07beb2585590936218ea6bfa3b738f1ad1450113383630c066e2",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-optimized/artifacts/result/lUquHNVQEdiwiBbx_2.zst.parquet",
+      "bytes": 2149076,
+      "sha256": "36b8dbac1c7cecd9d6a69936a3071e7d2d117cdd491e283df1655c2501603741",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-optimized/artifacts/result/lUquHNVQEdiwiBbx_3.zst.parquet",
+      "bytes": 2146954,
+      "sha256": "694a39389695b620e603e70a644499a9b092692dbfc2df94be5a1f091f153a10",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-optimized/artifacts/server.log",
+      "bytes": 3970,
+      "sha256": "5f44dfbe2d0de6fc6df282afc51c9374a1860082e9e2e7f56db49af5045c0e11",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-optimized/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-optimized/orchestration.json",
+      "bytes": 3223,
+      "sha256": "b2f7d043d4b24b70dca0916cee18c3ce9995fed49ef8940a3aa2c38950eed031",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-optimized/summary.json",
+      "bytes": 731,
+      "sha256": "76f529a3a5de094425baa32df91929f12485347b0e33e380fe6567be910b9e80",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-reference/artifacts/memory-samples.jsonl",
+      "bytes": 335294,
+      "sha256": "e6c8f9dbbaa8928e4c7582adf069d408082532fc00b629b521f0a449f0e0a4b2",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-reference/artifacts/receipt.json",
+      "bytes": 19527,
+      "sha256": "b07e9696cd4ce1efbe32640227062a8c5342d21af215d05b2ade9c1993e15d1e",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-reference/artifacts/result/c3jc3O8QbwvELsHd_0.zst.parquet",
+      "bytes": 2145097,
+      "sha256": "a47b2c58d47ce920ea6b5858200324db9174e8a2d6c716c2c697634ff6744c72",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-reference/artifacts/result/c3jc3O8QbwvELsHd_1.zst.parquet",
+      "bytes": 2143668,
+      "sha256": "46dc2c2d91d5c0c3c3ba33dce19f98b81e4904ab4bce7a7cce5a625899e8533a",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-reference/artifacts/result/c3jc3O8QbwvELsHd_2.zst.parquet",
+      "bytes": 2150840,
+      "sha256": "67fe9d75bf8c0f48fe991be822a3cf6b7b8ebb96a6ca71eef09a78b1ae08b3ab",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-reference/artifacts/result/c3jc3O8QbwvELsHd_3.zst.parquet",
+      "bytes": 2143148,
+      "sha256": "e26480609660160e331760ac43956615e584c8f353bf70c81389c12ec87e564b",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-reference/artifacts/server.log",
+      "bytes": 3837,
+      "sha256": "d0ca19dc78162c4801fdc683bf3d131f0b23e1c9d09e387a3f83c244d17f18a6",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-reference/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-reference/orchestration.json",
+      "bytes": 3220,
+      "sha256": "b61b35f080f7d022d291a995ff99c0f0abbd733d135d5a646815a47daf41fede",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-nutmeg-native-wcc-reference/summary.json",
+      "bytes": 731,
+      "sha256": "75be9f7dd082ffc5102cd137ef0c1e2b0fbb89170cbaa3fd86fb0436c32f3ad8",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-fused/artifacts/memory-samples.jsonl",
+      "bytes": 252585,
+      "sha256": "49e1edea9e82b0ad8ccd9bb9fbbb9a6354d4eadd6142096bb9d952703ccbb758",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-fused/artifacts/receipt.json",
+      "bytes": 24784,
+      "sha256": "2dfc989caf9457c04f1ee5c38c8b3bf4f34fb0171b6939824129309636fc4d5d",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-fused/artifacts/result/bs0KgElIqwyjmvZZ_0.zst.parquet",
+      "bytes": 3893962,
+      "sha256": "ccf72d1e4534f6016ad9e87b5aa48d530acece289f75ca03754519470c628600",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-fused/artifacts/result/bs0KgElIqwyjmvZZ_1.zst.parquet",
+      "bytes": 3893219,
+      "sha256": "51779fd6f8e655ee43f5272a3f0bd2a0357a776fd67c342bc5c37b12d32356a5",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-fused/artifacts/result/bs0KgElIqwyjmvZZ_2.zst.parquet",
+      "bytes": 3892096,
+      "sha256": "a69700a5008a198aac2a65acdef9b1ae6a719af8d8224f56f9a22f8fecbdfd18",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-fused/artifacts/result/bs0KgElIqwyjmvZZ_3.zst.parquet",
+      "bytes": 3891896,
+      "sha256": "e612a463e220eb8eeecb98879c8c65fecb5be836ad998a92a7a26f07592fc6b0",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-fused/artifacts/server.log",
+      "bytes": 7060,
+      "sha256": "bfa44d7d6f014e8d29029eb2400b4c1459de95b755a8bb5f78e4984ff6f35c79",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-fused/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-fused/orchestration.json",
+      "bytes": 3198,
+      "sha256": "e3352fa0edb7ab3ad7adbe572f815c2757a21a8a6eb61a4ce9324bce66933391",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-fused/summary.json",
+      "bytes": 695,
+      "sha256": "54c74643afae55f2007ad0737152c92e575c91360e2e6fd6886a1fd48a1f8950",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-optimized/artifacts/memory-samples.jsonl",
+      "bytes": 310068,
+      "sha256": "396469fbf0bdd0e2a54ff7b2307e422287bc21abf9a9f52fc090ef4588e13389",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-optimized/artifacts/receipt.json",
+      "bytes": 24513,
+      "sha256": "9bea042e98d87eee0ba91c230fae301bfdaff20e2e27d69e781d8e09b6136845",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-optimized/artifacts/result/mKiDanJiVpwBluQv_0.zst.parquet",
+      "bytes": 3892881,
+      "sha256": "cd23aa1c05e4c08c54ad7d030000dafb738d442e16bcdbb11b414c779a0f6041",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-optimized/artifacts/result/mKiDanJiVpwBluQv_1.zst.parquet",
+      "bytes": 3891337,
+      "sha256": "3e4a67b4cd17dbe67ad099ef83554ee1337d701a8a5e3f48fb2bfc8fb7511b30",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-optimized/artifacts/result/mKiDanJiVpwBluQv_2.zst.parquet",
+      "bytes": 3891356,
+      "sha256": "c3b51bd2c0cbe732e425487237d53aa82bc84f048516ee208e76ff8caa2f5d16",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-optimized/artifacts/result/mKiDanJiVpwBluQv_3.zst.parquet",
+      "bytes": 3891561,
+      "sha256": "505efbe6589f933d5cc7d6f0607f0ceb7837ac7b17d9889d81f05a25258d1eb5",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-optimized/artifacts/server.log",
+      "bytes": 9991,
+      "sha256": "1a26d80a95a809a29bbe00227d5b30453fe58c56e80c2c76d04acb9b3491ea2f",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-optimized/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-optimized/orchestration.json",
+      "bytes": 3203,
+      "sha256": "41341a48c5cb8e59632f36842304b52dab124b1596a8efb160d526d4b7ba27b5",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-optimized/summary.json",
+      "bytes": 706,
+      "sha256": "b31d72d47ec49756d939148c0ca908e1704951eaabb9dacc7763e862a584a08d",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-reference/artifacts/memory-samples.jsonl",
+      "bytes": 301476,
+      "sha256": "6a6ec05143078295eb464d721a15dca2d2b4fe02d4044601044cedaf4cc3a69a",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-reference/artifacts/receipt.json",
+      "bytes": 20371,
+      "sha256": "4ed7362a892040618a8444a0e00d99a869990c215f51d69cab16eef4572790d5",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-reference/artifacts/result/VBQWX14P8GfUmRPK_0.zst.parquet",
+      "bytes": 3890436,
+      "sha256": "7fe007858b591dac7acc2f529c5d5cb8f31b22734df54fd43e53da7a2b294c71",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-reference/artifacts/result/VBQWX14P8GfUmRPK_1.zst.parquet",
+      "bytes": 3892665,
+      "sha256": "24821a3824b091c100e8e74d57f490560c7c96b5f51a7a22193038c3c50460c2",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-reference/artifacts/result/VBQWX14P8GfUmRPK_2.zst.parquet",
+      "bytes": 3889732,
+      "sha256": "18509dbea4d5e643492aa4e59d3ed10b194f3e690b33884b861d7762700849d4",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-reference/artifacts/result/VBQWX14P8GfUmRPK_3.zst.parquet",
+      "bytes": 3891524,
+      "sha256": "dca89d94e995978d88213d301d260677a17f19b627d9bc79ff3ea3a3e00bc1bf",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-reference/artifacts/server.log",
+      "bytes": 6936,
+      "sha256": "a8a13380ab1def512c6101b007e2d5e479e30f6c170d16f36c52e5434eb46e35",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-reference/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-reference/orchestration.json",
+      "bytes": 3207,
+      "sha256": "7196299832f78851f83d90efdaec3290ea75ecb2985b189a043aec4d2d66f112",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-hub-4194304-pecan-wcc-reference/summary.json",
+      "bytes": 707,
+      "sha256": "fec9a5eff542332fb0fb0f73b6b060141ed0d2f0bc679c3b4541a10c09b62412",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-fused/artifacts/memory-samples.jsonl",
+      "bytes": 267303,
+      "sha256": "c34266ac49c49459a5acf0656f990350716ea14618d6f22e12801b6eb2e37681",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-fused/artifacts/receipt.json",
+      "bytes": 25346,
+      "sha256": "a6a418ac7ba4db7e68e95098bf62d88b448576120a1584eafdfcb1e6544efa01",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-fused/artifacts/result/3gUWRzaNbdcTbYK9_0.zst.parquet",
+      "bytes": 3892595,
+      "sha256": "e95432d40102a1af2d8fb4ce19796a4c572637ae6d991afaf98f27aa196996a7",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-fused/artifacts/result/3gUWRzaNbdcTbYK9_1.zst.parquet",
+      "bytes": 3891676,
+      "sha256": "3baea34e67a329b267714d5280e3c4a57cb04a397afdc2fcf0769bd13791741b",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-fused/artifacts/result/3gUWRzaNbdcTbYK9_2.zst.parquet",
+      "bytes": 3892244,
+      "sha256": "fe171db32c02663706471cebda263a0e9a534610fffbaaf3b88b89a5af82bc85",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-fused/artifacts/result/3gUWRzaNbdcTbYK9_3.zst.parquet",
+      "bytes": 3891600,
+      "sha256": "eff8a60cbc2b8167db4d6f40f76ef047c466a38ac43e262f63f73b0e5ea4b5a2",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-fused/artifacts/server.log",
+      "bytes": 7059,
+      "sha256": "c14f6bdb3d18e9818224b1e0c58b211269c68a8d7e7dd49637fb255da39ba3ad",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-fused/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-fused/orchestration.json",
+      "bytes": 3228,
+      "sha256": "c0682a0a278439134c1e7331b054a112cc47684efb66d204f7b7943ce85c0bfb",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-fused/summary.json",
+      "bytes": 742,
+      "sha256": "f1b2977a1f04af689e013f260fd62922ed1641970674fb3ccddc5800ff803c2d",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-optimized/artifacts/memory-samples.jsonl",
+      "bytes": 327461,
+      "sha256": "02f87c2ba1dfc665131db017a9ecb3f36ac3e01daa6440a7a652f3236aeb73e7",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-optimized/artifacts/receipt.json",
+      "bytes": 25050,
+      "sha256": "fac38b36fc606aa232beffdc8b102acd6667aadd88077af8ded40737ed3a6997",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-optimized/artifacts/result/W5wPVw0DULFKQPfS_0.zst.parquet",
+      "bytes": 3891164,
+      "sha256": "a3dd9628b99292f49c279198734b0b3970c81e4f4121181a44cf15c5b0a974bd",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-optimized/artifacts/result/W5wPVw0DULFKQPfS_1.zst.parquet",
+      "bytes": 3889733,
+      "sha256": "a1ef30863f3744bbf16f32f63379bc0bfcdc5100f71913a0432da610658e9c01",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-optimized/artifacts/result/W5wPVw0DULFKQPfS_2.zst.parquet",
+      "bytes": 3888579,
+      "sha256": "b56b1c2b0f13131ee74770ebc5ec1a2d85fec482296ef8ff2089747221f8fa92",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-optimized/artifacts/result/W5wPVw0DULFKQPfS_3.zst.parquet",
+      "bytes": 3890382,
+      "sha256": "de582e028d05453065852bf17c0a329cc985b8b2ed7882b5feb4fba28217d983",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-optimized/artifacts/server.log",
+      "bytes": 7449,
+      "sha256": "dab11f84afc5f70ae78bb51ae7f12320fa8ab92810e572d336adfb6d85aa3736",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-optimized/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-optimized/orchestration.json",
+      "bytes": 3238,
+      "sha256": "f0617df8c6ac69ede2d787b4b1476bd89345f67d00e005f48bce73edb0371515",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-optimized/summary.json",
+      "bytes": 755,
+      "sha256": "afa9aa784dfe1cb580667524171b846fdecb2d5b9e9fd2dae869d11711dd123a",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-reference/artifacts/memory-samples.jsonl",
+      "bytes": 354576,
+      "sha256": "e7c1f411dc2f826aa83871d7c5a9041677bd9b3072c175bd1389c33b22d1ab95",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-reference/artifacts/receipt.json",
+      "bytes": 21129,
+      "sha256": "704ca8aa740c9450fd910045a724be1988cd102b9ecb1fde730dbea6a9b26f60",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-reference/artifacts/result/KzXqoan5lo3dH0VY_0.zst.parquet",
+      "bytes": 3892637,
+      "sha256": "322b12053232eb362d3c47bc79a5bce3bedde887a385b747bbd2ee339223fdec",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-reference/artifacts/result/KzXqoan5lo3dH0VY_1.zst.parquet",
+      "bytes": 3894456,
+      "sha256": "70fb6c2ac654438ec943f19c8a0e80f5c4354221160eb168882fef5d848a0ab2",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-reference/artifacts/result/KzXqoan5lo3dH0VY_2.zst.parquet",
+      "bytes": 3892451,
+      "sha256": "cfd6255c07ee8f76b50a57b3d7f6b0db343ab7f47f429d4b24a8c3409498a28c",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-reference/artifacts/result/KzXqoan5lo3dH0VY_3.zst.parquet",
+      "bytes": 3891068,
+      "sha256": "7602b7986b5553a4e7b6c57989382562e2dcd972546ba235259d0c947b143199",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-reference/artifacts/server.log",
+      "bytes": 5028,
+      "sha256": "2756f2ba59d78046db233e9b569d9402dbcb85be0a935462a6a094a350fa2b72",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-reference/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-reference/orchestration.json",
+      "bytes": 3238,
+      "sha256": "268173f6802a637fddb430013fef3202d9fbbb85e2ac236cf7a25b25ec6aaa5a",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-datafusion-wcc-reference/summary.json",
+      "bytes": 755,
+      "sha256": "93dceea6c7b02f26b5ce78a343bcb3f985640ab3a3e93e2548c0743bd183d24d",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-fused/artifacts/memory-samples.jsonl",
+      "bytes": 400680,
+      "sha256": "37f8f0aeda2234b6c4185db495cc4a2d5baaffd8f36c66bc4b47b1ceae52ea56",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-fused/artifacts/receipt.json",
+      "bytes": 23964,
+      "sha256": "fd91d2ccc8d85caf8da02676c0289051cb263888da798b47d05c55218dd53f54",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-fused/artifacts/result/k5PWzfFXh5Tf2hgA_0.zst.parquet",
+      "bytes": 2152409,
+      "sha256": "94c37dd372e9d260a8d1cb486204127c783f7234373e58908f5aeb7102bc23e5",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-fused/artifacts/result/k5PWzfFXh5Tf2hgA_1.zst.parquet",
+      "bytes": 2148896,
+      "sha256": "2fb68bc8dc3da874cefd0ea0e7608d119929c152922bb14f37ff8ece13f40cd1",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-fused/artifacts/result/k5PWzfFXh5Tf2hgA_2.zst.parquet",
+      "bytes": 2148982,
+      "sha256": "6b754f5240dad14a10c4066dcab6ef8c92e08e314b140a361f9233ee24dca3dd",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-fused/artifacts/result/k5PWzfFXh5Tf2hgA_3.zst.parquet",
+      "bytes": 2146093,
+      "sha256": "1f197bc3a918abb2fbe808b17070a600aef4c1e70a45c0e17c3d0d1485b1e485",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-fused/artifacts/server.log",
+      "bytes": 4007,
+      "sha256": "bbb01df52bf1ed8d7fede1fca521256cf8cebd6edeb7875b9f43ab4da28e9061",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-fused/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-fused/orchestration.json",
+      "bytes": 3219,
+      "sha256": "a40bcd7f4c9db87ddd723a9cfaa7198e892223f5bbf03f4401bf251582e14800",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-fused/summary.json",
+      "bytes": 731,
+      "sha256": "a61faa5f88d7eaf2dfcd16b11d74c6656c9084d8cf2b865d0fe7f5c49373d9cf",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-optimized/artifacts/memory-samples.jsonl",
+      "bytes": 404206,
+      "sha256": "658f077386e4021f884573ad0f432a1121c39385f6fc3b8b3952470a801b689e",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-optimized/artifacts/receipt.json",
+      "bytes": 23977,
+      "sha256": "3062d0f02e0f7bffa2f243886579b2e2214f08b4f5d38bf0a64985837d9bbbfa",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-optimized/artifacts/result/5N7SGxYcwPIcY3vP_0.zst.parquet",
+      "bytes": 2144977,
+      "sha256": "d5ed1ccba6e5dfb4d220cf77473d738ce13daf314acc8d12a45532b70544dd10",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-optimized/artifacts/result/5N7SGxYcwPIcY3vP_1.zst.parquet",
+      "bytes": 2150743,
+      "sha256": "9eb29241187f528557feb6e1cdcf9916fd4c21ae59562365a4ad168f300ef726",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-optimized/artifacts/result/5N7SGxYcwPIcY3vP_2.zst.parquet",
+      "bytes": 2148421,
+      "sha256": "4bceb7bc4b2a812db052d283052f4bc8cbf42a9bd012e115881a2ec4bfe3119e",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-optimized/artifacts/result/5N7SGxYcwPIcY3vP_3.zst.parquet",
+      "bytes": 2147288,
+      "sha256": "97a520921e82e15d5d7bdd3323039e0dc1eb2bae42d7ba7fceb63dd60bb9d483",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-optimized/artifacts/server.log",
+      "bytes": 3968,
+      "sha256": "639220db5a7b776003189268ea6c22d27852a85dff57aaf4ad03c0e891b3399b",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-optimized/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-optimized/orchestration.json",
+      "bytes": 3225,
+      "sha256": "c93a099a4d1070fa803bd075f02dc14c04903782bc8a8113a9ed2e1ada21f2a1",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-optimized/summary.json",
+      "bytes": 743,
+      "sha256": "065212fa0382e17b075f11167233ebecc86f27dbfc8d32b5769efe2eaaa0c1a0",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-reference/artifacts/memory-samples.jsonl",
+      "bytes": 324069,
+      "sha256": "6825175e35603a2eeaa221b97c4101808e8f61a0066d6236cd7a58be10baee28",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-reference/artifacts/receipt.json",
+      "bytes": 19555,
+      "sha256": "afa6bec9156742ca206c904a7bfc942bac11c7bab83a072bb0e87d55a33fb21c",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-reference/artifacts/result/ro1pKLlQfsfDCqJ9_0.zst.parquet",
+      "bytes": 2137936,
+      "sha256": "97bfcb2f46554bb691a373767697711dd18d6c304dd54cc4d924b5c065879af9",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-reference/artifacts/result/ro1pKLlQfsfDCqJ9_1.zst.parquet",
+      "bytes": 2147384,
+      "sha256": "b192e035e93a0cd82726bec494a667a9a347c2b6a48edf432c7a8b594cd50da9",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-reference/artifacts/result/ro1pKLlQfsfDCqJ9_2.zst.parquet",
+      "bytes": 2151100,
+      "sha256": "d4b988ad35bd355ac206edb1978f1da16ed7369012bf27c83e554ceb3b25f7ea",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-reference/artifacts/result/ro1pKLlQfsfDCqJ9_3.zst.parquet",
+      "bytes": 2142880,
+      "sha256": "2226bb1781f49a81338b358f8ad6d982e0a1b9f4100f5e6122fd9699987dcb65",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-reference/artifacts/server.log",
+      "bytes": 3969,
+      "sha256": "b6a6234e1e320046544a21dcc3a652b97d9661d358622dc8777a7be22a35e618",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-reference/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-reference/orchestration.json",
+      "bytes": 3228,
+      "sha256": "787616dcf7cd32a4e8fec7957af3b44d45d0855c554260b607ec0a0876fdc372",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-nutmeg-native-wcc-reference/summary.json",
+      "bytes": 743,
+      "sha256": "ee5bd3e1495014cacbc9c3d85be17228d6781a7498bb08217cdb600ecb4b12be",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-fused/artifacts/memory-samples.jsonl",
+      "bytes": 252673,
+      "sha256": "d4e077eebebe2b6a58ba6eedbad889963cb53be3e9bc61ba50cfc8218c66d52a",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-fused/artifacts/receipt.json",
+      "bytes": 25332,
+      "sha256": "3ff74f0402e44e459a41ce2a11060b9a6b2640a47bfd7e730e6fd2dce7e37a9b",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-fused/artifacts/result/w4AoLcdFIn36skCJ_0.zst.parquet",
+      "bytes": 3891874,
+      "sha256": "7008e863b6424f2ea400264e1cc14d35abb523ca277169c90601ec0c07ff03c4",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-fused/artifacts/result/w4AoLcdFIn36skCJ_1.zst.parquet",
+      "bytes": 3889467,
+      "sha256": "fa42c211ca54fc86e0126c9eb186fb01e9939c08d84239cd44bb8ca74c11f866",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-fused/artifacts/result/w4AoLcdFIn36skCJ_2.zst.parquet",
+      "bytes": 3892481,
+      "sha256": "7158e3a46ceedb2a27411c3bff09d42e65bac05ea572bb940be6619097a7361b",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-fused/artifacts/result/w4AoLcdFIn36skCJ_3.zst.parquet",
+      "bytes": 3892876,
+      "sha256": "70543a7a5e30937e35f7522b4f742c90b5ffedf7be57c33aba24beffd2dd22d0",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-fused/artifacts/server.log",
+      "bytes": 6928,
+      "sha256": "a8488c9f2c42bf387dcbd4df15d35471d5b4feacb189df109791079a85e8305f",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-fused/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-fused/orchestration.json",
+      "bytes": 3201,
+      "sha256": "afb695190af0948e890aab674685e5a23c6b5e7025740538ca927ee5cb5aa381",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-fused/summary.json",
+      "bytes": 707,
+      "sha256": "af9374ff96fd1b6a9c00367eca7a132991675f072ac84e56ea44d09b2b3e0985",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-optimized/artifacts/memory-samples.jsonl",
+      "bytes": 325727,
+      "sha256": "714d53f750cc72578cccfaaedd1a2dd1c528746d063687734d256feabc9030b5",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-optimized/artifacts/receipt.json",
+      "bytes": 25177,
+      "sha256": "1fd668cea5df2221701eee33bcc2c4a30447730a97e9cbc1dc86bad120612ae0",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-optimized/artifacts/result/FbYSwVktcr7FoFhh_0.zst.parquet",
+      "bytes": 3891286,
+      "sha256": "c1935a43b19d4fc23b097840e08c0249cca5b338e1780efdc872bcfb14ad9769",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-optimized/artifacts/result/FbYSwVktcr7FoFhh_1.zst.parquet",
+      "bytes": 3891878,
+      "sha256": "0edc9baf1f555a160ca8aa4059005fe4cdb0d919ed725733d24dd4f57d41b136",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-optimized/artifacts/result/FbYSwVktcr7FoFhh_2.zst.parquet",
+      "bytes": 3892048,
+      "sha256": "24dd6042f2c90d41bb74bc32b691bea9d0ec1bd7361e72feb8738afb5e5d908f",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-optimized/artifacts/result/FbYSwVktcr7FoFhh_3.zst.parquet",
+      "bytes": 3892628,
+      "sha256": "d6caef32ad9a44fae1949dc8680ed8aaaa3682ba9e3f04c621f104b7e7d98fb6",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-optimized/artifacts/server.log",
+      "bytes": 7198,
+      "sha256": "dd856442157a6bffae1fee81d0fcde0b26017917d80ba690f300cc6d731766b9",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-optimized/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-optimized/orchestration.json",
+      "bytes": 3212,
+      "sha256": "0fd38b977dea49153da2ed3a5b78de68b4d343d4779177a4490f35d6954a4e5f",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-optimized/summary.json",
+      "bytes": 719,
+      "sha256": "23368e6da6fe0b08835c63fe385183cb453b54c06d848967a51d52540ec0f602",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-reference/artifacts/memory-samples.jsonl",
+      "bytes": 356759,
+      "sha256": "2c6f114e19fb39ff3e07585467c978e1b6a72a03be38abd50db0063376ae5334",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-reference/artifacts/receipt.json",
+      "bytes": 20822,
+      "sha256": "0a90c1360973bff9d11a7b0fac1e0e633bfdd875299807816e96f548fce05ec3",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-reference/artifacts/result/jfqffjiRtuS8NiS9_0.zst.parquet",
+      "bytes": 3890361,
+      "sha256": "9ead3638630302d4bf3a38182c07c9fa0e4006dc90960c976ac1cd11cabee576",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-reference/artifacts/result/jfqffjiRtuS8NiS9_1.zst.parquet",
+      "bytes": 3889588,
+      "sha256": "e5ec0750f18386eec9f1e87161ce84c713aadac266b873bbb11f4b012f0591d3",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-reference/artifacts/result/jfqffjiRtuS8NiS9_2.zst.parquet",
+      "bytes": 3890519,
+      "sha256": "78c27c9c7b95a96df1369fa5fb865820db9b66c3cff38a1a563100f012c0a63e",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-reference/artifacts/result/jfqffjiRtuS8NiS9_3.zst.parquet",
+      "bytes": 3891033,
+      "sha256": "49b3be3f3cacc5fae75aac97ca4b6db20da2432c8e74d951ccfcf9ada0948b2c",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-reference/artifacts/server.log",
+      "bytes": 7573,
+      "sha256": "ead97df367f517980c960f11ccf6de9f4a16d4e9ece5f8d825e4fa68bd5088d7",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-reference/container.log",
+      "bytes": 262,
+      "sha256": "0257650a0a7f7a34d1546898c413419e0b6865f671a2e7ab91629848ca5d3767",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-reference/orchestration.json",
+      "bytes": 3212,
+      "sha256": "96b2431db7a6d57531eb40e383a4432b73b00d4f65c002cb0501dd88da87191e",
+      "included": true
+    },
+    {
+      "path": "cells/large-wcc-r1-uniform-4194304-pecan-wcc-reference/summary.json",
+      "bytes": 719,
+      "sha256": "1a18560545e8355f441bd4258110e46d0b9b7a2ba3a23504fdd6d4f95716a4b1",
+      "included": true
+    },
+    {
+      "path": "configuration.json",
+      "bytes": 2472,
+      "sha256": "51a9f2d443109748ff82f4168b513670497c7cbb528cc8c0d17c3ca7b658d07a",
+      "included": true
+    },
+    {
+      "path": "datasets/hub-4194304/container.log",
+      "bytes": 2050,
+      "sha256": "6c77e1651550898a33f70d94b5a1f82d117927044913e547e8661a1c296dd688",
+      "included": true
+    },
+    {
+      "path": "datasets/hub-4194304/dataset/edges.parquet",
+      "bytes": 213782921,
+      "sha256": "4887ac46fbde25683e26f8a9053cacfd41838cb680eb77b20356d772098cd0bb",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "datasets/hub-4194304/dataset/manifest.json",
+      "bytes": 1876,
+      "sha256": "95f8361cd9c62a5a23c70eb92c91b9cdcb9020237b562287fa6fead08e653c49",
+      "included": true
+    },
+    {
+      "path": "datasets/hub-4194304/dataset/reference.parquet",
+      "bytes": 53023320,
+      "sha256": "4f00d44ab4dde2411cee5467c257699808b279bd652d5ec8bc4058229d0a467a",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "datasets/hub-4194304/dataset/vertices.parquet",
+      "bytes": 12930434,
+      "sha256": "82adeb0f63979c242e399a93f16ea84eb4fbc9d0e3e4a53ff22230dcae991c7f",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "datasets/hub-4194304/orchestration.json",
+      "bytes": 2653,
+      "sha256": "4c9f72a2bdff1181548738fbb1d2cc8b18aeca97d69932ac915e3dbf205c07ee",
+      "included": true
+    },
+    {
+      "path": "datasets/uniform-4194304/container.log",
+      "bytes": 2059,
+      "sha256": "db4eb9ce04450fb77816855453ec237af4b7a6949fc49064dd388a889b63cf31",
+      "included": true
+    },
+    {
+      "path": "datasets/uniform-4194304/dataset/edges.parquet",
+      "bytes": 217401579,
+      "sha256": "859f51e667db9a211257e5de00deee371c047eff14d972cc46f653b958ff0607",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "datasets/uniform-4194304/dataset/manifest.json",
+      "bytes": 1885,
+      "sha256": "fade7f31a14209d70bcb9007e82f38d109d4714d3f4f8fef69def9de23c8ca32",
+      "included": true
+    },
+    {
+      "path": "datasets/uniform-4194304/dataset/reference.parquet",
+      "bytes": 53172094,
+      "sha256": "7dbbe17e3b4decaa599e4f4aaa62e5436e6f87fe5fa06b046295a7b28af797ec",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "datasets/uniform-4194304/dataset/vertices.parquet",
+      "bytes": 12930434,
+      "sha256": "82adeb0f63979c242e399a93f16ea84eb4fbc9d0e3e4a53ff22230dcae991c7f",
+      "included": false,
+      "omission": "Parquet bytes omitted; original remains on Morrobay, hash retained here and in per-cell result/dataset receipts"
+    },
+    {
+      "path": "datasets/uniform-4194304/orchestration.json",
+      "bytes": 2667,
+      "sha256": "82ce6bb45ed3102df036812ec48c7e7953ebf171abbc208616047f228d1677e8",
+      "included": true
+    },
+    {
+      "path": "matrix-results.json",
+      "bytes": 24746,
+      "sha256": "15fe4830b1507571bf6792f4a80d800fdb915a7bcd402788a9d423617086ad2d",
+      "included": true
+    },
+    {
+      "path": "plan-1790548766146678000.json",
+      "bytes": 15133,
+      "sha256": "34c262a140b49e39a712315fbecde72a7133a658d5f4760b6fc4efe76232d037",
+      "included": true
+    },
+    {
+      "path": "plan-1790548910541308000.json",
+      "bytes": 15133,
+      "sha256": "34c262a140b49e39a712315fbecde72a7133a658d5f4760b6fc4efe76232d037",
+      "included": true
+    },
+    {
+      "path": "preflight-1790548766245006000/container.log",
+      "bytes": 17,
+      "sha256": "0c1432ca1143165f74f6420714d484abdb7d12ce371e3f9369aa57b9624fc13f",
+      "included": true
+    },
+    {
+      "path": "preflight-1790548766245006000/orchestration.json",
+      "bytes": 2608,
+      "sha256": "8efcd175e362f30db9643caded5485de71b587720178a3c5deb5dd1e7d3f4e56",
+      "included": true
+    },
+    {
+      "path": "preflight-1790548910648196000/container.log",
+      "bytes": 17,
+      "sha256": "0c1432ca1143165f74f6420714d484abdb7d12ce371e3f9369aa57b9624fc13f",
+      "included": true
+    },
+    {
+      "path": "preflight-1790548910648196000/orchestration.json",
+      "bytes": 2609,
+      "sha256": "a254a8a45783239c8a90f08fd62fcaf4f6ff4b4d5f80459f8438f6b68737aee5",
+      "included": true
+    },
+    {
+      "path": "resolved-image.json",
+      "bytes": 96,
+      "sha256": "ab671a4660b3de078ef59040999425371b244509d32a8476a01a3bcfdd58b020",
+      "included": true
+    }
+  ]
+}

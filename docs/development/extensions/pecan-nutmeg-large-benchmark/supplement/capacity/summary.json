@@ -1,0 +1,767 @@
+{
+  "generated_utc": "2026-09-28T03:20:58.915590+00:00",
+  "planned_cells": 30,
+  "outcomes": {
+    "not_run": 29,
+    "error": 1
+  },
+  "expected_outcomes_observed": 0,
+  "sources": {
+    "harness_source_sha": "aa4b5fa6bd1a8e0ac833ec9db0862386777575c2",
+    "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822",
+    "native_source_sha": "9d7155aa2302d9dda4e93e48ee3fd81aac1ee637"
+  },
+  "integrity_errors": [],
+  "groups": [
+    {
+      "suite": "large-pagerank",
+      "dataset": "hub-4194304",
+      "mode": "process-cluster",
+      "algorithm": "pagerank",
+      "engine": "nutmeg-datafusion",
+      "variant": "optimized",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-pagerank",
+      "dataset": "hub-4194304",
+      "mode": "process-cluster",
+      "algorithm": "pagerank",
+      "engine": "nutmeg-datafusion",
+      "variant": "reference",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-pagerank",
+      "dataset": "hub-4194304",
+      "mode": "process-cluster",
+      "algorithm": "pagerank",
+      "engine": "nutmeg-native",
+      "variant": "optimized",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-pagerank",
+      "dataset": "hub-4194304",
+      "mode": "process-cluster",
+      "algorithm": "pagerank",
+      "engine": "nutmeg-native",
+      "variant": "reference",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-pagerank",
+      "dataset": "hub-4194304",
+      "mode": "process-cluster",
+      "algorithm": "pagerank",
+      "engine": "pecan",
+      "variant": "optimized",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-pagerank",
+      "dataset": "hub-4194304",
+      "mode": "process-cluster",
+      "algorithm": "pagerank",
+      "engine": "pecan",
+      "variant": "reference",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-pagerank",
+      "dataset": "uniform-4194304",
+      "mode": "process-cluster",
+      "algorithm": "pagerank",
+      "engine": "nutmeg-datafusion",
+      "variant": "optimized",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-pagerank",
+      "dataset": "uniform-4194304",
+      "mode": "process-cluster",
+      "algorithm": "pagerank",
+      "engine": "nutmeg-datafusion",
+      "variant": "reference",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-pagerank",
+      "dataset": "uniform-4194304",
+      "mode": "process-cluster",
+      "algorithm": "pagerank",
+      "engine": "nutmeg-native",
+      "variant": "optimized",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-pagerank",
+      "dataset": "uniform-4194304",
+      "mode": "process-cluster",
+      "algorithm": "pagerank",
+      "engine": "nutmeg-native",
+      "variant": "reference",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "error": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-pagerank",
+      "dataset": "uniform-4194304",
+      "mode": "process-cluster",
+      "algorithm": "pagerank",
+      "engine": "pecan",
+      "variant": "optimized",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-pagerank",
+      "dataset": "uniform-4194304",
+      "mode": "process-cluster",
+      "algorithm": "pagerank",
+      "engine": "pecan",
+      "variant": "reference",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "hub-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "nutmeg-datafusion",
+      "variant": "fused",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "hub-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "nutmeg-datafusion",
+      "variant": "optimized",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "hub-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "nutmeg-datafusion",
+      "variant": "reference",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "hub-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "nutmeg-native",
+      "variant": "fused",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "hub-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "nutmeg-native",
+      "variant": "optimized",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "hub-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "nutmeg-native",
+      "variant": "reference",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "hub-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "pecan",
+      "variant": "fused",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "hub-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "pecan",
+      "variant": "optimized",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "hub-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "pecan",
+      "variant": "reference",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "uniform-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "nutmeg-datafusion",
+      "variant": "fused",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "uniform-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "nutmeg-datafusion",
+      "variant": "optimized",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "uniform-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "nutmeg-datafusion",
+      "variant": "reference",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "uniform-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "nutmeg-native",
+      "variant": "fused",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "uniform-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "nutmeg-native",
+      "variant": "optimized",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "uniform-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "nutmeg-native",
+      "variant": "reference",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "uniform-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "pecan",
+      "variant": "fused",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "uniform-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "pecan",
+      "variant": "optimized",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    },
+    {
+      "suite": "large-wcc",
+      "dataset": "uniform-4194304",
+      "mode": "process-cluster",
+      "algorithm": "wcc",
+      "engine": "pecan",
+      "variant": "reference",
+      "planned": 1,
+      "passed": 0,
+      "outcomes": {
+        "not_run": 1
+      },
+      "metrics": {
+        "seconds": null,
+        "execution_rss_bytes": null,
+        "execution_pss_bytes": null,
+        "cgroup_peak_through_result_bytes": null,
+        "cgroup_lifetime_peak_bytes": null,
+        "native_pool_peak_bytes": null,
+        "native_read_peak_bytes": null,
+        "iterations": null,
+        "true_residual": null,
+        "whole_vm_steal_fraction": null
+      }
+    }
+  ]
+}

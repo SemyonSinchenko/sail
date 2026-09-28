@@ -66,6 +66,16 @@ def render(summary, config, host, output):
                             ax.errorbar(x, value, yerr=[[value - metric['minimum'] / scale],
                                                       [metric['maximum'] / scale - value]],
                                         fmt='none', ecolor='#333333', capsize=3)
+                            planned = sum(group['outcomes'].values())
+                            if metric['samples'] < planned:
+                                missing = ', '.join(f'{n} {outcome}' for outcome, n in
+                                                    sorted(group['outcomes'].items()) if outcome != 'passed')
+                                label = f"n={metric['samples']}/{planned}"
+                                if missing:
+                                    label += '\n' + missing
+                                ax.annotate(label, (x, metric['maximum'] / scale),
+                                            xytext=(0, 5), textcoords='offset points',
+                                            ha='center', va='bottom', fontsize=7)
                         else:
                             ax.text(x, .02, 'unavailable', rotation=90, ha='center', va='bottom',
                                     transform=ax.get_xaxis_transform(), fontsize=7)
@@ -73,6 +83,7 @@ def render(summary, config, host, output):
             for ax in axes[row]:
                 ax.set_xticks(range(len(methods)), [label for _, label in methods])
                 ax.set_title('PageRank' if algorithm == 'pagerank' else 'WCC')
+                ax.margins(y=.16)
                 ax.set_ylim(bottom=0)
                 ax.grid(axis='y', alpha=.2)
                 ax.set_axisbelow(True)
@@ -86,7 +97,7 @@ def render(summary, config, host, output):
         fig.suptitle(f"{dataset} · {host} · {limits['cpus']} CPU quota / {limits['memory_gib']} GiB\n"
                      f'{mode}; Banda kernels stay driver-local\n'
                      'Reference WCC: Banda union-find; Pecan/Grenada min-label\n'
-                     'Median and full observed range; sample counts/outcomes in tables', fontsize=10)
+                     'Successful trials: median/min/max; incomplete groups labeled; all outcomes in tables', fontsize=10)
         for extension in ('png', 'svg'):
             fig.savefig(output / f'{dataset}.{extension}', dpi=160)
         plt.close(fig)

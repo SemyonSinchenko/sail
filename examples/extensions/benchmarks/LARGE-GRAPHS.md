@@ -1,5 +1,10 @@
 # Sail on the published large graph fixtures
 
+The [completed 180-trial report](../../../docs/development/extensions/pecan-nutmeg-large-benchmark.md)
+contains every time/memory result, the independent audit and retained timeout.
+The [evidence README](../../../docs/development/extensions/pecan-nutmeg-large-benchmark/README.md)
+separates the measured harness, runtime and native-wheel source pins.
+
 This experiment runs Pecan, Nutmeg Banda and Nutmeg Grenada on the hub and
 uniform inputs from adversari.al's Graph Kernels campaign. The input edge files
 must match the published B9 SHA256 values in `large-fixtures.json`.
@@ -90,6 +95,9 @@ After measurement, summarize the evidence and render the tables and PNG/SVG
 figures in a separate reporting environment. Rendering was checked with
 Matplotlib 3.11.2. The figures take limits and source identities from the actual
 configuration, display observed ranges, and keep unavailable values distinct.
+Charts summarize successful trials only. An incomplete time or memory group
+is labeled with its own sample count and unsuccessful outcomes; the full tables
+and CSV retain the failed trials.
 
 ```sh
 python3 examples/extensions/benchmarks/summarize.py \

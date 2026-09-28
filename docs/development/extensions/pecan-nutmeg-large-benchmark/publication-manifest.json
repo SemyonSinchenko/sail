@@ -1,0 +1,298 @@
+{
+  "audit_recorded_utc": "2026-09-28T03:05:22.343670+00:00",
+  "auditor_sha256": "85070d03778ad1dd2e578835032fda7f000c0b4fcde8f9d1f74d2d3a5791935a",
+  "files": [
+    {
+      "bytes": 7567,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/README.md",
+      "sha256": "1afadef9a1f480bed5324b2cbf6bb100c7fde96ca6b13ee45f71f8d3e2a4a5eb"
+    },
+    {
+      "bytes": 637266,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/audit/audit.json",
+      "sha256": "a5cbdb8fecbc828a5e73109b94c89249b9c85f05dc5f1b2f59597923aa0e032f"
+    },
+    {
+      "bytes": 22096,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/audit/audit.md",
+      "sha256": "efded66e4363492602efc17f7c3acca6c41c9950a9fc21a05e88bf842e43b47e"
+    },
+    {
+      "bytes": 3074,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/configuration.json",
+      "sha256": "ad90347e772f13592666d17909b5af69c3c58f14ccbd0c0c92de98f0fde1906e"
+    },
+    {
+      "bytes": 129891,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/figures/hub-2097152.png",
+      "sha256": "05ada637e7129e5201da80a884e0ccc407c26a9ac8deaea60de20a8197dc02af"
+    },
+    {
+      "bytes": 109703,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/figures/hub-2097152.svg",
+      "sha256": "25f4cf5d6d389a9f97a87ca8a403336b727cec039fe43bdc9147faea95a8e5d1"
+    },
+    {
+      "bytes": 128054,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/figures/hub-4194304.png",
+      "sha256": "f9afb6b3ba234b43d0f6cc158e2b7820244f2d6776de71caeed99be3664e8abe"
+    },
+    {
+      "bytes": 109316,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/figures/hub-4194304.svg",
+      "sha256": "874cc2ea1502012414909d51fa9f1aa6e661cf913b3baea33cc9ea0d84204419"
+    },
+    {
+      "bytes": 2962,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/figures/render-receipt.json",
+      "sha256": "c8d3990d409c3b7a5955a1060550a60870ca160af35f8bd4f5e90e1d24c52c28"
+    },
+    {
+      "bytes": 7191,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/figures/tables.md",
+      "sha256": "c1ffcf6071f8424b36064912d902ebf81b57b117db782fff9a701f101682d359"
+    },
+    {
+      "bytes": 132821,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/figures/uniform-2097152.png",
+      "sha256": "fd035b9c1c3cfaf49b1f8029979b839382390c7876de75d37e3cd9b45c935be4"
+    },
+    {
+      "bytes": 110993,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/figures/uniform-2097152.svg",
+      "sha256": "805f2f8a5a9452feab6b58666524781c52c437b42e2ca418e6c5f4980c28715b"
+    },
+    {
+      "bytes": 130118,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/figures/uniform-4194304.png",
+      "sha256": "219738056ddeabfbc95bb02e4f3a2cbcd705ead0da5fd6a7d2637ce975b7cb4b"
+    },
+    {
+      "bytes": 111284,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/figures/uniform-4194304.svg",
+      "sha256": "978a3f3827e7edf8a8c44f8baa0c83f84919a0cf2b1afb9a376a52796a9800e1"
+    },
+    {
+      "bytes": 560106,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/inventory/export-manifest.json",
+      "sha256": "66458c32a10ddf6ac5b7d4b8f9619e6dcc88dd0c9da4d16c0e876c3daceab0e7"
+    },
+    {
+      "bytes": 6729,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/inventory/post-large-full-host.json",
+      "sha256": "fd2ac2682c2ce197d72d988f6b93bd5ab2270ca51c85d45e152ddcc46051c166"
+    },
+    {
+      "bytes": 6258,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/inventory/pre-large-capacity-aa4b5fa6-host.json",
+      "sha256": "551c76926bbd941b63a7a54232ab1aa652ee256b9e13fd409dedf08a421cd6da"
+    },
+    {
+      "bytes": 6222,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/inventory/pre-large-full-host.json",
+      "sha256": "31cbf961105077512154812ca3ea68ee199751d9a22c703d11df3b9dd68df083"
+    },
+    {
+      "bytes": 6278,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/inventory/pre-large-qualified-pilots-host.json",
+      "sha256": "5805f570760a6ff883d8c29a308759213335de4f6d6cd65aa07d4ccd8d044c29"
+    },
+    {
+      "bytes": 295179,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/inventory/raw-inventory.json",
+      "sha256": "4a37442de78ce0e6911e021c46f707c96307a4f666df4b593973d57c9606a983"
+    },
+    {
+      "bytes": 387,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/post-stop-cleanup.json",
+      "sha256": "b0a82f74ef20cc6502a39f6c43d59b2cc526856cfdc5db6a1f852c44ba05e1c0"
+    },
+    {
+      "bytes": 781,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/proof/bundle.json",
+      "sha256": "aec8d6d8e4f0d632f7fc64bed6aca0fafd9cdaecc316e4cc7da4304ca2784d6c"
+    },
+    {
+      "bytes": 733,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/proof/credential-scan.json",
+      "sha256": "0517cafc084b3293e84dd3ae3a74c915dae665f62b9d008d21bf06d709146d71"
+    },
+    {
+      "bytes": 7966472,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/proof/evidence.tar.gz",
+      "sha256": "5cf0f2b14e9792c25c7fb1957324f5edca9170049c56cd98f8eb6e469814002f"
+    },
+    {
+      "bytes": 674495,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/proof/manifest.json",
+      "sha256": "ccbad345844973648a1b558a27a506652f6be7ce62f11e6600d2c84bee27c769"
+    },
+    {
+      "bytes": 2012,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/reproduce/export_evidence.py",
+      "sha256": "c61d2796d9ee87b587e8153270222f266937e67e97843c878e69ec6f2615f7fe"
+    },
+    {
+      "bytes": 10929,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/reproduce/package_graphframes_large.py",
+      "sha256": "6332eb50f94ba79bbd9434314000ee99befb23c7aa8948ae33f7ec660d4edd54"
+    },
+    {
+      "bytes": 5140,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/reproduce/package_supplement.py",
+      "sha256": "9b850453b43536569fff1ccaa2d2df674573d6033097ead4d4f0472ddbb17508"
+    },
+    {
+      "bytes": 10243,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/reproduce/verify_publication.py",
+      "sha256": "47517f3272c8716bd75b4a29216bb486db332ff3937d6c52c336a0727172da51"
+    },
+    {
+      "bytes": 96,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/resolved-image.json",
+      "sha256": "ab671a4660b3de078ef59040999425371b244509d32a8476a01a3bcfdd58b020"
+    },
+    {
+      "bytes": 108409,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/summary/cells.csv",
+      "sha256": "3ee6230f07103edde2526dc68c3a57c2df481e8ef29db086c0bf477f40815669"
+    },
+    {
+      "bytes": 103302,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/summary/summary.json",
+      "sha256": "3ffdafffda8a7ac3d95a2b35cab7e1f7819488e58a1454cee2e72cae1c5f5b78"
+    },
+    {
+      "bytes": 12571,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/summary/tables.md",
+      "sha256": "ba86390d36d6fdb01c6c18faa9dcebc5f0b69b9af4957fc2ff0f9ce0c53664de"
+    },
+    {
+      "bytes": 344,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/bundle.json",
+      "sha256": "26f52c408645ddcebffbf866a36add6b2ea2e80e0dc02b0908139d7b5a8a26a6"
+    },
+    {
+      "bytes": 6330,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/capacity/cells.csv",
+      "sha256": "7380359d016318f98f8b649ea1eb7c349d61943c7355cb3c8868f5217f3aef06"
+    },
+    {
+      "bytes": 2441,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/capacity/configuration.json",
+      "sha256": "867e011675eeb4cd1ce2179d61d3c1a0bf9e2e8d39772fd056ccb261c680f69d"
+    },
+    {
+      "bytes": 6869,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/capacity/export-manifest.json",
+      "sha256": "644a60f34c52b966531a0996cd498830f266c280883fe3cc551097eef084ff77"
+    },
+    {
+      "bytes": 21047,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/capacity/summary.json",
+      "sha256": "1fc3d12a3226a8e48d61365e9b84aeb4c84b7b7624426c3afd4a39835c9b0e51"
+    },
+    {
+      "bytes": 3767,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/capacity/tables.md",
+      "sha256": "8ad4b2b0ec1c97ae33ecfca6e8cea5815abf874c5dd14ddf743473aa07fd5ede"
+    },
+    {
+      "bytes": 631,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/credential-scan.json",
+      "sha256": "87c393cfe4fd77ce81e32fa96a1ae72f5e061ff519be819ed3e2f7240fede4da"
+    },
+    {
+      "bytes": 1544885,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/evidence.tar.gz",
+      "sha256": "86651fa4e250d5466d26da317734c0870cbccd3b4eeee1cf2954af3d0db3ebb3"
+    },
+    {
+      "bytes": 112869,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/manifest.json",
+      "sha256": "67350667c1fd77391fc944389d9d59f68ba62bfca35f0f4db307887e23fd6015"
+    },
+    {
+      "bytes": 18552,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/qualified-pilots/cells.csv",
+      "sha256": "e53aebea6b89cd5cefbaf437d633f3f81c86426b6f33c2868a6f83d6d42727e1"
+    },
+    {
+      "bytes": 2472,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/qualified-pilots/configuration.json",
+      "sha256": "51a9f2d443109748ff82f4168b513670497c7cbb528cc8c0d17c3ca7b658d07a"
+    },
+    {
+      "bytes": 97547,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/qualified-pilots/export-manifest.json",
+      "sha256": "04d6877735afca81b64c2e95d35d5e59993798ce652a3ab9c9dbc988e5a36a76"
+    },
+    {
+      "bytes": 51822,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/qualified-pilots/summary.json",
+      "sha256": "fdb54d67f20611cf2781cd5cc918e44334db8f6009dfd020a691374332434cb0"
+    },
+    {
+      "bytes": 6439,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/qualified-pilots/tables.md",
+      "sha256": "22dc5004f843d3c73f75e2dd34401680c436cd4b8fc1cab235a2b298d1138cb2"
+    },
+    {
+      "bytes": 718,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/timeout-control/cell-summary.json",
+      "sha256": "af0097bc6c2f877b2b6d6cd01b166b24d22ae178a3c8a1f0564ec25f9277bbfe"
+    },
+    {
+      "bytes": 3077,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/timeout-control/configuration.json",
+      "sha256": "06a7e29828addd8ecad7507c9e6ac03497dc0d4621e1bc08e9f450bc4cb511d5"
+    },
+    {
+      "bytes": 4509,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/timeout-control/export-manifest.json",
+      "sha256": "f5ffdf29088ba1600e39e8671ebcf4f9082ba5c61241227633ea40ed1bb1f8e4"
+    },
+    {
+      "bytes": 523,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/timeout-control/large-timeout-control-metadata.json",
+      "sha256": "12e11c4a2265fc479257d376b091c221a9012618100c90fb681932009ce629d7"
+    },
+    {
+      "bytes": 6282,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/timeout-control/post-large-timeout-control-host.json",
+      "sha256": "83ec6002b14fc5041d36d0473e50c5bfd40551ecc157e9eea8e62ce4d9a16e08"
+    },
+    {
+      "bytes": 6134,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark/supplement/timeout-control/pre-large-timeout-control-host.json",
+      "sha256": "597cd0ef39beec5e2cedba24bd51af1cd8350d9b42ce991557f20fff77c8d3df"
+    },
+    {
+      "bytes": 18866,
+      "path": "docs/development/extensions/pecan-nutmeg-large-benchmark.md",
+      "sha256": "fbd621c2b46c2079f8c036484fedb32269f332bebb156cdac9622d10d702a85b"
+    },
+    {
+      "bytes": 6149,
+      "path": "examples/extensions/benchmarks/LARGE-GRAPHS.md",
+      "sha256": "9eb54eca3006477b8e5efa171872a55db9ddc73ef398256dcd0d1169b06dede8"
+    },
+    {
+      "bytes": 17451,
+      "path": "examples/extensions/benchmarks/README.md",
+      "sha256": "c2e6fbaa21718b262fe7fd2258305d9606157a2f163f8845d647597ce35eff43"
+    },
+    {
+      "bytes": 6708,
+      "path": "examples/extensions/benchmarks/render_large.py",
+      "sha256": "518edb73b647ebc9bee948a16ee99ceadd53da0643611a97aee108b728f3dc77"
+    }
+  ],
+  "main_archive_sha256": "5cf0f2b14e9792c25c7fb1957324f5edca9170049c56cd98f8eb6e469814002f",
+  "measured_sources": {
+    "harness_source_sha": "aa4b5fa6bd1a8e0ac833ec9db0862386777575c2",
+    "native_source_sha": "9d7155aa2302d9dda4e93e48ee3fd81aac1ee637",
+    "runtime_source_sha": "70b0d1cab2cab945d4dbaf6842ee0e38c8aa1822"
+  },
+  "recorded_utc": "2026-09-28T05:21:27.335570+00:00"
+}

@@ -4,6 +4,12 @@
 //! must establish placement, input completeness, operation cleanup and a real
 //! host memory lease before these primitives can execute remotely.
 mod adjacency;
+mod bfs;
+pub use bfs::{
+    BfsAlgorithm, BfsCapFailure, BfsCompletion, BfsCompletionValues, BfsConvergence,
+    BfsEmissionCursor, BfsMessage, BfsMessageValues, BfsMode, BfsOptions, BfsOrigin, BfsPartition,
+    BfsPayload, BfsRow, BfsRowCursor, BfsStatistics, BfsStatisticsValues, BfsWork,
+};
 mod delta;
 mod pagerank;
 pub use delta::{

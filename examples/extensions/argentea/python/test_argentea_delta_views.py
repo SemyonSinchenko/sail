@@ -104,8 +104,8 @@ def test_partial_registration_preserves_uncertain_alias_and_cleans_confirmed(ses
 
 def test_creation_collision_never_deletes_preexisting_alias(session,monkeypatch):
     fixed=uuid.UUID('11111111-2222-3333-4444-555555555555')
-    monkeypatch.setattr(views.uuid,'uuid4',lambda:fixed)
-    alias=f'argentea_delta_{fixed.hex}_00_init_0'
+    monkeypatch.setattr('argentea_views.uuid.uuid4',lambda:fixed)
+    alias=f'argentea_phase_{fixed.hex}_00_init_0'
     original=object();session.views[alias]=original
     with pytest.raises(RuntimeError,match='already exists'):
         with compose(session):pytest.fail('colliding view was replaced')

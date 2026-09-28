@@ -23,6 +23,11 @@ from argentea_runtime import local_server
 from argentea_readiness import wait_for_workers
 
 
+def qualification_source_hashes():
+    paths = [*Path(__file__).parent.glob('*.py'), *(EXAMPLES/'scripts').glob('*.py')]
+    return {str(path.relative_to(REPO)):sha256(path) for path in sorted(paths)}
+
+
 def collect_terminal(spark, operation, records):
     selected = [r for r in records if r.get('operation_id') == operation['request']['operation_id']]
     identities = {(r['session_id'],r['job_id']) for r in selected}
@@ -49,7 +54,7 @@ def audit_operation(log, operation, qualifier):
     return receipt['native_execution']
 
 
-def exercise(endpoint,args,evidence):
+def exercise(endpoint,args,evidence,*,remote_workers=None):
     from pyspark.sql.connect.session import SparkSession
     from pyspark.sql.connect.client.retries import DefaultPolicy
     from argentea_sssp_client import ArgenteaSssp
@@ -64,9 +69,12 @@ def exercise(endpoint,args,evidence):
     spark.client.set_retry_policies([DefaultPolicy(max_retries=0)])
     results, identities, jobs = [], None, set()
     evidence.update(operations=[],cleanup_errors=[])
-    log_path = args.output/'server.log'
+    log_path = args.output/('server-and-workers.log' if remote_workers is not None else 'server.log')
     try:
         wait_for_workers(spark,evidence=evidence)
+        workers = remote_workers(spark) if callable(remote_workers) else remote_workers
+        if workers is not None:
+            evidence['supervised_workers'] = workers
         for label in ('warmup','memory-refusal','reuse-1','reuse-2','reuse-3'):
             operation = dict(label=label,started_utc=utc(),native_quota=args.native_quota,outcome='running')
             evidence['operations'].append(operation)
@@ -98,6 +106,7 @@ def exercise(endpoint,args,evidence):
                 assert label != 'memory-refusal', 'intended memory refusal returned a result'
                 rows = [r.asDict() for r in result.native_frame.collect()]
                 operation.update(rows=rows,ids=list(range(count)),edges=[],result_path=result.path,
+                    run_path=result._retained._run.path,
                     result_validation=qualifier.validate_rows(rows,list(range(count)),[],result.request),
                     outcome='answers-passed-awaiting-native-audit')
             records = wait_closed(log_path,operation['request'])
@@ -112,8 +121,13 @@ def exercise(endpoint,args,evidence):
             assert identity == identities, 'session or worker processes changed during reuse'
             assert native['job_id'] not in jobs
             jobs.add(native['job_id'])
-            operation['live_workers'] = live_pids(native['native_pids'])
-            assert all(p['alive'] for p in operation['live_workers'])
+            if workers is None:
+                operation['live_workers'] = live_pids(native['native_pids'])
+                assert all(p['alive'] for p in operation['live_workers'])
+            else:
+                from argentea_remote_resource_control import validate_remote_owners, live_remote_workers
+                operation['host_owners'] = validate_remote_owners(records,operation['request'],workers)
+                operation['live_workers'] = live_remote_workers(workers)
             operation['retained_output_counts'] = [r.frame.count() for r in results]
             assert operation['retained_output_counts'] == [16]*len(results)
             operation.update(outcome='expected-memory-refusal' if label=='memory-refusal' else 'passed',finished_utc=utc())
@@ -122,6 +136,9 @@ def exercise(endpoint,args,evidence):
         log = read_complete_log(log_path)
         for operation in evidence['operations']:
             audit_operation(log,operation,qualifier)
+            if workers is not None:
+                records,_ = parse_log(log)
+                validate_remote_owners(records,operation['request'],workers)
         evidence.update(outcome='passed-before-teardown',native_jobs=sorted(jobs),
                         session_id=identities[0],native_pids=identities[1],native_workers=identities[2])
     finally:
@@ -140,7 +157,8 @@ def exercise(endpoint,args,evidence):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,required=True)
-    parser.add_argument('--sail-binary',type=Path,required=True)
+    parser.add_argument('--sail-binary',type=Path)
+    parser.add_argument('--two-host-config',type=Path)
     parser.add_argument('--runtime-source-sha',required=True)
     parser.add_argument('--native-source-sha',required=True)
     parser.add_argument('--allow-working-tree',action='store_true')
@@ -151,7 +169,10 @@ def main():
     parser.add_argument('--sail-pool-bytes',type=int,default=48<<20)
     parser.add_argument('--native-quota',type=int,default=32<<20)
     args = parser.parse_args()
-    args.mode,args.partitions,args.iterations = 'process-cluster',2,2
+    if args.two_host_config is None and args.sail_binary is None:
+        parser.error('--sail-binary is required without --two-host-config')
+    args.mode = 'two-host' if args.two_host_config else 'process-cluster'
+    args.partitions,args.iterations = 2,2
     if args.failure_vertices is None:
         args.failure_vertices = 786432 if args.algorithm.startswith('wcc_') else 524288
     if args.failure_vertices < 2:
@@ -169,35 +190,39 @@ def main():
     args.output = args.output.resolve()
     args.output.mkdir(parents=True,exist_ok=False)
     source = git(REPO,'rev-parse','HEAD')
-    hashes = {p.name:sha256(p) for p in Path(__file__).parent.glob('*.py')}
+    hashes = qualification_source_hashes()
     receipt = dict(started_utc=utc(),outcome='running',source_commit=source,source_dirty=dirty,
         source_files_sha256=hashes,arguments={k:str(v) if isinstance(v,Path) else v for k,v in vars(args).items()},
-        binary_sha256=sha256(args.sail_binary),native_package=native_package_identity(),packages=package_versions(),
+        binary_sha256=sha256(args.sail_binary) if args.sail_binary else None,native_package=native_package_identity(),packages=package_versions(),
         controller_host=platform.node(),checks={},cleanup_errors=[],
         boundary='same-session live quota reuse after post-init native memory refusal; retained Parquet results are not retained native Arrow buffers; no RSS-zero or general leak-freedom claim')
     try:
-        try:
-            with local_server(args,receipt['cleanup_errors']) as (endpoint,pid):
-                receipt['driver_pid'] = pid
-                try:
-                    exercise(endpoint,args,receipt['checks'])
-                    receipt['post_session_storage'] = wait_empty(args.output/'staging')
-                finally:
-                    records,_ = parse_log(read_complete_log(args.output/'server.log'))
-                    receipt['observed_native_pids'] = sorted({r['pid'] for r in records})
-        finally:
-            # Preserve cleanup observations on an unexpected runtime/audit error
-            # too, after the context manager has attempted group shutdown.
-            if 'driver_pid' in receipt:
-                receipt['process_cleanup'] = live_pids([receipt['driver_pid'],*receipt.get('observed_native_pids',[])])
-                receipt['driver_process_group_exists'] = group_exists(receipt['driver_pid'])
-            receipt['final_storage_files'] = [str(p.relative_to(args.output/'staging'))
-                for p in (args.output/'staging').rglob('*') if p.is_file() or p.is_symlink()]
-        assert not any(p['alive'] for p in receipt['process_cleanup']) and not receipt['driver_process_group_exists']
-        final_records,_ = parse_log((args.output/'server.log').read_text())
-        receipt['final_native_receipt_count'] = len(final_records)
-        assert not receipt['cleanup_errors'] and not receipt['final_storage_files']
-        assert git(REPO,'rev-parse','HEAD')==source and hashes=={p.name:sha256(p) for p in Path(__file__).parent.glob('*.py')}
+        if args.two_host_config:
+            from argentea_remote_resource_run import run_remote_resources
+            run_remote_resources(args,receipt)
+        else:
+            try:
+                with local_server(args,receipt['cleanup_errors']) as (endpoint,pid):
+                    receipt['driver_pid'] = pid
+                    try:
+                        exercise(endpoint,args,receipt['checks'])
+                        receipt['post_session_storage'] = wait_empty(args.output/'staging')
+                    finally:
+                        records,_ = parse_log(read_complete_log(args.output/'server.log'))
+                        receipt['observed_native_pids'] = sorted({r['pid'] for r in records})
+            finally:
+                # Preserve cleanup observations on an unexpected runtime/audit error
+                # too, after the context manager has attempted group shutdown.
+                if 'driver_pid' in receipt:
+                    receipt['process_cleanup'] = live_pids([receipt['driver_pid'],*receipt.get('observed_native_pids',[])])
+                    receipt['driver_process_group_exists'] = group_exists(receipt['driver_pid'])
+                receipt['final_storage_files'] = [str(p.relative_to(args.output/'staging'))
+                    for p in (args.output/'staging').rglob('*') if p.is_file() or p.is_symlink()]
+            assert not any(p['alive'] for p in receipt['process_cleanup']) and not receipt['driver_process_group_exists']
+            final_records,_ = parse_log((args.output/'server.log').read_text())
+            receipt['final_native_receipt_count'] = len(final_records)
+            assert not receipt['cleanup_errors'] and not receipt['final_storage_files']
+        assert git(REPO,'rev-parse','HEAD')==source and hashes==qualification_source_hashes()
         receipt['outcome'] = 'passed-development' if dirty else 'passed'
     except BaseException:
         receipt.update(outcome='failed',error=traceback.format_exc())

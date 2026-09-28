@@ -80,3 +80,20 @@ def test_reject_incomplete_or_contradictory_evidence(case, mutation):
         check['returned_result'] = {}
     with pytest.raises(AssertionError):
         evidence.validate_memory_refusal('', records, check)
+
+
+def test_refusal_allows_equal_host_local_pids(case):
+    records, check = case
+    for record in records:
+        record['pid'] = 100
+    result = evidence.validate_memory_refusal('', records, check)
+    assert result['native_workers'] == [1, 2]
+    assert result['closed_owners'] == 2
+
+
+def test_refusal_rejects_two_owners_on_one_worker(case):
+    records, check = case
+    for record in records:
+        record['worker_id'] = 1
+    with pytest.raises(AssertionError):
+        evidence.validate_memory_refusal('', records, check)

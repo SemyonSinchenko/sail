@@ -15,7 +15,7 @@ def validate_memory_refusal(log, records, check):
     assert Counter(r['partition'] for r in selected if r['event'] == 'init') == expected
     assert Counter(r['partition'] for r in selected if r['event'] == 'close') == expected
     owners = {r['partition']: r for r in selected if r['event'] == 'init'}
-    assert len({r['pid'] for r in owners.values()}) == 2
+    assert len({r['worker_id'] for r in owners.values()}) == 2
     identities = {(r['session_id'], r['job_id']) for r in selected}
     assert len(identities) == 1
     session, job = next(iter(identities))

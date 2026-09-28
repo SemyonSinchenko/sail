@@ -65,3 +65,27 @@ The remote transport and evidence checks have local automated coverage,
 including real supervised processes. Physical two-host execution of this fault
 matrix remains pending. Do not treat the harness implementation or its unit
 tests as evidence that the physical-host matrix has passed.
+
+## Native quota refusal and reuse
+
+The resource harness uses the same host configuration and supervised state
+endpoint. It injects no process signals. Run each of the four WCC/SSSP variants
+in a separate evidence directory:
+
+```sh
+python examples/extensions/argentea/python/qualify_graph_resources.py \
+  --two-host-config /absolute/path/two-host.json \
+  --runtime-source-sha "$SAIL_RUNTIME_COMMIT" \
+  --native-source-sha "$ARGENTEA_NATIVE_COMMIT" \
+  --algorithm sssp_delta_star \
+  --output /absolute/path/evidence/sssp-delta-star-resources
+```
+
+Defaults use a 32 MiB native quota and 48 MiB Sail pool. Each session performs a
+warmup, a larger graph that must produce a native memory-refusal receipt after
+initialization, and three successful reuse operations. Earlier Parquet results
+remain readable during reuse. Every operation must run on the original two
+supervised workers in the same session, with new operation and job identities.
+After session shutdown, the harness checks all five owned run prefixes for
+leftover objects. Physical two-host qualification of this resource matrix is
+also pending; local automated checks do not establish that result.

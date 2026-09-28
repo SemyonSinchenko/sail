@@ -331,7 +331,7 @@ def main():
                    packages=package_versions(), platform=platform.platform(), python=sys.version,
                    dataset=manifest, cgroup_before=cgroup_snapshot(),
                    host_load_before=read_text('/proc/loadavg'),
-                   installed_extension_boundary='Sedona and Nutmeg loaded for every path; same shared-extension deployment',
+                   installed_extension_boundary='Experimental extension loading enabled; installed package inventory is recorded separately and does not by itself prove runtime use',
                    prepaid_native_quota_bytes=args.native_quota,
                    sail_pool_per_process_bytes=args.sail_pool_bytes,
                    remaining_participating_df_budget_bytes=args.sail_pool_bytes - args.native_quota,

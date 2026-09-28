@@ -4,8 +4,10 @@ The Nutmeg wheel's `nutmeg.v4.ArgenteaWccApi` relation connects the
 [WCC core](WCC_CORE.md) to Arrow execution plans. The adapter uses the same
 job-bound worker owner, integer range routing, task group placement, memory
 lease and close/cancel callbacks as Argentea PageRank and BFS. It introduces no
-Sail host change. This is an implementation description; Python client and live
-Sail qualification are still required before deployment instructions are complete.
+Sail host change. The Python client is `python/argentea_wcc_client.py`;
+`python/qualify_wcc.py` checks complete vectors, native phases, scheduler tasks,
+owned views, staging and processes. Physical two-host qualification remains
+separate from single-machine process-cluster checks.
 
 ## Request and execution
 
@@ -28,9 +30,9 @@ The host continues to execute an ordinary bounded query DAG.
 
 A reference cap K needs `2K+4` native stages; seeded star contraction needs
 `6K+10`, including the final neighbor certificate and minimum-ID normalization.
-The adapter permits at most128 stages (K<=62 reference, K<=19 star). This ceiling
-is a validation target, not a claim that live Sail or the existing32-view Python
-composer has already qualified that depth. Seed42 on the eight-vertex test graph
+The adapter permits at most128 stages (K<=62 reference, K<=19 star). The Python composer retains its32-view default for other callers; WCC explicitly
+requests up to128 views. Qualification receipts name the tested depth and worker
+slot envelope; accepting a request is not proof of runtime completion. Seed42 on the eight-vertex test graph
 exceeds three contraction rounds; that case is retained as a failure control.
 No seed or cap guarantees convergence for arbitrary graphs.
 
@@ -72,3 +74,32 @@ owner counts, check signed extrema and retained slices, reject incomplete
 statistics, and retain the three-round cap failure. They are not evidence of
 physical two-host execution, a Linux wheel, or benchmark performance. Those gates
 must use frozen source identities and separate receipts.
+
+## Running the functional qualification
+
+Install the branch's Nutmeg wheel and Pecan package into the Python environment
+used by the Sail process. The [Python tutorial](PYTHON.md) describes that shared
+setup. Run each case in a fresh Python process and a fresh output directory:
+
+```sh
+python examples/extensions/argentea/python/qualify_wcc.py \
+  --mode process-cluster --method star --max-rounds 19 --case graph \
+  --partitions 5 --worker-task-slots 512 \
+  --sail-binary /absolute/path/to/sail \
+  --runtime-source-sha "$SAIL_SOURCE_SHA" \
+  --native-source-sha "$NUTMEG_SOURCE_SHA" \
+  --output /absolute/path/to/new-wcc-evidence
+```
+
+Use `--method reference --max-rounds 62` for the128-stage boundary, and
+`--case extremes` or `--case isolates` for signed IDs and disconnected input.
+These are functional fixtures, not timing measurements. The output records
+source identities, package hashes, complete results, serialized phase plans,
+worker logs, native origins, scheduler placement and cleanup. The default pool
+is2GiB per process with a256MiB native admission; the512-slot envelope is disclosed
+and must not be silently reused as a benchmark comparison envelope.
+
+The public API is `ArgenteaWcc(spark).wcc(vertices, edges, method="star")`.
+Vertices have BIGINT `id`; edges have BIGINT `src,dst`. Use the returned result as
+a context manager and access `.frame` for `(id, component)`. Do not collect graph
+vectors in a production client merely to reproduce the tiny fixture's auditor.

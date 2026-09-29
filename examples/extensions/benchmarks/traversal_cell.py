@@ -8,6 +8,12 @@ from sail_nutmeg.client import Nutmeg
 from traversal_methods import method
 
 
+def stage_order(args):
+    """The native staging order to send: None for the server default (canonical)."""
+    order=getattr(args,'stage_order','canonical')
+    return None if order=='canonical' else order
+
+
 def execute(spark,args,receipt,sampler):
     vertices=spark.read.parquet((args.dataset/'vertices.parquet').as_uri())
     edges=spark.read.parquet((args.dataset/'edges.parquet').as_uri())
@@ -23,7 +29,7 @@ def execute(spark,args,receipt,sampler):
             nodes=vertices.select(F.col('id').cast('string').alias('node_id'))
             links=edges.select(F.col('src').cast('string').alias('source'),
                                F.col('dst').cast('string').alias('target'),'weight')
-            receipt['stage_receipt']=nm.stage('benchmark',nodes,links).asDict()
+            receipt['stage_receipt']=nm.stage('benchmark',nodes,links,order=stage_order(args)).asDict()
             receipt['stage_seconds']=time.perf_counter()-started
             options=dict(source=str(args.source), concurrency=args.threads,
                          orientation='outgoing' if args.directed else 'undirected')

@@ -145,7 +145,8 @@ def execute(spark, args, manifest, receipt, sampler):
             # projection ahead of it and reports the CSR bytes. Whether the
             # kernel then reused that projection is checked after the run.
             sampler.mark_step('stage')
-            staged = nm.stage('benchmark', nodes, links)
+            from traversal_cell import stage_order
+            staged = nm.stage('benchmark', nodes, links, order=stage_order(args))
             receipt['stage_seconds'] = time.perf_counter() - started
             receipt['stage_receipt'] = staged.asDict()
             receipt['native_status_after_stage'] = nm.status()
@@ -365,6 +366,9 @@ def main():
     parser.add_argument('--directed', action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument('--delta', type=float, default=1.0)
     parser.add_argument('--traversal-validation', choices=['reference', 'certificate'], default='reference')
+    parser.add_argument('--stage-order', choices=['canonical', 'asStaged'], default='canonical',
+                        help='native staging order: canonical sorts every staged row after admitting the sort working space; '
+                             'asStaged keeps arrival order and skips the sort (sent to the server only when not canonical)')
     parser.add_argument('--ranking-validation', choices=['reference', 'certificate'], default='reference',
                         help='PageRank/WCC: compare with reference.parquet, or certify without one')
     parser.add_argument('--certificate-max-rounds', type=int, default=10000)

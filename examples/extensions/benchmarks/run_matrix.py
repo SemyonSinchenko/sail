@@ -153,6 +153,8 @@ def validate_config(config):
         variants = suite.get('variants', config.get('variants', DEFAULT_VARIANTS))
         if set(variants) - set(VARIANTS):
             raise ValueError('suite names an unknown variant')
+        if suite.get('stage_order', 'canonical') not in STAGE_ORDERS:
+            raise ValueError('suite stage_order must be canonical or asStaged')
         for engine in suite.get('engines', ENGINES):
             for algorithm in suite['algorithms']:
                 for variant in variants:
@@ -160,6 +162,8 @@ def validate_config(config):
 
 
 TRAVERSAL_FAMILIES = ('traversal', 'graph500', 'edge-list-traversal', 'snap-edge-list')
+# Native staging order per suite; canonical is the server default and is not sent.
+STAGE_ORDERS = ('canonical', 'asStaged')
 
 
 def plan_cells(config):
@@ -177,7 +181,7 @@ def plan_cells(config):
                             expected = suite.get('expected_outcomes', {}).get(variant, {}).get(engine, 'passed')
                             group.append(dict(cell_id=name, suite=suite['name'], repeat=repeat,
                                 dataset=dataset, engine=engine, algorithm=algorithm, variant=variant,
-                                mode=suite['mode'],
+                                mode=suite['mode'], stage_order=suite.get('stage_order', 'canonical'),
                                 max_iterations=suite.get('max_iterations', config['defaults']['max_iterations']),
                                 expected_outcome=expected, diagnostic=bool(suite.get('diagnostic', False))))
             rng.shuffle(group)
@@ -221,6 +225,8 @@ def cell_command(config, cell):
     for name in ('partitions', 'threads', 'worker_task_slots', 'sail_pool_bytes',
                  'native_quota', 'tolerance', 'damping', 'timeout', 'seed'):
         command.extend(['--' + name.replace('_', '-'), str(defaults[name])])
+    if cell.get('stage_order', 'canonical') != 'canonical':
+        command.extend(['--stage-order', cell['stage_order']])
     if cell['algorithm'] in ('bfs', 'sssp'):
         command.extend(['--source', str(dataset.get('source', 0)), '--delta', str(defaults.get('delta', 1.0))])
         command.append('--directed' if dataset.get('directed', dataset['family'] != 'graph500') else '--no-directed')

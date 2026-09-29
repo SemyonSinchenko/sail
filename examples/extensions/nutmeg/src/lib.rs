@@ -47,6 +47,12 @@ pub(crate) struct Request {
     pub node_mapping: std::collections::BTreeMap<String, String>,
     #[serde(default, rename = "edgeMapping")]
     pub edge_mapping: std::collections::BTreeMap<String, String>,
+    /// Staging order, a `stage` option: `canonical` (the default) sorts every
+    /// staged row and admits the sort's working space before it starts;
+    /// `asStaged` keeps arrival order and skips the sort. See
+    /// `nutmeg_graph::StageOrder`.
+    #[serde(default)]
+    pub order: Option<String>,
 }
 
 fn plan(
@@ -93,6 +99,9 @@ fn plan(
             if !request.node_mapping.is_empty() || !request.edge_mapping.is_empty() {
                 return plan_err!("nutmeg: column mappings apply only to stage");
             }
+            if request.order.is_some() {
+                return plan_err!("nutmeg: order applies only to stage");
+            }
             let Some(algorithm) = request.algorithm else {
                 return plan_err!("nutmeg: run requires algorithm");
             };
@@ -111,6 +120,7 @@ fn plan(
                 || request.column_names.is_some()
                 || !request.node_mapping.is_empty()
                 || !request.edge_mapping.is_empty()
+                || request.order.is_some()
             {
                 return plan_err!(
                     "nutmeg: nodes/edges/diagnostics accept only version, verb and graph"
@@ -133,6 +143,7 @@ fn plan(
                 || request.column_names.is_some()
                 || !request.node_mapping.is_empty()
                 || !request.edge_mapping.is_empty()
+                || request.order.is_some()
             {
                 return plan_err!("nutmeg: drop accepts only version, verb and graph");
             }

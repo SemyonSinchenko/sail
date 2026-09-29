@@ -1,4 +1,4 @@
-use arrow::array::{Array, ArrayRef, Int64Array, StringArray};
+use arrow::array::{Array, ArrayRef, BooleanArray, Int64Array, StringArray};
 use arrow::record_batch::RecordBatch;
 use datafusion::datasource::MemTable;
 use datafusion::physical_plan::collect;
@@ -369,4 +369,100 @@ async fn empty_inputs_validate_schema_and_mapping_before_mutation() {
         .is_err()
     );
     assert_eq!(registry.list().unwrap()[0].revision, before[0].revision);
+}
+
+#[tokio::test]
+async fn as_staged_order_skips_the_sort_and_is_only_a_stage_option() {
+    nutmeg_graph::prepare_output_schemas().unwrap();
+    let registry = SessionRegistry::new(16 << 20);
+    let ctx = SessionContext::new();
+    let nodes = input(&ctx, vec![vec![batch(&[("node_id", vec!["b", "a"])])]]).await;
+    let edges = input(
+        &ctx,
+        vec![vec![batch(&[
+            ("source", vec!["b", "a"]),
+            ("target", vec!["a", "b"]),
+        ])]],
+    )
+    .await;
+    fn flag(batch: &RecordBatch, name: &str) -> bool {
+        batch
+            .column_by_name(name)
+            .unwrap()
+            .as_any()
+            .downcast_ref::<BooleanArray>()
+            .unwrap()
+            .value(0)
+    }
+    fn count(batch: &RecordBatch, name: &str) -> i64 {
+        batch
+            .column_by_name(name)
+            .unwrap()
+            .as_any()
+            .downcast_ref::<Int64Array>()
+            .unwrap()
+            .value(0)
+    }
+
+    // `asStaged` stages in arrival order: no sort, no sort tiers admitted.
+    let request = serde_json::to_vec(
+        &serde_json::json!({"version":1,"verb":"stage","graph":"g","order":"asStaged"}),
+    )
+    .unwrap();
+    let provider = plan(
+        &registry,
+        TYPE_URL,
+        &request,
+        vec![nodes.clone(), edges.clone()],
+    )
+    .unwrap();
+    let receipt = execute(&ctx, provider).await.unwrap();
+    assert_eq!(count(&receipt[0], "edgeCount"), 2);
+    assert!(!flag(&receipt[0], "nodeSorted"));
+    assert!(!flag(&receipt[0], "edgeSorted"));
+    assert_eq!(count(&receipt[0], "edgeSortPermutationBytes"), 0);
+    assert_eq!(count(&receipt[0], "edgeSortKeysBytes"), 0);
+    assert_eq!(count(&receipt[0], "edgeSortedCopyBytes"), 0);
+    assert!(count(&receipt[0], "edgeRetainedBytes") > 0);
+
+    // The default is still canonical, and it reports its sort.
+    let provider = plan(
+        &registry,
+        TYPE_URL,
+        &payload("stage", "g"),
+        vec![nodes.clone(), edges.clone()],
+    )
+    .unwrap();
+    let receipt = execute(&ctx, provider).await.unwrap();
+    assert!(flag(&receipt[0], "edgeSorted"));
+    assert!(count(&receipt[0], "edgeSortPermutationBytes") > 0);
+    assert_eq!(registry.list().unwrap()[0].revision, 2);
+
+    // `order` is a stage option, spelled `canonical` or `asStaged`.
+    let bad_stage = serde_json::to_vec(
+        &serde_json::json!({"version":1,"verb":"stage","graph":"g","order":"sorted"}),
+    )
+    .unwrap();
+    let error = plan(&registry, TYPE_URL, &bad_stage, vec![nodes, edges])
+        .err()
+        .unwrap()
+        .to_string();
+    assert!(error.contains("order") && error.contains("asStaged"), "{error}");
+    for request in [
+        serde_json::json!({"version":1,"verb":"run","graph":"g","algorithm":"degree","order":"asStaged"}),
+        serde_json::json!({"version":1,"verb":"nodes","graph":"g","order":"asStaged"}),
+        serde_json::json!({"version":1,"verb":"drop","graph":"g","order":"canonical"}),
+    ] {
+        assert!(
+            plan(
+                &registry,
+                TYPE_URL,
+                &serde_json::to_vec(&request).unwrap(),
+                vec![]
+            )
+            .is_err(),
+            "{request}"
+        );
+    }
+    assert_eq!(registry.list().unwrap()[0].revision, 2, "rejections do not mutate");
 }

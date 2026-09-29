@@ -28,6 +28,7 @@ enum Operation {
     Stage {
         nodes: ColumnMapping,
         edges: Box<ColumnMapping>,
+        order: StageOrder,
     },
     Drop,
 }
@@ -71,6 +72,10 @@ impl MutationTable {
         }
         let nodes = mapping(request.node_mapping)?;
         let edges = mapping(request.edge_mapping)?;
+        let order = match request.order.as_deref() {
+            Some(text) => StageOrder::parse(text)?,
+            None => StageOrder::default(),
+        };
         // Empty streams still have schemas. Reject missing/mistyped structural
         // fields before a lazy provider can replace a graph with empty inputs.
         nutmeg_graph::normalize_nodes(&RecordBatch::new_empty(inputs[0].schema()), &nodes)?;
@@ -82,6 +87,7 @@ impl MutationTable {
                 operation: Operation::Stage {
                     nodes,
                     edges: Box::new(edges),
+                    order,
                 },
                 schema: Arc::new(Schema::new(vec![
                     Field::new("graph", DataType::Utf8, false),
@@ -296,10 +302,12 @@ impl Mutation {
                     self.registry.drop_graph(&self.graph)?,
                 ])) as ArrayRef,
             ],
-            Operation::Stage { nodes, edges } => {
-                let mut staging =
-                    self.registry
-                        .replacing(&self.graph, nodes, edges, StageOrder::Canonical);
+            Operation::Stage {
+                nodes,
+                edges,
+                order,
+            } => {
+                let mut staging = self.registry.replacing(&self.graph, nodes, edges, *order);
                 for (index, input) in inputs.into_iter().enumerate() {
                     // A completely empty stream still carries property fields.
                     // Retain its schema before execution yields any row batches.

@@ -115,6 +115,21 @@ def test_explicit_admission_propagates_without_changing_container_cpu_envelope()
     assert container[container.index('--memory') + 1] == f"{original_limits['memory_gib']}g"
 
 
+def test_suite_stage_order_reaches_the_cell_only_when_it_is_not_canonical():
+    config = json.loads(Path(__file__).with_name('matrix.example.json').read_text())
+    cell = plan_cells(config)[0]
+    assert cell['stage_order'] == 'canonical'
+    assert '--stage-order' not in run_matrix.cell_command(config, cell)
+    config['suites'][0]['stage_order'] = 'asStaged'
+    cell = plan_cells(config)[0]
+    assert cell['stage_order'] == 'asStaged'
+    command = run_matrix.cell_command(config, cell)
+    assert command[command.index('--stage-order') + 1] == 'asStaged'
+    config['suites'][0]['stage_order'] = 'sorted'
+    with pytest.raises(ValueError, match='stage_order'):
+        plan_cells(config)
+
+
 @pytest.mark.parametrize('key,value', [('worker_task_slots', 0), ('sail_pool_bytes', 0),
                                      ('native_quota', 16 * 1024**3)])
 def test_invalid_admission_configuration_cannot_plan_a_matrix(key, value):

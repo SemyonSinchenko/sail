@@ -50,7 +50,7 @@ class Nutmeg:
     def _relation(self, verb, graph, *, inputs=(), **kwargs):
         return DataFrame(ExtensionRelation({"version": 1, "verb": verb, "graph": graph, **kwargs}, inputs), self.spark)
 
-    def stage(self, graph, nodes, edges, *, node_mapping=None, edge_mapping=None):
+    def stage(self, graph, nodes, edges, *, node_mapping=None, edge_mapping=None, order=None):
         """Atomically overwrite one graph; eagerly collect its one-row receipt.
 
         Both DataFrames must belong to this session. Each receipt reports graph,
@@ -58,10 +58,17 @@ class Nutmeg:
         each part, tier by tier: node/edge SortPermutationBytes, SortKeysBytes,
         SortedCopyBytes, FillBytes, NormalizedBytes, RetainedBytes, SortSeconds
         and Sorted. All input partitions are consumed.
+
+        ``order`` is ``"canonical"`` (the server default: every staged row is
+        sorted, and the sort's working space is admitted from the memory budget
+        before it starts) or ``"asStaged"`` (arrival order, no sort). It is sent
+        only when given, so a server without the option still accepts the
+        default.
         """
         if nodes.sparkSession is not self.spark or edges.sparkSession is not self.spark:
             raise ValueError("stage inputs must belong to this Nutmeg Spark session")
-        return self._relation("stage", graph, inputs=(nodes, edges), nodeMapping=node_mapping or {}, edgeMapping=edge_mapping or {}).collect()[0]
+        options = {"order": order} if order is not None else {}
+        return self._relation("stage", graph, inputs=(nodes, edges), nodeMapping=node_mapping or {}, edgeMapping=edge_mapping or {}, **options).collect()[0]
 
     def run(self, graph, algorithm, *, column_names="grust", **options):
         """Return a lazy DataFrame, with a graph snapshot pinned during planning."""

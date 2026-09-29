@@ -102,7 +102,10 @@ Staging casts structural IDs to UTF8 and normalizes supported properties to
 Raw node scans return explicitly staged nodes, without synthesizing nodes from
 edge endpoints. Canonical staging retains empty schemas and fills absent
 properties. The lower-level legacy `asStaged` mode still accepts heterogeneous
-batches, but relational scans require a common schema. Staged sources have one
+batches, but relational scans require a common schema. The Spark client
+chooses the order per write: `nm.stage(graph, nodes, edges, order="asStaged")`
+keeps arrival order and skips the canonical sort and its admitted working space;
+the default (`canonical`, not sent) sorts. Staged sources have one
 driver partition; downstream relational operators may redistribute their output.
 
 ## Banda and Grenada algorithm paths

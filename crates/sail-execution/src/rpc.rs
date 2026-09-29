@@ -2,6 +2,7 @@ use std::future::Future;
 use std::sync::Arc;
 
 use arrow_flight::flight_service_client::FlightServiceClient;
+use sail_common::config::GRPC_MAX_MESSAGE_LENGTH_DEFAULT;
 use sail_common::telemetry::{TracingClientLayer, TracingClientService};
 use tokio::sync::{OnceCell, oneshot};
 use tokio::task::JoinHandle;
@@ -109,7 +110,12 @@ macro_rules! impl_client_builder {
                 let channel = ServiceBuilder::new()
                     .layer(TracingClientLayer)
                     .service(channel);
-                Ok(<$client_type>::new(channel))
+                // The servers accept messages up to `GRPC_MAX_MESSAGE_LENGTH_DEFAULT`;
+                // without this the clients keep Tonic's 4 MiB default and a large
+                // response (for example one shuffle batch of a wide plan) fails with
+                // "decoded message length too large".
+                Ok(<$client_type>::new(channel)
+                    .max_decoding_message_size(GRPC_MAX_MESSAGE_LENGTH_DEFAULT))
             }
         }
     };

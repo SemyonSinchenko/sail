@@ -14,7 +14,7 @@ fn unsorted_staging_keeps_legacy_heterogeneous_properties() -> Result<()> {
             ("property.value", value),
         ])?)?;
     }
-    assert_eq!(tx.finish()?.staged_nodes, 2);
+    assert_eq!(tx.finish()?.info.staged_nodes, 2);
     // Such batches never had a single Arrow schema; the new relational surface
     // does not silently cast them, while staging still accepts them as before.
     assert!(registry.nodes("g").is_err());

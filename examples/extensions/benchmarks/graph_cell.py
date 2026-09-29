@@ -243,8 +243,11 @@ def certify(spark, actual, dataset, algorithm, expected_rows, tolerance, damping
     one, convergence claimed by every row, and the true fixed-point L1 residual
     recomputed from the edges at or below the tolerance. WCC: every vertex
     labeled, both endpoints of every edge share a label, and every label is the
-    minimum vertex ID it labels. The component count is reported, not verified:
-    a partition can be finer than the true one and still pass these checks.
+    ID of a vertex in the component it labels. Which member: Pecan and Grenada
+    take the numeric minimum, Banda's min-label kernel the minimum in canonical
+    Utf8 order ("10" before "9"), so numeric minimality is reported, not
+    required. The component count is reported, not verified: a partition can be
+    finer than the true one and still pass these checks.
     """
     vertices = spark.read.parquet((dataset / 'vertices.parquet').as_uri()).select('id')
     assert not vertices.join(actual.select('id'), 'id', 'left_anti').limit(1).count(), 'a vertex is missing from the result'
@@ -256,11 +259,14 @@ def certify(spark, actual, dataset, algorithm, expected_rows, tolerance, damping
         crossing = left.join(labels, left.dst == labels.id).where(F.col('src_label') != F.col('label')).count()
         assert crossing == 0, f'{crossing} edges cross component labels'
         minima = labels.groupBy('label').agg(F.min('id').alias('minimum'))
-        self_minimal = minima.where(F.col('label').cast('long') != F.col('minimum')).count()
-        assert self_minimal == 0, f'{self_minimal} labels are not the minimum vertex ID they label'
-        return dict(**cardinality, policy='certificate', crossing_edges=crossing, non_minimal_labels=self_minimal,
+        foreign = minima.join(labels, minima.label.cast('long') == labels.id, 'left_anti').count()
+        assert foreign == 0, f'{foreign} labels are not the ID of a vertex they label'
+        non_minimal = minima.where(F.col('label').cast('long') != F.col('minimum')).count()
+        return dict(**cardinality, policy='certificate', crossing_edges=crossing, foreign_labels=foreign,
+                    non_minimal_labels=non_minimal,
+                    label_convention='numeric minimum' if non_minimal == 0 else 'a member that is not the numeric minimum (canonical Utf8 order for native min-label)',
                     components=minima.count(), component_count_verified=False,
-                    certificate='edge-consistent partition with self-minimal labels; count not independently verified')
+                    certificate='edge-consistent partition whose labels name members; count not independently verified')
     invalid = actual.where(F.col('score').isNull() | F.isnan('score') |
                            (F.abs(F.col('score')) == F.lit(float('inf'))) | (F.col('score') < 0)).count()
     assert invalid == 0, f'{invalid} invalid PageRank scores'

@@ -22,6 +22,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from graph500_fixture import MAX_CHUNK, RECORD, sha256, utc, write_json
+from graph500_fixture import MAX_DEGREE, parse_source
 from imported_traversal_fixture import WEIGHT_POLICIES, weights
 
 FAMILY = 'snap-edge-list'
@@ -59,11 +60,18 @@ def prepare(output, edge_file, *, vertices, edge_sha256, weight_policy='unit', w
     originals, inverse = np.unique(np.concatenate([src_original, dst_original]), return_inverse=True)
     if originals.size != vertices:
         raise ValueError(f'input has {originals.size} distinct IDs, not the declared {vertices}')
-    if type(source) is not int or not 0 <= source < vertices:
-        raise ValueError('source outside graph')
+    if source != MAX_DEGREE and (type(source) is not int or not 0 <= source < vertices):
+        raise ValueError(f'source outside graph (a dense vertex id or {MAX_DEGREE!r})')
     src = inverse[:src_original.size].astype(np.int64)
     dst = inverse[src_original.size:].astype(np.int64)
     edges = int(src.size)
+    # Out-degree when directed, both endpoints otherwise; picks `max-degree` and records the source's degree.
+    degree = np.bincount(src, minlength=vertices) if directed else np.bincount(np.concatenate([src, dst]), minlength=vertices)
+    requested = source
+    if source == MAX_DEGREE:
+        source = int(np.argmax(degree))  # the lowest dense id among ties
+    source_degree, isolated = int(degree[source]), int(np.count_nonzero(degree == 0))
+    del degree
     output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=False)
     started, start = utc(), time.monotonic()
@@ -94,7 +102,11 @@ def prepare(output, edge_file, *, vertices, edge_sha256, weight_policy='unit', w
             input=dict(path=str(edge_file), sha256=edge_sha256, bytes=edge_file.stat().st_size,
                        format='SNAP text: # comments, one src dst pair per line', original_id_range=[int(originals[0]), int(originals[-1])]),
             traversal=dict(source=source, directed=directed, weight_policy=weight_policy, weight_seed=weight_seed,
-                           source_policy='explicit fixed dense vertex', source_original_id=int(originals[source])),
+                           source_policy=('highest-degree dense vertex, lowest id among ties' if requested == MAX_DEGREE
+                                          else 'explicit fixed dense vertex'),
+                           source_original_id=int(originals[source]), source_degree=source_degree,
+                           degree_counted='out-edges (src)' if directed else 'both endpoints of every tuple',
+                           zero_degree_vertices=isolated),
             canonical=dict(edges=dict(sha256=canonical.hexdigest(), bytes=edges * RECORD.itemsize,
                                       format='little-endian int64 src, int64 dst, float64 weight; 24 bytes per record',
                                       self_loops=loops, ordering='original input row order', duplicate_policy='preserved'),
@@ -123,7 +135,8 @@ def main():
     parser.add_argument('--edge-sha256', required=True)
     parser.add_argument('--weight-policy', choices=WEIGHT_POLICIES, default='unit')
     parser.add_argument('--weight-seed', type=int, default=42)
-    parser.add_argument('--source', type=int, default=0)
+    parser.add_argument('--source', type=parse_source, default=0,
+                        help=f'traversal source: a dense vertex id, or {MAX_DEGREE} for the highest out-degree vertex')
     parser.add_argument('--directed', action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument('--chunk-edges', type=int, default=262144)
     parser.add_argument('--chunk-vertices', type=int, default=262144)

@@ -10,6 +10,7 @@ import datetime
 import hashlib
 import json
 import math
+import re
 import os
 from pathlib import Path
 import subprocess
@@ -79,7 +80,26 @@ def validate_records(rows, vertices):
         raise ValueError('generator weight is not an exactly widened float32')
 
 
-def convert_edges(stream, output, *, vertices, edges, chunk_edges):
+MAX_DEGREE = 'max-degree'
+
+
+def parse_source(text):
+    """A traversal source: a vertex id, or `max-degree` for the highest-degree vertex once prepared."""
+    if isinstance(text, int) or text == MAX_DEGREE:
+        return text
+    if isinstance(text, str) and re.fullmatch(r'[0-9]{1,19}', text):
+        return int(text)
+    raise argparse.ArgumentTypeError(f'source must be a nonnegative vertex id or {MAX_DEGREE!r}')
+
+
+def count_degrees(degree, rows, columns):
+    """Add one chunk's endpoint occurrences to `degree` (uint32 per vertex)."""
+    for name in columns:
+        ids, counts = np.unique(rows[name], return_counts=True)
+        degree[ids] += counts.astype(degree.dtype)
+
+
+def convert_edges(stream, output, *, vertices, edges, chunk_edges, degree=None, degree_columns=('src', 'dst')):
     digest = hashlib.sha256()
     minimum = math.inf
     maximum = -math.inf
@@ -91,6 +111,8 @@ def convert_edges(stream, output, *, vertices, edges, chunk_edges):
         validate_records(rows, vertices)
         digest.update(raw)
         loops += int(np.count_nonzero(rows['src'] == rows['dst']))
+        if degree is not None:
+            count_degrees(degree, rows, degree_columns)
         minimum = min(minimum, float(rows['weight'].min()))
         maximum = max(maximum, float(rows['weight'].max()))
         table = pa.table({name: pa.array(rows[name]) for name in RECORD.names})
@@ -140,8 +162,8 @@ def prepare(output, generator, *, scale, edge_factor=16, seed1=42, seed2=54,
         raise ValueError(f'chunk sizes must be integers in 1..{MAX_CHUNK}')
     if not all(isinstance(n, int) and 0 <= n < 1 << 64 for n in (seed1, seed2)):
         raise ValueError('seeds must be unsigned 64-bit integers')
-    if not isinstance(source, int) or not 0 <= source < vertices:
-        raise ValueError('source outside graph')
+    if source != MAX_DEGREE and (not isinstance(source, int) or not 0 <= source < vertices):
+        raise ValueError(f'source outside graph (a vertex id or {MAX_DEGREE!r})')
     if reference and (vertices > ORACLE_VERTICES or edges > ORACLE_EDGES):
         raise ValueError('full Python oracle is limited to 100000 vertices and 1000000 edges')
     generator = Path(generator).resolve()
@@ -161,11 +183,17 @@ def prepare(output, generator, *, scale, edge_factor=16, seed1=42, seed2=54,
         for name in ('vertices.parquet', 'edges.parquet'):
             (output / name).mkdir()
         command = [str(generator), *map(str, (scale, edge_factor, seed1, seed2, chunk_edges))]
+        # Degrees are counted as the chunks stream by: both endpoints of an undirected
+        # tuple, only `src` of a directed one. They pick the `max-degree` source and
+        # record the chosen source's degree, so a BFS from an isolated vertex (Graph500
+        # vertex 0 usually is one) cannot pass as a traversal measurement unnoticed.
+        degree = np.zeros(vertices, dtype=np.uint32)
         with (output / 'generator.stderr').open('wb') as stderr:
             process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=stderr)
             try:
                 edge_identity = convert_edges(process.stdout, output / 'edges.parquet', vertices=vertices,
-                                              edges=edges, chunk_edges=chunk_edges)
+                                              edges=edges, chunk_edges=chunk_edges, degree=degree,
+                                              degree_columns=('src',) if directed else ('src', 'dst'))
             finally:
                 process.stdout.close()
             if process.wait() != 0:
@@ -173,6 +201,12 @@ def prepare(output, generator, *, scale, edge_factor=16, seed1=42, seed2=54,
         if expected_edge_sha256 is not None and edge_identity['sha256'] != expected_edge_sha256:
             raise ValueError('canonical edge SHA256 differs from the pinned input')
         vertex_identity = write_vertices(output / 'vertices.parquet', vertices, chunk_vertices)
+        requested = source
+        if source == MAX_DEGREE:
+            source = int(np.argmax(degree))  # the lowest id among ties
+        source_degree = int(degree[source])
+        isolated = int(np.count_nonzero(degree == 0))
+        del degree
         if reference:
             write_reference(output, vertices, source, directed)
         if sha256(generator) != build['binary_sha256']:
@@ -185,7 +219,11 @@ def prepare(output, generator, *, scale, edge_factor=16, seed1=42, seed2=54,
             schema_version=1, family='graph500', seed=None, parameters=arguments,
             counts=dict(vertices=vertices, edges=edges),
             traversal=dict(source=source, directed=directed,
-                           source_policy='explicit fixed vertex; not Graph500 root sampling',
+                           source_policy=('highest-degree vertex, lowest id among ties; not Graph500 root sampling'
+                                          if requested == MAX_DEGREE else 'explicit fixed vertex; not Graph500 root sampling'),
+                           source_degree=source_degree,
+                           degree_counted='out-edges (src)' if directed else 'both endpoints of every tuple',
+                           zero_degree_vertices=isolated,
                            weight_policy='upstream SSSP float32 weights widened exactly to float64'),
             generator=dict(build=build, argv=command,
                            environment={key: os.environ.get(key) for key in ('OMP_NUM_THREADS', 'OMP_DYNAMIC', 'OMP_PROC_BIND', 'OMP_PLACES')}),
@@ -217,7 +255,8 @@ def main():
     parser.add_argument('--seed2', type=int, default=54)
     parser.add_argument('--chunk-edges', type=int, default=262_144)
     parser.add_argument('--chunk-vertices', type=int, default=262_144)
-    parser.add_argument('--source', type=int, default=0)
+    parser.add_argument('--source', type=parse_source, default=0,
+                        help=f'traversal source: a vertex id, or {MAX_DEGREE} for the highest-degree vertex')
     parser.add_argument('--directed', action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument('--reference', action='store_true')
     parser.add_argument('--expected-edge-sha256')

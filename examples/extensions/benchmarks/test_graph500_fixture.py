@@ -67,7 +67,7 @@ def test_vertices_include_isolates_and_last_partial_chunk(tmp_path):
 @pytest.mark.parametrize('arguments,match', [
     ({'scale': 41}, 'scale'), ({'scale': 0}, 'scale'),
     ({'edge_factor': 0}, 'edge factor'), ({'seed1': -1}, 'seeds'),
-    ({'seed2': 1 << 64}, 'seeds'), ({'source': 8}, 'source'),
+    ({'seed2': 1 << 64}, 'seeds'), ({'source': 8}, 'source'), ({'source': 'top'}, 'source'),
     ({'chunk_edges': 0}, 'chunk sizes'), ({'chunk_vertices': fixture.MAX_CHUNK + 1}, 'chunk sizes'),
     ({'scale': 17, 'reference': True}, 'oracle'),
     ({'scale': 16, 'edge_factor': 16, 'reference': True}, 'oracle'),
@@ -146,3 +146,29 @@ def test_real_generator_rejects_stale_binary_and_retains_failed_preparation(tmp_
     assert (tmp_path / 'bad-hash/generator.stderr').exists()
     with pytest.raises(FileExistsError):
         fixture.prepare(tmp_path / 'bad-hash', generator, scale=3)
+
+
+def test_max_degree_source_is_resolved_from_the_streamed_degrees(tmp_path, monkeypatch):
+    # 8 vertices, 8 tuples: vertex 5 touches four tuples, vertex 0 none.
+    tuples = [(5, 1), (5, 2), (5, 3), (1, 2), (2, 3), (6, 7), (4, 4), (5, 6)]
+    binary = tmp_path / 'generator'
+    binary.write_text('#!/usr/bin/env python3\nimport struct, sys\n'
+                      + ''.join(f'sys.stdout.buffer.write(struct.pack("<qqd", {a}, {b}, 0.5))\n' for a, b in tuples))
+    binary.chmod(0o755)
+    monkeypatch.setattr(fixture, 'checked_build', lambda path: dict(binary_sha256=fixture.sha256(path)))
+    manifest = fixture.prepare(tmp_path / 'max', binary, scale=3, edge_factor=1, source='max-degree')
+    traversal = manifest['traversal']
+    assert traversal['source'] == 5 and traversal['source_degree'] == 4 and traversal['zero_degree_vertices'] == 1
+    assert traversal['source_policy'].startswith('highest-degree')
+    assert traversal['degree_counted'] == 'both endpoints of every tuple'
+    assert manifest['parameters']['source'] == 'max-degree'
+    # An explicit source keeps its policy and still records its degree; directed counts only `src`.
+    explicit = fixture.prepare(tmp_path / 'zero', binary, scale=3, edge_factor=1, source=0)
+    assert explicit['traversal']['source'] == 0 and explicit['traversal']['source_degree'] == 0
+    assert explicit['traversal']['source_policy'].startswith('explicit fixed vertex')
+    directed = fixture.prepare(tmp_path / 'directed', binary, scale=3, edge_factor=1, source='max-degree', directed=True)
+    assert directed['traversal']['source'] == 5 and directed['traversal']['source_degree'] == 4
+    assert directed['traversal']['zero_degree_vertices'] == 3  # 0, 3 and 7 never appear as src
+    assert fixture.parse_source('12') == 12 and fixture.parse_source('max-degree') == 'max-degree'
+    with pytest.raises(Exception, match='source'):
+        fixture.parse_source('hub')

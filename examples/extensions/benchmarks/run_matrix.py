@@ -15,6 +15,8 @@ import random
 import re
 import subprocess
 import sys
+
+from graph500_fixture import MAX_DEGREE
 import time
 
 from runtime import algorithm_method, validate_admission_settings
@@ -86,8 +88,9 @@ def validate_config(config):
             edge_factor = dataset.get('edge_factor', 16)
             if not isinstance(edge_factor, int) or edge_factor <= 0:
                 raise ValueError('Graph500 edge factor must be a positive integer')
-            if not 0 <= dataset.get('source', 0) < dataset['vertices']:
-                raise ValueError('Graph500 source outside graph')
+            source = dataset.get('source', 0)
+            if source != MAX_DEGREE and (type(source) is not int or not 0 <= source < dataset['vertices']):
+                raise ValueError(f'Graph500 source outside graph (a vertex id or {MAX_DEGREE!r})')
             generator = PurePosixPath(dataset.get('generator', ''))
             if not generator.is_absolute() or '..' in generator.parts:
                 raise ValueError('Graph500 generator must be an absolute container path without ..')
@@ -115,8 +118,8 @@ def validate_config(config):
             if type(seed) is not int or not 0 <= seed < 1 << 64:
                 raise ValueError('weight seed must be an unsigned 64-bit integer')
             source = dataset.get('source', 0)
-            if type(source) is not int or not 0 <= source < dataset['vertices']:
-                raise ValueError('imported traversal source outside graph')
+            if source != MAX_DEGREE and (type(source) is not int or not 0 <= source < dataset['vertices']):
+                raise ValueError(f'imported traversal source outside graph (a dense vertex id or {MAX_DEGREE!r})')
             if type(dataset.get('directed', True)) is not bool:
                 raise ValueError('imported traversal directed must be boolean')
             if dataset.get('validation') not in ('reference', 'certificate'):
@@ -473,7 +476,10 @@ def main():
             result = dict(**cell, outcome=outcome, configuration_sha256=fingerprint,
                           expected_outcome_observed=outcome == cell['expected_outcome'],
                           receipt_path=str(path) if path.exists() else None,
-                          end_to_end_seconds=receipt.get('end_to_end_seconds') if receipt else None)
+                          end_to_end_seconds=receipt.get('end_to_end_seconds') if receipt else None,
+                          source=receipt.get('arguments', {}).get('source') if receipt else None,
+                          source_degree=receipt.get('source_degree') if receipt else None,
+                          reached=(receipt.get('correctness') or {}).get('reached') if receipt else None)
             write_json(completed, result)
             results.append(result)
             write_json(output / 'matrix-results.json', dict(recorded_utc=utc(), results=results,

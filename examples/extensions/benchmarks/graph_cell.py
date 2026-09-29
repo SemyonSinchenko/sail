@@ -14,6 +14,7 @@ import tempfile
 import time
 import traceback
 
+from graph500_fixture import MAX_DEGREE, parse_source
 from measurement import Sampler, cgroup_snapshot, cpu_ticks, read_text, steal_fraction
 from runtime import (algorithm_method, git, native_package_identity, package_versions, record_result_evidence,
                      server, sha256, validate_admission_settings)
@@ -312,6 +313,22 @@ def validate_dataset_identity(manifest, *, family=None, vertices=None, graph500_
                 raise ValueError(f'{key} differs from matrix configuration')
 
 
+def resolve_source(requested, traversal):
+    """The vertex a traversal cell starts from: the request, or the manifest's `max-degree` choice.
+
+    A `max-degree` request is honored only by a dataset prepared with that policy, so
+    the source and its recorded degree come from the same preparation; an explicit
+    vertex must match the manifest, since the fixture pins the source it prepared for.
+    """
+    if requested == MAX_DEGREE:
+        if not str(traversal.get('source_policy', '')).startswith('highest-degree'):
+            raise ValueError(f'{MAX_DEGREE} source requires a dataset prepared with --source {MAX_DEGREE}')
+        return int(traversal['source'])
+    if traversal['source'] != requested:
+        raise ValueError(f"dataset was prepared for source {traversal['source']}, not {requested}")
+    return requested
+
+
 def validate_dataset_files(dataset, manifest):
     """Reject added/missing input files, including partitions absent from the pin.
 
@@ -362,7 +379,8 @@ def main():
     parser.add_argument('--engine', choices=['pecan', 'nutmeg-native', 'nutmeg-datafusion'], required=True)
     parser.add_argument('--algorithm', choices=['pagerank', 'wcc', 'bfs', 'sssp'], required=True)
     parser.add_argument('--variant', choices=['reference', 'optimized', 'fused', 'frontier', 'delta_star', 'push_pull'], default='reference')
-    parser.add_argument('--source', type=int, default=0)
+    parser.add_argument('--source', type=parse_source, default=0,
+                        help=f'traversal source: a vertex id, or {MAX_DEGREE} as prepared by the fixture')
     parser.add_argument('--directed', action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument('--delta', type=float, default=1.0)
     parser.add_argument('--traversal-validation', choices=['reference', 'certificate'], default='reference')
@@ -412,10 +430,13 @@ def main():
     for name in (() if args.algorithm in ('bfs', 'sssp') or args.ranking_validation == 'certificate' else ('damping', 'tolerance')):
         assert manifest['pagerank'][name] == getattr(args, name), f'reference {name} differs'
     validate_dataset_files(args.dataset, manifest)
+    source_request = args.source
     if args.algorithm in ('bfs', 'sssp'):
-        assert manifest['traversal']['source'] == args.source
+        args.source = resolve_source(args.source, manifest['traversal'])
         assert manifest['traversal']['directed'] == args.directed
     receipt = dict(started_utc=utc(), arguments={k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
+                   source_request=source_request, source_degree=manifest.get('traversal', {}).get('source_degree'),
+                   source_policy=manifest.get('traversal', {}).get('source_policy'),
                    harness_source_sha=git(REPO, 'rev-parse', 'HEAD'), source_dirty=dirty,
                    runtime_source_sha=args.runtime_source_sha, binary_sha256=sha256(args.sail_binary),
                    native_source_sha=args.native_source_sha,

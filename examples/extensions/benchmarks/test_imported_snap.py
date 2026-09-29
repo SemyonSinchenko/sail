@@ -7,7 +7,7 @@ import pyarrow.parquet as pq
 import pytest
 
 import imported_snap_fixture as fixture
-from graph_cell import validate_dataset_files, validate_dataset_identity
+from graph_cell import resolve_source, validate_dataset_files, validate_dataset_identity
 from run_matrix import TRAVERSAL_FAMILIES, cell_command, dataset_command, plan_cells, validate_config
 
 SNAP = b"# Directed graph (each unordered pair of nodes is saved once)\n# Nodes: 5 Edges: 6\n# FromNodeId\tToNodeId\n3858241\t956203\n3858241\t1324234\n956203\t956203\n1324234\t3858241\n6009\t3858241\n1324234\t3858241\n"
@@ -84,3 +84,22 @@ def test_ranking_on_a_traversal_fixture_needs_the_certificate_policy():
     prepare = dataset_command(config('certificate'), 'cit')
     assert prepare[0].endswith('imported_snap_fixture.py')
     assert '--validation' not in prepare and '--edge-file' in prepare and '--directed' in prepare
+
+
+def test_max_degree_source_uses_out_degree_and_the_cell_resolves_it(tmp_path):
+    path, digest = source(tmp_path)
+    # Dense out-degrees: 3 -> 2 (to 1 and 2), 1 -> 1, 2 -> 2 (3 twice), 0 -> 1; the lowest id among the tie wins.
+    manifest = fixture.prepare(tmp_path / 'data', path, vertices=4, edge_sha256=digest, source='max-degree')
+    traversal = manifest['traversal']
+    assert traversal['source'] == 2 and traversal['source_original_id'] == 1324234 and traversal['source_degree'] == 2
+    assert traversal['zero_degree_vertices'] == 0 and traversal['degree_counted'] == 'out-edges (src)'
+    assert resolve_source('max-degree', traversal) == 2
+    assert resolve_source(2, traversal) == 2
+    with pytest.raises(ValueError, match='prepared for source 2'):
+        resolve_source(0, traversal)
+    explicit = fixture.prepare(tmp_path / 'explicit', path, vertices=4, edge_sha256=digest, source=0)
+    assert explicit['traversal']['source_degree'] == 1
+    with pytest.raises(ValueError, match='max-degree'):
+        resolve_source('max-degree', explicit['traversal'])
+    with pytest.raises(ValueError, match='source outside graph'):
+        fixture.prepare(tmp_path / 'bad', path, vertices=4, edge_sha256=digest, source='hub')

@@ -115,6 +115,21 @@ def test_explicit_admission_propagates_without_changing_container_cpu_envelope()
     assert container[container.index('--memory') + 1] == f"{original_limits['memory_gib']}g"
 
 
+def test_max_degree_source_is_accepted_for_traversal_fixtures_and_passed_through():
+    config = json.loads(Path(__file__).with_name('graph500-matrix.example.json').read_text())
+    name, dataset = next((k, v) for k, v in config['datasets'].items() if v['family'] == 'graph500')
+    dataset['source'] = 'max-degree'
+    cells = [c for c in plan_cells(config) if c['dataset'] == name and c['algorithm'] in ('bfs', 'sssp')]
+    assert cells, 'the example must plan a traversal cell on the Graph500 fixture'
+    command = run_matrix.cell_command(config, cells[0])
+    assert command[command.index('--source') + 1] == 'max-degree'
+    prepare = run_matrix.dataset_command(config, name)
+    assert prepare[prepare.index('--source') + 1] == 'max-degree'
+    dataset['source'] = 'hub'
+    with pytest.raises(ValueError, match='source'):
+        plan_cells(config)
+
+
 def test_suite_stage_order_reaches_the_cell_only_when_it_is_not_canonical():
     config = json.loads(Path(__file__).with_name('matrix.example.json').read_text())
     cell = plan_cells(config)[0]

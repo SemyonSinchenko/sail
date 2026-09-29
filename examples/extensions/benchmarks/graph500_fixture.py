@@ -10,7 +10,6 @@ import datetime
 import hashlib
 import json
 import math
-import re
 import os
 from pathlib import Path
 import subprocess
@@ -19,6 +18,8 @@ import time
 import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
+
+from traversal_source import MAX_DEGREE, parse_source
 
 GENERATOR_COMMIT = 'f89d643ce4aaae9a823d310c6ab2dd10e3d2982c'
 RECORD = np.dtype([('src', '<i8'), ('dst', '<i8'), ('weight', '<f8')])
@@ -78,18 +79,6 @@ def validate_records(rows, vertices):
         raise ValueError('generator weights must be finite and in [0, 1]')
     if not np.array_equal(weights, weights.astype(np.float32).astype(np.float64)):
         raise ValueError('generator weight is not an exactly widened float32')
-
-
-MAX_DEGREE = 'max-degree'
-
-
-def parse_source(text):
-    """A traversal source: a vertex id, or `max-degree` for the highest-degree vertex once prepared."""
-    if isinstance(text, int) or text == MAX_DEGREE:
-        return text
-    if isinstance(text, str) and re.fullmatch(r'[0-9]{1,19}', text):
-        return int(text)
-    raise argparse.ArgumentTypeError(f'source must be a nonnegative vertex id or {MAX_DEGREE!r}')
 
 
 def count_degrees(degree, rows, columns):

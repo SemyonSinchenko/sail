@@ -14,7 +14,7 @@ import tempfile
 import time
 import traceback
 
-from graph500_fixture import MAX_DEGREE, parse_source
+from traversal_source import MAX_DEGREE, parse_source
 from measurement import Sampler, cgroup_snapshot, cpu_ticks, read_text, steal_fraction
 from runtime import (algorithm_method, git, native_package_identity, package_versions, record_result_evidence,
                      server, sha256, validate_admission_settings)

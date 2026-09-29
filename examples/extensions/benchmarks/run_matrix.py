@@ -16,7 +16,7 @@ import re
 import subprocess
 import sys
 
-from graph500_fixture import MAX_DEGREE
+from traversal_source import MAX_DEGREE
 import time
 
 from runtime import algorithm_method, validate_admission_settings

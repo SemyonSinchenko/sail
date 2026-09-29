@@ -22,7 +22,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from graph500_fixture import MAX_CHUNK, RECORD, sha256, utc, write_json
-from graph500_fixture import MAX_DEGREE, parse_source
+from traversal_source import MAX_DEGREE, parse_source
 from imported_traversal_fixture import WEIGHT_POLICIES, weights
 
 FAMILY = 'snap-edge-list'

@@ -384,6 +384,8 @@ def main():
     parser.add_argument('--directed', action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument('--delta', type=float, default=1.0)
     parser.add_argument('--traversal-validation', choices=['reference', 'certificate'], default='reference')
+    parser.add_argument('--http2-keepalive-timeout', type=int, default=120,
+                        help='seconds a Sail server waits for a keepalive ping answer before dropping the connection (host default 10)')
     parser.add_argument('--record-plans', action='store_true',
                         help='Pecan/Grenada traversal cells: record the physical plan of each iteration in its iteration_start event')
     parser.add_argument('--argentea-max-rounds', type=int, default=62,
@@ -470,7 +472,8 @@ def main():
             with server(args.sail_binary, args.output, args.mode, args.partitions, args.threads,
                         args.native_quota, receipt['cleanup_errors'],
                         worker_task_slots=args.worker_task_slots,
-                        sail_pool_bytes=args.sail_pool_bytes) as (endpoint, pid):
+                        sail_pool_bytes=args.sail_pool_bytes,
+                        http2_keepalive_timeout=args.http2_keepalive_timeout) as (endpoint, pid):
                 receipt['driver_pid'] = pid
                 spark = SparkSession.builder.remote(endpoint).create()
                 spark.client.set_retry_policies([DefaultPolicy(max_retries=1, initial_backoff=100, max_backoff=100, jitter=0)])

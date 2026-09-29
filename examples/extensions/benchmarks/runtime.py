@@ -133,7 +133,7 @@ def validate_admission_settings(worker_task_slots, sail_pool_bytes, native_quota
 
 @contextlib.contextmanager
 def server(binary, output, mode, partitions, threads, native_quota, cleanup_errors,
-           *, worker_task_slots, sail_pool_bytes):
+           *, worker_task_slots, sail_pool_bytes, http2_keepalive_timeout=120):
     validate_admission_settings(worker_task_slots, sail_pool_bytes, native_quota)
     staging = output / 'staging'
     staging.mkdir()
@@ -161,6 +161,9 @@ def server(binary, output, mode, partitions, threads, native_quota, cleanup_erro
         # Argentea's worker manifest reads its per-worker/job/operation quota from this variable
         # (default 256 MiB); the same prepaid quota as Nutmeg's, admitted from the worker pool.
         SAIL_ARGENTEA_MEMORY_BYTES=str(native_quota),
+        # Sail's gRPC servers ping every minute and drop a peer that misses a ping's
+        # window (10 s upstream); the process workers inherit this environment.
+        SAIL_EXPERIMENTAL_HTTP2_KEEPALIVE_TIMEOUT_SECS=str(int(http2_keepalive_timeout)),
         SAIL_GRAPH_UTILS_ROOT=staging.as_uri(),
         TOKIO_WORKER_THREADS=str(threads), RAYON_NUM_THREADS=str(threads),
         RUST_LOG='info',

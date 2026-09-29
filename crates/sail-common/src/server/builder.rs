@@ -23,12 +23,29 @@ pub struct ServerBuilderOptions {
 
 impl Default for ServerBuilderOptions {
     fn default() -> Self {
+        // Experiment knobs (fork only, not configuration): a peer whose runtime is
+        // saturated by a heavy stage can miss a keepalive ping's window, after which
+        // the server closes the connection and streams end with
+        // "h2 protocol error: error reading a body from connection".
+        let seconds = |name: &str, default: u64| {
+            std::env::var(name)
+                .ok()
+                .and_then(|value| value.trim().parse::<u64>().ok())
+                .filter(|value| *value > 0)
+                .unwrap_or(default)
+        };
         Self {
             // Disables Nagle's algorithm
             nodelay: true,
             keepalive: Some(std::time::Duration::from_mins(1)),
-            http2_keepalive_interval: Some(std::time::Duration::from_mins(1)),
-            http2_keepalive_timeout: Some(std::time::Duration::from_secs(10)),
+            http2_keepalive_interval: Some(std::time::Duration::from_secs(seconds(
+                "SAIL_EXPERIMENTAL_HTTP2_KEEPALIVE_INTERVAL_SECS",
+                60,
+            ))),
+            http2_keepalive_timeout: Some(std::time::Duration::from_secs(seconds(
+                "SAIL_EXPERIMENTAL_HTTP2_KEEPALIVE_TIMEOUT_SECS",
+                10,
+            ))),
             http2_adaptive_window: Some(true),
         }
     }

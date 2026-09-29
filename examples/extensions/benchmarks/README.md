@@ -19,6 +19,7 @@ successes, mismatches, errors, nonconvergence, timeouts, and memory-limit failur
 | `pecan` | Pecan | Python controller; Sail/DataFusion relational iterations |
 | `nutmeg-native` | Nutmeg Banda | Native kernels over a driver-resident staged graph/CSR |
 | `nutmeg-datafusion` | Nutmeg Grenada | Nutmeg `GraphTables`, adapted to Pecan's relational controller |
+| `argentea` | Nutmeg Argentea | native CSR partitions on the Sail workers, one job per traversal (`bfs`, `sssp` only; never a default engine; `--argentea-max-rounds` caps levels/rounds, phase budget 2·cap+4) |
 
 Grenada currently shares Pecan's PageRank/WCC implementation. It measures the
 graph-table entry path and is not an independent third algorithm implementation.

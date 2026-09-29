@@ -23,6 +23,8 @@ from runtime import algorithm_method, validate_admission_settings
 
 
 ENGINES = ('pecan', 'nutmeg-native', 'nutmeg-datafusion')
+# Argentea (native partitions on Sail workers) runs bfs and sssp cells only and is never a default engine.
+ALL_ENGINES = ENGINES + ('argentea',)
 ALGORITHMS = ('pagerank', 'wcc', 'bfs', 'sssp')
 VARIANTS = ('reference', 'optimized', 'fused', 'frontier', 'delta_star', 'push_pull')
 DEFAULT_VARIANTS = ('reference', 'optimized')
@@ -137,7 +139,7 @@ def validate_config(config):
             raise ValueError('invalid suite mode or repetition count')
         if set(suite['datasets']) - config['datasets'].keys():
             raise ValueError('suite names an unknown dataset')
-        if set(suite.get('engines', ENGINES)) - set(ENGINES):
+        if set(suite.get('engines', ENGINES)) - set(ALL_ENGINES):
             raise ValueError('suite names an unknown engine')
         if set(suite['algorithms']) - set(ALGORITHMS):
             raise ValueError('suite names an unknown algorithm')

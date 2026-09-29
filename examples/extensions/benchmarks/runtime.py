@@ -38,11 +38,13 @@ def package_versions():
 
 def algorithm_method(engine, algorithm, variant):
     """Resolve explicit methods; a fused PageRank is not an available algorithm."""
-    if engine not in ('pecan', 'nutmeg-native', 'nutmeg-datafusion'):
+    if engine not in ('pecan', 'nutmeg-native', 'nutmeg-datafusion', 'argentea'):
         raise ValueError(f'unknown graph engine: {engine}')
     if algorithm in ('bfs', 'sssp'):
         from traversal_methods import method
         return method(engine, algorithm, variant)
+    if engine == 'argentea':
+        raise ValueError(f'unsupported graph method: {algorithm}/{variant}: the argentea engine runs bfs and sssp cells only')
     methods = {
         'pagerank': {'reference': ('power', 'pagerank'),
                      'optimized': ('delta', 'pagerankDelta')},
@@ -156,6 +158,9 @@ def server(binary, output, mode, partitions, threads, native_quota, cleanup_erro
         SAIL_RUNTIME__MEMORY_POOL__TYPE='greedy',
         SAIL_RUNTIME__MEMORY_POOL__GREEDY__MAX_SIZE=str(sail_pool_bytes),
         SAIL_NUTMEG_MEMORY_BYTES=str(native_quota),
+        # Argentea's worker manifest reads its per-worker/job/operation quota from this variable
+        # (default 256 MiB); the same prepaid quota as Nutmeg's, admitted from the worker pool.
+        SAIL_ARGENTEA_MEMORY_BYTES=str(native_quota),
         SAIL_GRAPH_UTILS_ROOT=staging.as_uri(),
         TOKIO_WORKER_THREADS=str(threads), RAYON_NUM_THREADS=str(threads),
         RUST_LOG='info',

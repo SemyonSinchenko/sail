@@ -1,4 +1,6 @@
 """Traversal execution adapters and distributed full-vector validation."""
+from pathlib import Path
+import sys
 import time
 from pyspark.sql.connect import functions as F
 from pyspark_pecan import GraphAlgorithms
@@ -48,6 +50,31 @@ def execute(spark,args,receipt,sampler):
                 receipt['parent_output']='native BFS rooted parent tree'
             else:
                 receipt['parent_output']='not exposed by native distance kernel'
+        elif args.engine == 'argentea':
+            # Native partitions on the Sail workers: one job unrolls init, the rounds and the
+            # result stage; graph rows never collect in this client. The clients live beside the
+            # Argentea sources, not in an installed package.
+            sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'argentea/python'))
+            cap=args.argentea_max_rounds
+            partitions=min(args.partitions,64)
+            def observe(event):
+                events.append(dict({k:v for k,v in event.items() if k not in ('frame','plan_bytes','view_registrations','request')},
+                                   plan_bytes=len(event['plan_bytes']) if 'plan_bytes' in event else None,
+                                   elapsed_seconds=time.perf_counter()-started))
+            if args.algorithm=='bfs':
+                from argentea_bfs_client import ArgenteaBfs
+                handle=ArgenteaBfs(spark,observer=observe).bfs(vertices,edges,source=args.source,method=selected,
+                    directed=args.directed,max_levels=cap,partitions=partitions,max_phase_budget=2*cap+4)
+            else:
+                from argentea_sssp_client import ArgenteaSssp
+                handle=ArgenteaSssp(spark,observer=observe).sssp(vertices,edges,source=args.source,method=selected,
+                    directed=args.directed,max_rounds=cap,partitions=partitions,delta=args.delta,max_phase_budget=2*cap+4)
+            receipt.update(algorithm_ready_seconds=time.perf_counter()-started,
+                           algorithm_iterations=handle.iterations,algorithm_converged=handle.converged,
+                           argentea=dict(reached=handle.reached,phase=handle.phase,native_phase_count=handle.native_phase_count,
+                                         partitions=partitions,rounds_cap=cap))
+            exported=handle.frame
+            receipt['parent_output']='rooted parent tree and hop count (owned rows)'
         else:
             if args.engine == 'nutmeg-datafusion':
                 tables=Nutmeg(spark).tables(vertices,edges,node_id='id',source='src',target='dst')

@@ -17,6 +17,9 @@ def test_explicit_fused_wcc_is_distinct_and_never_a_pagerank_alias():
     for engine in ('pecan', 'nutmeg-native', 'nutmeg-datafusion'):
         with pytest.raises(ValueError, match='unsupported graph method: pagerank/fused'):
             runtime.algorithm_method(engine, 'pagerank', 'fused')
+    assert runtime.algorithm_method('argentea', 'bfs', 'frontier') == 'frontier'
+    with pytest.raises(ValueError, match='bfs and sssp cells only'):
+        runtime.algorithm_method('argentea', 'pagerank', 'reference')
 
 
 def test_permission_denied_with_member_keeps_waiting(monkeypatch):

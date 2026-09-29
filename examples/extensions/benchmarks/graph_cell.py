@@ -376,7 +376,7 @@ def main():
     parser.add_argument('--expected-weight-policy')
     parser.add_argument('--expected-weight-seed', type=int)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--engine', choices=['pecan', 'nutmeg-native', 'nutmeg-datafusion'], required=True)
+    parser.add_argument('--engine', choices=['pecan', 'nutmeg-native', 'nutmeg-datafusion', 'argentea'], required=True)
     parser.add_argument('--algorithm', choices=['pagerank', 'wcc', 'bfs', 'sssp'], required=True)
     parser.add_argument('--variant', choices=['reference', 'optimized', 'fused', 'frontier', 'delta_star', 'push_pull'], default='reference')
     parser.add_argument('--source', type=parse_source, default=0,
@@ -384,6 +384,8 @@ def main():
     parser.add_argument('--directed', action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument('--delta', type=float, default=1.0)
     parser.add_argument('--traversal-validation', choices=['reference', 'certificate'], default='reference')
+    parser.add_argument('--argentea-max-rounds', type=int, default=62,
+                        help='Argentea BFS levels / SSSP rounds cap; the native phase budget is 2*cap+4 (at most 128)')
     parser.add_argument('--stage-order', choices=['canonical', 'asStaged'], default='canonical',
                         help='native staging order: canonical sorts every staged row after admitting the sort working space; '
                              'asStaged keeps arrival order and skips the sort (sent to the server only when not canonical)')

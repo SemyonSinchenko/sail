@@ -115,6 +115,25 @@ def test_explicit_admission_propagates_without_changing_container_cpu_envelope()
     assert container[container.index('--memory') + 1] == f"{original_limits['memory_gib']}g"
 
 
+def test_argentea_is_an_explicit_traversal_engine_and_never_a_default():
+    config = json.loads(Path(__file__).with_name('traversal-matrix.example.json').read_text())
+    assert 'argentea' not in {c['engine'] for c in plan_cells(config)}
+    suite = dict(config['suites'][0], name='argentea-bfs', engines=['argentea'], algorithms=['bfs'],
+                 variants=['reference', 'frontier', 'push_pull'])
+    config['suites'] = [suite]
+    cells = plan_cells(config)
+    assert cells and {c['engine'] for c in cells} == {'argentea'}
+    command = run_matrix.cell_command(config, cells[0])
+    assert command[command.index('--engine') + 1] == 'argentea'
+    config['datasets'][suite['datasets'][0]]['validation'] = 'certificate'  # ranking on a traversal fixture is otherwise refused first
+    config['suites'] = [dict(suite, name='argentea-pagerank', algorithms=['pagerank'], variants=['reference'])]
+    with pytest.raises(ValueError, match='bfs and sssp cells only'):
+        plan_cells(config)
+    config['suites'] = [dict(suite, name='unknown', engines=['graphx'])]
+    with pytest.raises(ValueError, match='unknown engine'):
+        plan_cells(config)
+
+
 def test_max_degree_source_is_accepted_for_traversal_fixtures_and_passed_through():
     config = json.loads(Path(__file__).with_name('graph500-matrix.example.json').read_text())
     name, dataset = next((k, v) for k, v in config['datasets'].items() if v['family'] == 'graph500')

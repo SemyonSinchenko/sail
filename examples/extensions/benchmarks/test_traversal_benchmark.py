@@ -63,6 +63,9 @@ def test_matrix_covers_each_execution_path_and_method():
     assert method('nutmeg-native','sssp','delta_star')=='ssspDeltaStar'
     assert method('nutmeg-native','bfs','push_pull')=='bfsDirection'
     assert method('nutmeg-datafusion','sssp','delta_star')=='delta_star'
+    assert method('argentea','bfs','push_pull')=='direction'
+    assert method('argentea','sssp','delta_star')=='delta_star'
+    with pytest.raises(ValueError): method('argentea','sssp','frontier')
     with pytest.raises(ValueError): method('pecan','bfs','delta_star')
     broken=copy.deepcopy(config);broken['datasets']['skew-small']['source']=999
     with pytest.raises(ValueError,match='source'):

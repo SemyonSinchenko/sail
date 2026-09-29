@@ -42,12 +42,16 @@ class NonConvergedError(RuntimeError):
     pass
 
 
-def validate(spark, output, dataset, algorithm, expected_rows, tolerance, damping, max_iterations, native, optimized):
+def validate(spark, output, dataset, algorithm, expected_rows, tolerance, damping, max_iterations, native, optimized,
+             policy='reference'):
     actual = spark.read.parquet(output.as_uri())
-    reference = spark.read.parquet((dataset / 'reference.parquet').as_uri())
     cardinality = actual.agg(F.count('*').alias('rows'), F.countDistinct('id').alias('unique_ids'),
                              F.sum(F.col('id').isNull().cast('long')).alias('null_ids')).first().asDict()
     assert cardinality == dict(rows=expected_rows, unique_ids=expected_rows, null_ids=0), cardinality
+    if policy == 'certificate':
+        return certify(spark, actual, dataset, algorithm, expected_rows, tolerance, damping, max_iterations,
+                       native, optimized, cardinality)
+    reference = spark.read.parquet((dataset / 'reference.parquet').as_uri())
     assert not actual.join(reference.select('id'), 'id', 'left_anti').limit(1).count()
     if algorithm == 'wcc':
         # Native labels follow canonical UTF8 row order; Pecan labels use numeric
@@ -230,6 +234,58 @@ def execute(spark, args, manifest, receipt, sampler):
         receipt['iteration_events'] = events
 
 
+def certify(spark, actual, dataset, algorithm, expected_rows, tolerance, damping, max_iterations, native, optimized, cardinality):
+    """Check a ranking result without a reference vector, on inputs too large for one.
+
+    PageRank: every vertex present once, finite nonnegative scores summing to
+    one, convergence claimed by every row, and the true fixed-point L1 residual
+    recomputed from the edges at or below the tolerance. WCC: every vertex
+    labeled, both endpoints of every edge share a label, and every label is the
+    minimum vertex ID it labels. The component count is reported, not verified:
+    a partition can be finer than the true one and still pass these checks.
+    """
+    vertices = spark.read.parquet((dataset / 'vertices.parquet').as_uri()).select('id')
+    assert not vertices.join(actual.select('id'), 'id', 'left_anti').limit(1).count(), 'a vertex is missing from the result'
+    edges = spark.read.parquet((dataset / 'edges.parquet').as_uri()).select('src', 'dst')
+    if algorithm == 'wcc':
+        assert not actual.where(F.col('component').isNull()).limit(1).count()
+        labels = actual.select('id', F.col('component').cast('string').alias('label'))
+        left = edges.join(labels, edges.src == labels.id).select(F.col('dst'), F.col('label').alias('src_label'))
+        crossing = left.join(labels, left.dst == labels.id).where(F.col('src_label') != F.col('label')).count()
+        assert crossing == 0, f'{crossing} edges cross component labels'
+        minima = labels.groupBy('label').agg(F.min('id').alias('minimum'))
+        self_minimal = minima.where(F.col('label').cast('long') != F.col('minimum')).count()
+        assert self_minimal == 0, f'{self_minimal} labels are not the minimum vertex ID they label'
+        return dict(**cardinality, policy='certificate', crossing_edges=crossing, non_minimal_labels=self_minimal,
+                    components=minima.count(), component_count_verified=False,
+                    certificate='edge-consistent partition with self-minimal labels; count not independently verified')
+    invalid = actual.where(F.col('score').isNull() | F.isnan('score') |
+                           (F.abs(F.col('score')) == F.lit(float('inf'))) | (F.col('score') < 0)).count()
+    assert invalid == 0, f'{invalid} invalid PageRank scores'
+    checks = actual.agg(F.sum('score').alias('rank_sum'), F.min('iterations').alias('min_iterations'),
+                        F.max('iterations').alias('max_iterations'),
+                        F.min(F.col('converged').cast('int')).alias('all_converged'),
+                        F.max('residual').alias('reported_residual')).first().asDict()
+    if checks['all_converged'] != 1:
+        raise NonConvergedError(f'PageRank reached its iteration cap: {checks}')
+    assert math.isclose(checks['rank_sum'], 1.0, abs_tol=1e-10), checks
+    degrees = edges.groupBy('src').count().withColumnRenamed('count', 'degree')
+    weighted = edges.join(degrees, 'src')
+    incoming = weighted.join(actual, weighted.src == actual.id).select(
+        weighted.dst.alias('id'), (actual.score / weighted.degree).alias('message')
+    ).groupBy('id').agg(F.sum('message').alias('incoming'))
+    dangling = actual.join(degrees, actual.id == degrees.src, 'left_anti').agg(F.sum('score')).first()[0] or 0.0
+    combined = actual.join(incoming, 'id', 'left')
+    true_residual = combined.agg(F.sum(F.abs(
+        F.lit((1 - damping) / expected_rows + damping * dangling / expected_rows) +
+        F.lit(damping) * F.coalesce(F.col('incoming'), F.lit(0.0)) - F.col('score')
+    ))).first()[0]
+    assert math.isfinite(true_residual) and true_residual <= tolerance + 1e-12, true_residual
+    return dict(**cardinality, **checks, policy='certificate', true_fixed_point_residual=true_residual,
+                stationary_l1_error_bound=true_residual / (1 - damping),
+                certificate='independent fixed-point residual at or below tolerance; no reference vector')
+
+
 def validate_dataset_identity(manifest, *, family=None, vertices=None, graph500_sha256=None,
                               input_sha256=None, edge_sha256=None, weight_policy=None, weight_seed=None):
     """Check matrix expectations even when input preparation was skipped."""
@@ -244,8 +300,8 @@ def validate_dataset_identity(manifest, *, family=None, vertices=None, graph500_
         if actual != graph500_sha256:
             raise ValueError('Graph500 canonical edge bytes differ from matrix configuration')
     if any(value is not None for value in (input_sha256, edge_sha256, weight_policy, weight_seed)):
-        if manifest.get('family') != 'edge-list-traversal':
-            raise ValueError('imported traversal identity requires an edge-list-traversal manifest')
+        if manifest.get('family') not in ('edge-list-traversal', 'snap-edge-list'):
+            raise ValueError('imported traversal identity requires an edge-list-traversal or snap-edge-list manifest')
         if input_sha256 is not None and manifest.get('input', {}).get('sha256') != input_sha256:
             raise ValueError('original topology bytes differ from matrix configuration')
         if edge_sha256 is not None and manifest.get('canonical', {}).get('edges', {}).get('sha256') != edge_sha256:
@@ -309,6 +365,8 @@ def main():
     parser.add_argument('--directed', action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument('--delta', type=float, default=1.0)
     parser.add_argument('--traversal-validation', choices=['reference', 'certificate'], default='reference')
+    parser.add_argument('--ranking-validation', choices=['reference', 'certificate'], default='reference',
+                        help='PageRank/WCC: compare with reference.parquet, or certify without one')
     parser.add_argument('--certificate-max-rounds', type=int, default=10000)
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--mode', choices=['local', 'process-cluster'], default='process-cluster')
@@ -347,7 +405,7 @@ def main():
                               graph500_sha256=args.expected_graph500_sha256,
                               input_sha256=args.expected_input_sha256, edge_sha256=args.expected_edge_sha256,
                               weight_policy=args.expected_weight_policy, weight_seed=args.expected_weight_seed)
-    for name in (() if args.algorithm in ('bfs', 'sssp') else ('damping', 'tolerance')):
+    for name in (() if args.algorithm in ('bfs', 'sssp') or args.ranking_validation == 'certificate' else ('damping', 'tolerance')):
         assert manifest['pagerank'][name] == getattr(args, name), f'reference {name} differs'
     validate_dataset_files(args.dataset, manifest)
     if args.algorithm in ('bfs', 'sssp'):
@@ -418,7 +476,8 @@ def main():
                     else:
                         receipt['correctness'] = validate(spark, result, args.dataset, args.algorithm,
                             manifest['counts']['vertices'], args.tolerance, args.damping,
-                            args.max_iterations, args.engine == 'nutmeg-native', args.variant != 'reference')
+                            args.max_iterations, args.engine == 'nutmeg-native', args.variant != 'reference',
+                            policy=args.ranking_validation)
                     receipt['outcome'] = 'passed'
                 finally:
                     active_error = sys.exc_info()[1]

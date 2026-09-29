@@ -72,7 +72,7 @@ def validate_config(config):
     for name, dataset in config['datasets'].items():
         if not re.fullmatch(r'[a-z0-9][a-z0-9-]*', name):
             raise ValueError(f'invalid dataset name: {name}')
-        if dataset['family'] not in ('sparse', 'chain', 'edge-list', 'traversal', 'graph500', 'edge-list-traversal') or dataset['vertices'] <= 0:
+        if dataset['family'] not in ('sparse', 'chain', 'edge-list', 'traversal', 'graph500', 'edge-list-traversal', 'snap-edge-list') or dataset['vertices'] <= 0:
             raise ValueError(f'invalid dataset: {name}')
         if dataset['family'] == 'traversal':
             if not 8 <= dataset['vertices'] <= 100000:
@@ -100,13 +100,13 @@ def validate_config(config):
                 raise ValueError('Graph500 certificate round cap must be positive')
             if 'expected_edge_sha256' in dataset and not re.fullmatch(r'[a-f0-9]{64}', dataset['expected_edge_sha256']):
                 raise ValueError('Graph500 expected_edge_sha256 must pin the canonical edge bytes')
-        if dataset['family'] in ('edge-list', 'edge-list-traversal'):
+        if dataset['family'] in ('edge-list', 'edge-list-traversal', 'snap-edge-list'):
             path = PurePosixPath(dataset.get('edge_file', ''))
             if not path.is_absolute() or '..' in path.parts:
                 raise ValueError('edge_file must be an absolute container path without ..')
             if not re.fullmatch(r'[a-f0-9]{64}', dataset.get('edge_sha256', '')):
                 raise ValueError('edge_sha256 must pin the imported bytes')
-        if dataset['family'] == 'edge-list-traversal':
+        if dataset['family'] in ('edge-list-traversal', 'snap-edge-list'):
             if type(dataset['vertices']) is not int or dataset['vertices'] >= 1 << 63:
                 raise ValueError('imported traversal vertices must fit int64')
             if dataset.get('weight_policy') not in ('unit', 'splitmix64-1-16'):
@@ -139,10 +139,17 @@ def validate_config(config):
         if set(suite['algorithms']) - set(ALGORITHMS):
             raise ValueError('suite names an unknown algorithm')
         for dataset_name in suite['datasets']:
-            family = config['datasets'][dataset_name]['family']
-            if any((algorithm in ('bfs', 'sssp')) != (family in ('traversal', 'graph500', 'edge-list-traversal'))
-                   for algorithm in suite['algorithms']):
-                raise ValueError('algorithm and fixture reference family are incompatible')
+            dataset = config['datasets'][dataset_name]
+            family = dataset['family']
+            traversal_family = family in TRAVERSAL_FAMILIES
+            for algorithm in suite['algorithms']:
+                if algorithm in ('bfs', 'sssp'):
+                    if not traversal_family:
+                        raise ValueError('algorithm and fixture reference family are incompatible')
+                elif traversal_family and dataset.get('validation') != 'certificate':
+                    # A traversal fixture carries no PageRank/WCC reference; ranking
+                    # algorithms run on it only under the certificate policy.
+                    raise ValueError('algorithm and fixture reference family are incompatible: ranking algorithms on a traversal fixture require validation=certificate')
         variants = suite.get('variants', config.get('variants', DEFAULT_VARIANTS))
         if set(variants) - set(VARIANTS):
             raise ValueError('suite names an unknown variant')
@@ -150,6 +157,9 @@ def validate_config(config):
             for algorithm in suite['algorithms']:
                 for variant in variants:
                     algorithm_method(engine, algorithm, variant)
+
+
+TRAVERSAL_FAMILIES = ('traversal', 'graph500', 'edge-list-traversal', 'snap-edge-list')
 
 
 def plan_cells(config):
@@ -214,16 +224,19 @@ def cell_command(config, cell):
     if cell['algorithm'] in ('bfs', 'sssp'):
         command.extend(['--source', str(dataset.get('source', 0)), '--delta', str(defaults.get('delta', 1.0))])
         command.append('--directed' if dataset.get('directed', dataset['family'] != 'graph500') else '--no-directed')
-        if dataset['family'] in ('graph500', 'edge-list-traversal'):
+        if dataset['family'] in ('graph500', 'edge-list-traversal', 'snap-edge-list'):
             command.extend(['--traversal-validation', dataset['validation'],
                             '--certificate-max-rounds', str(dataset.get('certificate_max_rounds', 10000))])
             if 'expected_edge_sha256' in dataset:
                 flag = '--expected-graph500-sha256' if dataset['family'] == 'graph500' else '--expected-edge-sha256'
                 command.extend([flag, dataset['expected_edge_sha256']])
-        if dataset['family'] == 'edge-list-traversal':
+        if dataset['family'] in ('edge-list-traversal', 'snap-edge-list'):
             command.extend(['--expected-input-sha256', dataset['edge_sha256'],
-                            '--expected-weight-policy', dataset['weight_policy'],
+                            '--expected-weight-policy', dataset.get('weight_policy', 'unit'),
                             '--expected-weight-seed', str(dataset.get('weight_seed', 42))])
+    elif dataset['family'] in TRAVERSAL_FAMILIES:
+        # PageRank/WCC on a traversal fixture: no reference vector, certificate only.
+        command.extend(['--ranking-validation', 'certificate'])
     return command + config.get('extra_cell_args', [])
 
 
@@ -351,24 +364,27 @@ def dataset_command(config, name):
     options = config['datasets'][name]
     family = options['family']
     script = {'traversal': 'traversal_fixture.py', 'graph500': 'graph500_fixture.py',
-              'edge-list-traversal': 'imported_traversal_fixture.py'}.get(family, 'graph_fixtures.py')
+              'edge-list-traversal': 'imported_traversal_fixture.py',
+              'snap-edge-list': 'imported_snap_fixture.py'}.get(family, 'graph_fixtures.py')
     dataset_path = str(PurePosixPath(config['container_root']) / 'datasets' / name)
     command = [str(PurePosixPath(config['container_repo']) / 'examples/extensions/benchmarks' / script),
                '--output', dataset_path]
     for key, value in options.items():
-        if family in ('traversal', 'graph500', 'edge-list-traversal') and key == 'family':
+        if family in TRAVERSAL_FAMILIES and key == 'family':
             continue
         if family == 'graph500' and key in ('vertices', 'validation', 'certificate_max_rounds'):
             continue
-        if family == 'edge-list-traversal' and key in ('validation', 'certificate_max_rounds'):
+        if family in ('edge-list-traversal', 'snap-edge-list') and key in ('validation', 'certificate_max_rounds'):
             continue
-        if family in ('traversal', 'graph500', 'edge-list-traversal') and key == 'directed':
+        if family == 'snap-edge-list' and key == 'expected_edge_sha256':
+            continue
+        if family in TRAVERSAL_FAMILIES and key == 'directed':
             command.append('--directed' if value else '--no-directed')
             continue
         command.extend(['--' + key.replace('_', '-'), str(value)])
     if family in ('graph500', 'edge-list-traversal') and options['validation'] == 'reference':
         command.append('--reference')
-    if family not in ('traversal', 'graph500', 'edge-list-traversal'):
+    if family not in TRAVERSAL_FAMILIES:
         for key in ('tolerance', 'damping'):
             command.extend(['--' + key, str(config['defaults'][key])])
     return command

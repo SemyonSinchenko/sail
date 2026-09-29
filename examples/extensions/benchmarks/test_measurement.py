@@ -70,7 +70,7 @@ def test_process_memory_converts_linux_kibibytes(proc_root):
     (process / "comm").write_text("sail\n")
     assert measurement.process_memory() == [{
         "pid": 123, "name": "sail", "rss_bytes": 4096 * 1024,
-        "pss_bytes": 3072 * 1024,
+        "pss_bytes": 3072 * 1024, "fd_count": None,
     }]
 
 

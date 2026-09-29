@@ -46,7 +46,11 @@ def execute(graph, vertices, edges, *, source, weighted, method, directed,
         for step in range(1, max_iterations + 1):
             run.cancellation.check()
             active = reached if method == "reference" else frontier
-            candidates = adjacency.join(active, adjacency.src == active.id).select(
+            # The frontier is the left input on purpose: in cluster mode the expansion is
+            # a partitioned hash join whose build side is the left input, so the small
+            # side must be written first or every worker builds a table over its share of
+            # the adjacency (the recorded plans of the 2026-09-29 capacity cells).
+            candidates = active.join(adjacency, active.id == adjacency.src).select(
                 adjacency.dst.alias("id"),
                 (active.distance + adjacency.weight).alias("distance"),
                 (active.hops + 1).alias("hops"), active.id.alias("parent"))

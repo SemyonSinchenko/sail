@@ -24,11 +24,12 @@ def execute(graph,run,vertices,adjacency,size,source,limit,alpha=14.,beta=24.):
             # Restrict destination rows before testing frontier membership.
             # Unlike native BFS, this ordinary relational plan cannot stop an
             # adjacency scan immediately on finding its first parent.
-            candidates=adjacency.join(unvisited,adjacency.dst==unvisited.id).select('src','dst')
+            # Smaller input on the left: the partitioned hash join builds on its left input.
+            candidates=unvisited.join(adjacency,unvisited.id==adjacency.dst).select('src','dst')
             candidates=candidates.join(frontier.select(F.col('id').alias('active')),
                                        F.col('src')==F.col('active'),'left_semi')
         else:
-            candidates=adjacency.join(frontier,adjacency.src==frontier.id).select('src','dst')
+            candidates=frontier.join(adjacency,frontier.id==adjacency.src).select('src','dst')
             candidates=candidates.join(unvisited,candidates.dst==unvisited.id,'left_semi')
         expansion=candidates.groupBy('dst').agg(F.min('src').alias('parent')).select(
             F.col('dst').alias('id'),F.lit(float(level)).alias('distance'),

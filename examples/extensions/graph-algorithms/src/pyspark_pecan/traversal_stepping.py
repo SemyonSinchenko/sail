@@ -26,7 +26,8 @@ def execute(graph, run, vertices, adjacency, size, source, delta, limit):
         if not math.isfinite(bucket):
             raise OverflowError('distance/delta bucket overflow; choose a larger delta')
         active = pending.where(F.floor(F.col('distance') / delta) == bucket)
-        candidates = adjacency.join(active, adjacency.src == active.id).select(
+        # Frontier on the left: the partitioned hash join builds on its left input.
+        candidates = active.join(adjacency, active.id == adjacency.src).select(
             adjacency.dst.alias('id'), (active.distance + adjacency.weight).alias('distance'),
             (active.hops + 1).alias('hops'), active.id.alias('parent'))
         relaxed = state.unionByName(candidates).groupBy('id').agg(

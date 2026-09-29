@@ -25,15 +25,16 @@ def execute(graph, run, vertices, adjacency, size, source, delta, limit):
             return run.finish(result_path, result, algorithm='sssp-delta-star', iterations=step-1, converged=True)
         if not math.isfinite(bucket):
             raise OverflowError('distance/delta bucket overflow; choose a larger delta')
-        graph._observe(run, 'sssp-delta-star', step, 'iteration_start', bucket=bucket)
         active = pending.where(F.floor(F.col('distance') / delta) == bucket)
         candidates = adjacency.join(active, adjacency.src == active.id).select(
             adjacency.dst.alias('id'), (active.distance + adjacency.weight).alias('distance'),
             (active.hops + 1).alias('hops'), active.id.alias('parent'))
+        relaxed = state.unionByName(candidates).groupBy('id').agg(
+            F.min(F.struct('distance', 'hops', 'parent')).alias('best')).select('id', 'best.*')
+        graph._observe(run, 'sssp-delta-star', step, 'iteration_start', bucket=bucket, plan_of=relaxed)
         if candidates.where(F.col('distance') == float('inf')).limit(1).count():
             raise OverflowError('shortest-path distance overflow')
-        next_path, updated = run.materialize(state.unionByName(candidates).groupBy('id').agg(
-            F.min(F.struct('distance', 'hops', 'parent')).alias('best')).select('id', 'best.*'))
+        next_path, updated = run.materialize(relaxed)
         if updated.where(F.col('distance') == float('inf')).limit(1).count():
             raise OverflowError('shortest-path distance overflow')
         before = state.select('id', F.struct('distance', 'hops', 'parent').alias('before'))

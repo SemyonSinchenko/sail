@@ -384,6 +384,8 @@ def main():
     parser.add_argument('--directed', action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument('--delta', type=float, default=1.0)
     parser.add_argument('--traversal-validation', choices=['reference', 'certificate'], default='reference')
+    parser.add_argument('--record-plans', action='store_true',
+                        help='Pecan/Grenada traversal cells: record the physical plan of each iteration in its iteration_start event')
     parser.add_argument('--argentea-max-rounds', type=int, default=62,
                         help='Argentea BFS levels / SSSP rounds cap; the native phase budget is 2*cap+4 (at most 128)')
     parser.add_argument('--stage-order', choices=['canonical', 'asStaged'], default='canonical',

@@ -51,6 +51,13 @@ def _snapshot(run, vertices, edges, edge_columns=("src", "dst")):
     return vertices, edges, vertices.count()
 
 
+def physical_plan(frame):
+    """The physical plan the server would execute for `frame`, as text (a diagnostic)."""
+    text = frame._explain_string(extended=True)
+    marker = "== Physical Plan =="
+    return text[text.index(marker):] if marker in text else text
+
+
 class GraphAlgorithms:
     """Graph algorithms over BIGINT id/src/dst tables.
 
@@ -59,13 +66,19 @@ class GraphAlgorithms:
     sources. Results contain structural columns, not input properties.
     """
 
-    def __init__(self, spark, *, observer=None):
+    def __init__(self, spark, *, observer=None, record_plans=False):
         self.spark = spark
         self.utils = GraphUtils(spark)
         self.observer = observer
+        # With record_plans, an iteration's observer event carries the physical
+        # plan of the frame the iteration materializes (one extra planning round
+        # trip per iteration; the plan is text, not executed twice).
+        self.record_plans = record_plans
 
-    def _observe(self, run, algorithm, step, kind, **metrics):
+    def _observe(self, run, algorithm, step, kind, *, plan_of=None, **metrics):
         if self.observer is not None:
+            if plan_of is not None and self.record_plans:
+                metrics["plan"] = physical_plan(plan_of)
             self.observer({"kind": kind, "algorithm": algorithm,
                            "iteration": step, "run_path": run.path, **metrics})
 

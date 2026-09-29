@@ -45,7 +45,6 @@ def execute(graph, vertices, edges, *, source, weighted, method, directed,
         frontier_path, frontier = path, reached
         for step in range(1, max_iterations + 1):
             run.cancellation.check()
-            graph._observe(run, algorithm, step, "iteration_start")
             active = reached if method == "reference" else frontier
             candidates = adjacency.join(active, adjacency.src == active.id).select(
                 adjacency.dst.alias("id"),
@@ -60,6 +59,7 @@ def execute(graph, vertices, edges, *, source, weighted, method, directed,
             updated = reached.unionByName(candidates).groupBy("id").agg(
                 F.min(F.struct("distance", "hops", "parent")).alias("best")
             ).select("id", "best.*")
+            graph._observe(run, algorithm, step, "iteration_start", plan_of=updated)
             next_path, next_reached = run.materialize(updated)
             if next_reached.where(F.col("distance") == float("inf")).limit(1).count():
                 raise OverflowError("shortest-path distance overflow")

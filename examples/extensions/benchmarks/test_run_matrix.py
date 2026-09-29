@@ -115,6 +115,14 @@ def test_explicit_admission_propagates_without_changing_container_cpu_envelope()
     assert container[container.index('--memory') + 1] == f"{original_limits['memory_gib']}g"
 
 
+def test_extra_cell_args_reach_every_cell():
+    config = json.loads(Path(__file__).with_name('matrix.example.json').read_text())
+    config['extra_cell_args'] = ['--record-plans', '--argentea-max-rounds', '30']
+    for cell in plan_cells(config)[:3]:
+        command = run_matrix.cell_command(config, cell)
+        assert command[-3:] == ['--record-plans', '--argentea-max-rounds', '30']
+
+
 def test_argentea_is_an_explicit_traversal_engine_and_never_a_default():
     config = json.loads(Path(__file__).with_name('traversal-matrix.example.json').read_text())
     assert 'argentea' not in {c['engine'] for c in plan_cells(config)}

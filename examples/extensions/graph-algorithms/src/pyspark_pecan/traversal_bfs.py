@@ -30,9 +30,12 @@ def execute(graph,run,vertices,adjacency,size,source,limit,alpha=14.,beta=24.):
         else:
             candidates=adjacency.join(frontier,adjacency.src==frontier.id).select('src','dst')
             candidates=candidates.join(unvisited,candidates.dst==unvisited.id,'left_semi')
-        next_frontier_path,next_frontier=run.materialize(candidates.groupBy('dst').agg(
-            F.min('src').alias('parent')).select(F.col('dst').alias('id'),
-                F.lit(float(level)).alias('distance'),F.lit(level).cast('long').alias('hops'),'parent'))
+        expansion=candidates.groupBy('dst').agg(F.min('src').alias('parent')).select(
+            F.col('dst').alias('id'),F.lit(float(level)).alias('distance'),
+            F.lit(level).cast('long').alias('hops'),'parent')
+        graph._observe(run,'bfs-push-pull',level,'iteration_start',direction='pull' if pull else 'push',
+                       frontier_edges=volume,plan_of=expansion)
+        next_frontier_path,next_frontier=run.materialize(expansion)
         count=next_frontier.count()
         graph._observe(run,'bfs-push-pull',level,'iteration_end',direction='pull' if pull else 'push',
                        frontier_edges=volume,discovered=count,pull_early_exit=False)

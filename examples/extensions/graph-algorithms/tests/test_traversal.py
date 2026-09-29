@@ -128,3 +128,26 @@ def test_isolated_source_and_partition_invariance(spark, algorithm, method):
 def test_invalid_bucket_width(spark, delta):
     with pytest.raises(ValueError,match='delta'):
         GraphAlgorithms(spark).sssp(*frames(spark),source=0,method='delta_star',delta=delta)
+
+
+def test_recorded_plans_are_optional_and_taken_from_the_frame_the_iteration_materializes():
+    from pyspark_pecan.algorithms import GraphAlgorithms, physical_plan
+
+    class Frame:
+        def _explain_string(self, extended=False):
+            return "== Parsed Logical Plan ==\nx\n== Physical Plan ==\nHashJoinExec: mode=CollectLeft\n"
+
+    class Run:
+        path = "memory:///run"
+
+    assert physical_plan(Frame()) == "== Physical Plan ==\nHashJoinExec: mode=CollectLeft\n"
+    events = []
+    graph = GraphAlgorithms.__new__(GraphAlgorithms)
+    graph.observer, graph.record_plans = events.append, False
+    graph._observe(Run(), "bfs", 1, "iteration_start", plan_of=Frame(), active=3)
+    assert events[-1] == {"kind": "iteration_start", "algorithm": "bfs", "iteration": 1, "run_path": "memory:///run", "active": 3}
+    graph.record_plans = True
+    graph._observe(Run(), "bfs", 2, "iteration_start", plan_of=Frame())
+    assert events[-1]["plan"].startswith("== Physical Plan ==") and "HashJoinExec" in events[-1]["plan"]
+    graph._observe(Run(), "bfs", 2, "iteration_end", active_vertices=0)
+    assert "plan" not in events[-1]

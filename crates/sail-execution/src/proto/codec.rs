@@ -144,6 +144,7 @@ use sail_function::aggregate::product::ProductFunction;
 use sail_function::aggregate::regr::{Regr, RegrType};
 use sail_function::aggregate::schema_of_variant_agg::SchemaOfVariantAggFunction;
 use sail_function::aggregate::skewness::SkewnessFunc;
+use sail_function::aggregate::struct_min::{StructMin, struct_min_udaf};
 use sail_function::aggregate::theta_sketch::{
     ThetaIntersectionAggFunction, ThetaSketchAggFunction, ThetaUnionAggFunction,
 };
@@ -3840,6 +3841,7 @@ impl PhysicalExtensionCodec for RemoteExecutionCodec {
                 "kurtosis" => Ok(Arc::new(AggregateUDF::from(KurtosisFunction::new()))),
                 "max" => Ok(datafusion::functions_aggregate::min_max::max_udaf()),
                 "max_by" => Ok(Arc::new(AggregateUDF::from(MaxByFunction::new()))),
+                "min" => Ok(struct_min_udaf()),
                 "min_by" => Ok(Arc::new(AggregateUDF::from(MinByFunction::new()))),
                 "mode" => Ok(Arc::new(AggregateUDF::from(ModeFunction::new()))),
                 "percentile" => Ok(Arc::new(AggregateUDF::from(PercentileFunction::new()))),
@@ -4011,6 +4013,7 @@ impl PhysicalExtensionCodec for RemoteExecutionCodec {
             || node.inner().is::<Regr>()
             || node.inner().is::<SchemaOfVariantAggFunction>()
             || node.inner().is::<SkewnessFunc>()
+            || node.inner().is::<StructMin>()
             || node.inner().is::<ThetaIntersectionAggFunction>()
             || node.inner().is::<ThetaSketchAggFunction>()
             || node.inner().is::<ThetaUnionAggFunction>()

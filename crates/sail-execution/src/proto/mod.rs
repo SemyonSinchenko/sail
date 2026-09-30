@@ -3,6 +3,8 @@ mod converter;
 mod decode;
 mod encode;
 mod native_expr;
+#[cfg(test)]
+mod struct_min_tests;
 
 pub use codec::RemoteExecutionCodec;
 #[cfg(test)]

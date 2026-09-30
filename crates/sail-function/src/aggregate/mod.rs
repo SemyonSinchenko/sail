@@ -76,6 +76,7 @@ macro_rules! duration_none {
 pub mod bitmap_and_agg;
 pub mod bitmap_construct_agg;
 pub mod bitmap_or_agg;
+mod compact_struct_min;
 pub mod count_min_sketch;
 pub mod grouping_id;
 pub mod histogram_numeric;
@@ -90,6 +91,7 @@ pub mod product;
 pub mod regr;
 pub mod schema_of_variant_agg;
 pub mod skewness;
+pub mod struct_min;
 pub mod theta_sketch;
 pub mod try_avg;
 pub mod utils;

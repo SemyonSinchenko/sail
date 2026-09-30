@@ -16,6 +16,7 @@ use datafusion_expr::{
 use datafusion_spark::function::aggregate::try_sum::SparkTrySum;
 use sail_common::spec;
 use sail_common_datafusion::utils::items::ItemTaker;
+use sail_function::aggregate::struct_min::StructMin;
 use sail_function::aggregate::try_avg::TryAvgFunction;
 use sail_function::scalar::explode::Explode;
 use sail_logical_plan::monotonic_id::MonotonicIdNode;
@@ -448,6 +449,7 @@ impl PlanResolver<'_> {
         schema: &DFSchemaRef,
     ) -> PlanResult<bool> {
         if udf == min_max::min_udaf().as_ref()
+            || udf.inner().is::<StructMin>()
             || udf == min_max::max_udaf().as_ref()
             || udf == count::count_udaf().as_ref()
             || udf == bit_and_or_xor::bit_and_udaf().as_ref()

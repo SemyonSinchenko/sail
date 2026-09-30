@@ -35,6 +35,7 @@ use sail_function::aggregate::product::ProductFunction;
 use sail_function::aggregate::regr::{Regr, RegrType};
 use sail_function::aggregate::schema_of_variant_agg::SchemaOfVariantAggFunction;
 use sail_function::aggregate::skewness::SkewnessFunc;
+use sail_function::aggregate::struct_min::{struct_min_udaf, supports_struct_min};
 use sail_function::aggregate::theta_sketch::{
     ThetaIntersectionAggFunction, ThetaSketchAggFunction, ThetaUnionAggFunction,
 };
@@ -605,7 +606,20 @@ fn is_non_null_literal(expression: &expr::Expr) -> bool {
 }
 
 fn min_value(input: AggFunctionInput) -> PlanResult<expr::Expr> {
-    duplicate_agnostic_extreme(input, min_max::min_udaf)
+    // Keep other MIN expressions as DataFusion's concrete UDAF so metadata
+    // aggregate rules and their existing type-based dispatch remain unchanged.
+    let compact = match input.arguments.as_slice() {
+        [argument] => supports_struct_min(&argument.get_type(input.function_context.schema)?),
+        _ => false,
+    };
+    duplicate_agnostic_extreme(
+        input,
+        if compact {
+            struct_min_udaf
+        } else {
+            min_max::min_udaf
+        },
+    )
 }
 
 fn max_value(input: AggFunctionInput) -> PlanResult<expr::Expr> {
@@ -1074,6 +1088,10 @@ pub(crate) fn get_built_in_aggregate_function(name: &str) -> PlanResult<AggFunct
 pub(crate) fn list_built_in_aggregate_function_names() -> impl Iterator<Item = &'static str> {
     BUILT_IN_AGGREGATE_FUNCTIONS.keys().copied()
 }
+
+#[cfg(test)]
+#[path = "aggregate_struct_min_tests.rs"]
+mod struct_min_tests;
 
 #[cfg(test)]
 mod tests {

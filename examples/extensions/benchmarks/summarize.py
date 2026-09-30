@@ -11,7 +11,10 @@ from pathlib import Path, PurePosixPath
 import re
 from statistics import median
 
-from run_matrix import configuration_fingerprint, plan_cells
+from run_matrix import cell_command, configuration_fingerprint, plan_cells, TRAVERSAL_FAMILIES
+from validation_outcome import (effective_outcome, is_partial_wcc_certificate, partial_certificate_errors,
+                                validation_arguments, PARTIALLY_VERIFIED)
+from certificate_identity import certificate_dataset_errors
 
 
 GROUP = ('suite', 'dataset', 'mode', 'algorithm', 'engine', 'variant')
@@ -29,6 +32,7 @@ def cell_row(cell, summary, receipt):
     row = {k: cell[k] for k in ('cell_id', 'sequence', 'repeat', *GROUP, 'expected_outcome')}
     outcome = summary['outcome'] if summary else ('incomplete_record' if receipt else 'not_run')
     row.update(outcome=outcome, original_outcome=outcome,
+               original_expected_outcome=summary.get('expected_outcome') if summary else None,
                receipt_outcome=receipt.get('outcome') if receipt else None,
                integrity_errors=[], expected_outcome_observed=outcome == cell['expected_outcome'])
     row.update({key: None for key in METRICS})
@@ -36,6 +40,7 @@ def cell_row(cell, summary, receipt):
         return row
     peaks = receipt.get('memory', {}).get('phase_peaks', {}).get('execute', {})
     correctness = receipt.get('correctness', {})
+    correctness = correctness if isinstance(correctness, dict) else {}
     status = receipt.get('native_status_after', receipt.get('native_status_on_error', {})) or {}
     reads = [r for r in status.get('reads', []) if r['algorithm'] == receipt.get('kernel')]
     native = reads[0] if len(reads) == 1 else {}
@@ -61,6 +66,9 @@ def cell_row(cell, summary, receipt):
         runtime_source_sha=receipt.get('runtime_source_sha'),
         harness_source_sha=receipt.get('harness_source_sha'),
         binary_sha256=receipt.get('binary_sha256'),
+        verification_policy=correctness.get('policy'),
+        verification_scope=correctness.get('verification_scope'),
+        component_count_verified=correctness.get('component_count_verified'),
     )
     frontier = [e['active_edges'] for e in events if e['kind'] == 'iteration_end' and 'active_edges' in e]
     contraction = [e for e in events if e['kind'] == 'iteration_end' and 'edges_after' in e]
@@ -80,24 +88,40 @@ def sha256_value(value):
 
 
 def integrity_errors(cell, summary, receipt, config):
-    """Check an apparent pass against its planned cell, not just its label."""
+    """Check a completed exact or partial verification against its planned cell."""
     errors = []
     if summary.get('configuration_sha256') != configuration_fingerprint(config):
         errors.append('configuration fingerprint differs')
+    suite = next((s for s in config['suites'] if s['name'] == cell['suite']), {})
+    overrides = suite.get('expected_outcomes', {}).get(cell['variant'], {})
+    legacy_partial_default = (cell['expected_outcome'] == 'partially_verified' and
+                              summary.get('expected_outcome') == 'passed' and
+                              cell['engine'] not in overrides and receipt is not None and
+                              receipt.get('outcome') == 'passed' and
+                              effective_outcome(receipt) == 'partially_verified')
     for key, value in cell.items():
+        if key == 'expected_outcome' and legacy_partial_default:
+            continue
         if summary.get(key) != value:
             errors.append(f'summary cell field differs: {key}')
     if not receipt:
-        return errors + ['passed summary has no valid receipt']
-    if receipt.get('outcome') != 'passed':
-        errors.append('passed summary disagrees with receipt outcome')
+        return errors + ['completed summary has no valid receipt']
+    legacy_partial_receipt = (summary.get('outcome') == PARTIALLY_VERIFIED and
+                              receipt.get('outcome') == 'passed' and
+                              effective_outcome(receipt) == PARTIALLY_VERIFIED)
+    if receipt.get('outcome') != summary.get('outcome') and not legacy_partial_receipt:
+        errors.append('completed summary disagrees with receipt outcome')
+    errors.extend(partial_certificate_errors(receipt))
     for key in ('harness_source_sha', 'runtime_source_sha', 'native_source_sha'):
         if receipt.get(key) != config[key]:
             errors.append(f'source differs: {key}')
     if receipt.get('source_dirty') != '':
         errors.append('source is dirty or cleanliness is unrecorded')
     arguments = receipt.get('arguments') or {}
+    arguments = arguments if isinstance(arguments, dict) else {}
     expected = {key: cell[key] for key in ('engine', 'algorithm', 'variant', 'mode', 'repeat', 'max_iterations')}
+    if cell['algorithm'] in ('pagerank', 'wcc'):
+        expected['ranking_validation'] = validation_arguments(cell_command(config, cell)).ranking_validation
     expected.update({key: config['defaults'][key] for key in
                      ('partitions', 'threads', 'worker_task_slots', 'sail_pool_bytes',
                       'native_quota', 'tolerance', 'damping', 'timeout', 'seed')})
@@ -129,19 +153,21 @@ def integrity_errors(cell, summary, receipt, config):
         errors.append('memory sampler failed or has no completion record')
     seconds = receipt.get('end_to_end_seconds')
     if not isinstance(seconds, (float, int)) or not math.isfinite(seconds) or seconds < 0:
-        errors.append('passed receipt has no finite nonnegative duration')
+        errors.append('completed receipt has no finite nonnegative duration')
     if not sha256_value(receipt.get('binary_sha256')):
         errors.append('Sail binary hash is missing or malformed')
     native = (receipt.get('native_package_identity') or {}).get('files_sha256')
     if not isinstance(native, dict) or not native or not all(sha256_value(v) for v in native.values()):
         errors.append('native installed-file hashes are missing or malformed')
     manifest = receipt.get('dataset') or {}
+    options = config['datasets'][cell['dataset']]
+    if is_partial_wcc_certificate(receipt) and options['family'] in TRAVERSAL_FAMILIES:
+        return errors + certificate_dataset_errors(manifest, options)
     files = manifest.get('files') or {}
     required = ('vertices.parquet', 'edges.parquet', 'reference.parquet')
     if (set(files) != set(required) or
             any(not isinstance(files.get(name), dict) or not sha256_value(files[name].get('sha256')) for name in required)):
         errors.append('dataset hashes are missing or malformed')
-    options = config['datasets'][cell['dataset']]
     observed = dict(manifest.get('parameters') or {}, family=manifest.get('family'),
                     vertices=(manifest.get('counts') or {}).get('vertices'), seed=manifest.get('seed'),
                     **{k: (manifest.get('pagerank') or {}).get(k) for k in ('damping', 'tolerance')})
@@ -160,7 +186,7 @@ def audited_rows(entries, config):
     rows, identities = [], defaultdict(list)
     for cell, summary, receipt in entries:
         row = cell_row(cell, summary, receipt)
-        if row['outcome'] == 'passed':
+        if row['outcome'] in ('passed', PARTIALLY_VERIFIED):
             row['integrity_errors'] = integrity_errors(cell, summary, receipt, config)
             if not row['integrity_errors']:
                 native = receipt['native_package_identity']['files_sha256']
@@ -170,6 +196,10 @@ def audited_rows(entries, config):
                 identities[('Sail binary', 'all cells')].append((row, receipt['binary_sha256']))
                 identities[('native installed files', 'all cells')].append((row, digest(native)))
                 identities[('dataset files', cell['dataset'])].append((row, digest(files)))
+                # Audit the original apparent pass before deriving its weaker
+                # scope. Keep the original labels and identities as evidence.
+                row['outcome'] = effective_outcome(receipt)
+                row['expected_outcome_observed'] = row['outcome'] == cell['expected_outcome']
         rows.append(row)
     for (kind, scope), observations in identities.items():
         if len({identity for _, identity in observations}) > 1:

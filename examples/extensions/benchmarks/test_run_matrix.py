@@ -123,6 +123,20 @@ def test_extra_cell_args_reach_every_cell():
         assert command[-3:] == ['--record-plans', '--argentea-max-rounds', '30']
 
 
+def test_server_log_filter_uses_recorded_sail_environment_override():
+    config = json.loads(Path(__file__).with_name('matrix.example.json').read_text())
+    original_fingerprint = run_matrix.configuration_fingerprint(config)
+    log_filter = 'info,h2::proto::connection=debug,sail_execution::stream=debug'
+    config['environment'] = {'SAIL_BENCHMARK_RUST_LOG': log_filter}
+    plan_cells(config)
+    command = run_matrix.container_options(config, 'diagnostic')
+    assert 'SAIL_BENCHMARK_RUST_LOG=' + log_filter in command
+    assert run_matrix.configuration_fingerprint(config) != original_fingerprint
+    config['environment'] = {'RUST_LOG': log_filter}
+    with pytest.raises(ValueError, match='SAIL_'):
+        plan_cells(config)
+
+
 def test_argentea_is_an_explicit_traversal_engine_and_never_a_default():
     config = json.loads(Path(__file__).with_name('traversal-matrix.example.json').read_text())
     assert 'argentea' not in {c['engine'] for c in plan_cells(config)}

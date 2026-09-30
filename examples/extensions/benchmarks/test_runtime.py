@@ -1,5 +1,6 @@
 """Regression checks for shutdown races observed in process-worker pilots."""
 import signal
+import json
 from contextlib import nullcontext
 from types import SimpleNamespace
 
@@ -78,6 +79,38 @@ def test_invalid_admission_is_rejected_before_creating_server_files(tmp_path, sl
         with runtime.server(tmp_path / 'sail', tmp_path, 'process-cluster', 8, 2, quota, [],
                             worker_task_slots=slots, sail_pool_bytes=pool):
             pytest.fail('invalid admission reached server startup')
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize('override', [None, 'info,h2::proto::connection=debug,sail_execution::stream=debug'])
+def test_server_logging_is_explicit_and_recorded_before_startup_failure(tmp_path, monkeypatch, override):
+    monkeypatch.setenv('RUST_LOG', 'trace')
+    if override is None:
+        monkeypatch.delenv('SAIL_BENCHMARK_RUST_LOG', raising=False)
+    else:
+        monkeypatch.setenv('SAIL_BENCHMARK_RUST_LOG', override)
+    expected = override or 'info'
+    def fail_launch(*args, **kwargs):
+        assert kwargs['env']['RUST_LOG'] == expected
+        settings = json.loads((tmp_path / 'server-settings.json').read_text())
+        assert settings == {
+            'rust_log': expected,
+            'rust_log_source': 'default' if override is None else 'SAIL_BENCHMARK_RUST_LOG',
+        }
+        raise OSError('deliberate startup failure')
+    monkeypatch.setattr(runtime.subprocess, 'Popen', fail_launch)
+    with pytest.raises(OSError, match='deliberate startup failure'):
+        with runtime.server(tmp_path / 'sail', tmp_path, 'process-cluster', 8, 2, 4, [],
+                            worker_task_slots=24, sail_pool_bytes=10):
+            pytest.fail('startup failure unexpectedly returned a server')
+
+
+def test_blank_server_log_filter_is_rejected_before_creating_files(tmp_path, monkeypatch):
+    monkeypatch.setenv('SAIL_BENCHMARK_RUST_LOG', '  ')
+    with pytest.raises(ValueError, match='SAIL_BENCHMARK_RUST_LOG'):
+        with runtime.server(tmp_path / 'sail', tmp_path, 'process-cluster', 8, 2, 4, [],
+                            worker_task_slots=24, sail_pool_bytes=10):
+            pytest.fail('invalid log filter reached startup')
     assert list(tmp_path.iterdir()) == []
 
 

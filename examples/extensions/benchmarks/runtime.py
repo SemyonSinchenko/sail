@@ -3,6 +3,7 @@ import contextlib
 import hashlib
 from importlib.metadata import version
 import importlib.util
+import json
 import os
 from pathlib import Path
 import signal
@@ -131,10 +132,19 @@ def validate_admission_settings(worker_task_slots, sail_pool_bytes, native_quota
         raise ValueError('native_quota must leave positive participating memory in sail_pool_bytes')
 
 
+def server_log_filter():
+    """Explicit benchmark override; ambient RUST_LOG never changes a trial."""
+    value = os.environ.get('SAIL_BENCHMARK_RUST_LOG', 'info')
+    if not value.strip() or '\0' in value:
+        raise ValueError('SAIL_BENCHMARK_RUST_LOG must be a nonempty log filter without NUL')
+    return value
+
+
 @contextlib.contextmanager
 def server(binary, output, mode, partitions, threads, native_quota, cleanup_errors,
            *, worker_task_slots, sail_pool_bytes, http2_keepalive_timeout=120):
     validate_admission_settings(worker_task_slots, sail_pool_bytes, native_quota)
+    rust_log = server_log_filter()
     staging = output / 'staging'
     staging.mkdir()
     with socket.socket() as listener:
@@ -166,8 +176,14 @@ def server(binary, output, mode, partitions, threads, native_quota, cleanup_erro
         SAIL_EXPERIMENTAL_HTTP2_KEEPALIVE_TIMEOUT_SECS=str(int(http2_keepalive_timeout)),
         SAIL_GRAPH_UTILS_ROOT=staging.as_uri(),
         TOKIO_WORKER_THREADS=str(threads), RAYON_NUM_THREADS=str(threads),
-        RUST_LOG='info',
+        RUST_LOG=rust_log,
     )
+    # Keep the filter actually passed to the driver (and inherited by its workers)
+    # beside server.log, including when startup fails before a cell receipt exists.
+    (output / 'server-settings.json').write_text(json.dumps({
+        'rust_log': env['RUST_LOG'],
+        'rust_log_source': 'SAIL_BENCHMARK_RUST_LOG' if 'SAIL_BENCHMARK_RUST_LOG' in os.environ else 'default',
+    }, indent=2) + '\n')
     with (output / 'server.log').open('w') as log:
         process = subprocess.Popen([str(binary), 'spark', 'server', '--ip', '127.0.0.1', '--port', str(port)],
                                    env=env, cwd=output, stdout=log, stderr=subprocess.STDOUT,

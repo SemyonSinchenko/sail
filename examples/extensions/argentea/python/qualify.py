@@ -3,6 +3,7 @@
 import argparse
 import datetime
 import json
+import os
 from pathlib import Path
 import platform
 import re
@@ -70,6 +71,14 @@ def two_hosts(args, receipt, *, exercise_fn=None, audit_fn=None, fault_control=F
         SAIL_RUNTIME__MEMORY_POOL__TYPE='greedy', SAIL_RUNTIME__MEMORY_POOL__GREEDY__MAX_SIZE=str(args.sail_pool_bytes),
         TOKIO_WORKER_THREADS=str(args.threads), RAYON_NUM_THREADS=str(args.threads),
         RUST_LOG='info,sail_execution::task_runner::actor::handler=debug')
+    # Extra Sail settings for the supervised driver and workers, as a JSON object in
+    # SAIL_QUALIFY_EXTRA_ENV (for example a longer cluster.task_stream_creation_timeout_secs
+    # for a large init stage); only SAIL_* keys are accepted, and they are recorded.
+    extra = json.loads(os.environ.get('SAIL_QUALIFY_EXTRA_ENV', '{}'))
+    if not isinstance(extra, dict) or any(not k.startswith('SAIL_') or not isinstance(v, str) for k, v in extra.items()):
+        raise ValueError('SAIL_QUALIFY_EXTRA_ENV must be a JSON object of SAIL_* string settings')
+    env.update(extra)
+    receipt['extra_environment'] = extra
     if fault_control:
         env.update(SAIL_QUALIFICATION_FAULT_CONTROL='1',
                    SAIL_CLUSTER__WORKER_HEARTBEAT_INTERVAL_SECS='1',

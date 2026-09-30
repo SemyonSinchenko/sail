@@ -64,6 +64,14 @@ impl Inbox {
         resources: &Resources,
     ) -> Result<Self> {
         let p = reports.len();
+        // Topology and Done never read candidate parents. Only Pull consumes
+        // ghost membership; Push can retain incoming CSR without needing a mask.
+        let n = if matches!(mode, BfsMode::Reference | BfsMode::Push | BfsMode::Pull) {
+            n
+        } else {
+            0
+        };
+        let ghosts = if mode == BfsMode::Pull { ghosts } else { 0 };
         let bytes = n
             .checked_mul(16)
             .and_then(|x| x.checked_add(ghosts))

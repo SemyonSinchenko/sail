@@ -11,6 +11,7 @@ use sail_python_udf::error::PyErrExtractor;
 use tokio::sync::oneshot;
 use tokio_util::task::AbortOnDropHandle;
 
+use crate::diagnostics::log_failure;
 use crate::driver::TaskStatus;
 use crate::id::{TaskKey, TaskKeyDisplay};
 use crate::task_runner::{TaskRunnerActor, TaskRunnerMessage};
@@ -148,6 +149,10 @@ impl TaskMonitor {
                 break Self::status(key, TaskStatus::Succeeded, None, None);
             };
             if let Err(error) = batch {
+                log_failure(
+                    format_args!("event=task_execution_error key={key:?}"),
+                    &error,
+                );
                 break Self::status(
                     key,
                     TaskStatus::Failed,

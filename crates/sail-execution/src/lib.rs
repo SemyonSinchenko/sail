@@ -1,3 +1,4 @@
+mod diagnostics;
 pub mod driver;
 pub mod error;
 mod id;

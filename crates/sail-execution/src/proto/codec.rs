@@ -97,13 +97,13 @@ use sail_common_datafusion::catalog::{
 use sail_common_datafusion::datasource::PhysicalSinkMode;
 use sail_common_datafusion::driver_extension::{DRIVER_CODEC_PREFIX, DriverExtensionExec};
 use sail_common_datafusion::native_scalar::{decode_scalar, encode_scalar};
-use sail_common_datafusion::worker_extension::{WORKER_CODEC_PREFIX, WorkerExtensionExec};
 use sail_common_datafusion::schema_evolution::{
     SchemaEvolutionCastColumnExpr, SchemaEvolutionDefaultExpr,
     SchemaEvolutionPhysicalExprAdapterFactoryWithMatching, SchemaEvolutionTimezoneMode,
     StructFieldMatching,
 };
 use sail_common_datafusion::udf::StreamUDF;
+use sail_common_datafusion::worker_extension::{WORKER_CODEC_PREFIX, WorkerExtensionExec};
 use sail_data_source::formats::binary::source::BinarySource;
 use sail_data_source::formats::console::ConsoleSinkExec;
 use sail_data_source::formats::csv::CsvSource;

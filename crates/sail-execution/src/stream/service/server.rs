@@ -14,6 +14,7 @@ use prost::Message;
 use tokio::sync::oneshot;
 use tonic::{Request, Response, Status, Streaming, async_trait};
 
+use crate::diagnostics::{log_codec_failure, log_failure};
 use crate::error::ExecutionResult;
 use crate::id::TaskStreamKey;
 use crate::shuffle::ShuffleCompression;
@@ -128,15 +129,55 @@ where
         &self,
         request: Request<Ticket>,
     ) -> Result<Response<Self::DoGetStream>, Status> {
+        let peer = request.remote_addr();
         let Ticket { ticket } = request.into_inner();
-        let key = K::decode(&ticket)?;
+        let key = K::decode(&ticket).inspect_err(|error| {
+            log_failure(
+                format_args!("event=flight_server_error phase=ticket peer={peer:?}"),
+                error,
+            );
+        })?;
         debug!("{key:?}");
+        let diagnostic_key = std::sync::Arc::<str>::from(format!("{key:?}"));
         let (tx, rx) = oneshot::channel();
-        self.fetcher.fetch(key, tx).await?;
+        self.fetcher.fetch(key, tx).await.inspect_err(|error| {
+            log_failure(
+                format_args!(
+                    "event=flight_server_error phase=fetch peer={peer:?} key={diagnostic_key}"
+                ),
+                error,
+            );
+        })?;
         let stream = rx
             .await
-            .map_err(|_| Status::internal("failed to receive task stream"))??;
-        let stream = stream.map_err(|e| FlightError::Tonic(Box::new(e.into())));
+            .inspect_err(|error| {
+                log_failure(
+                    format_args!(
+                        "event=flight_server_error phase=fetch_receiver peer={peer:?} key={diagnostic_key}"
+                    ),
+                    error,
+                );
+            })
+            .map_err(|_| Status::internal("failed to receive task stream"))?
+            .inspect_err(|error| {
+                log_failure(
+                    format_args!(
+                        "event=flight_server_error phase=fetch_result peer={peer:?} key={diagnostic_key}"
+                    ),
+                    error,
+                );
+            })?;
+        let body_key = diagnostic_key.clone();
+        let stream = stream
+            .inspect_err(move |error| {
+                log_failure(
+                    format_args!(
+                        "event=flight_server_error phase=body peer={peer:?} key={body_key}"
+                    ),
+                    error,
+                );
+            })
+            .map_err(|e| FlightError::Tonic(Box::new(e.into())));
         let options = self
             .compression
             .ipc_write_options()
@@ -144,6 +185,14 @@ where
         let stream = FlightDataEncoderBuilder::new()
             .with_options(options)
             .build(stream)
+            .inspect_err(move |error| {
+                log_codec_failure(
+                    format_args!(
+                        "event=flight_server_error phase=encode peer={peer:?} key={diagnostic_key}"
+                    ),
+                    error,
+                );
+            })
             .map_err(Status::from);
         Ok(Response::new(Box::pin(stream) as Self::DoGetStream))
     }

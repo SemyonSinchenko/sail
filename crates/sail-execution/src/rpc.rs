@@ -151,6 +151,11 @@ impl<T: ClientBuilder + Clone> ClientHandle<T> {
         }
     }
 
+    /// Share endpoint options with diagnostics without enlarging client owners.
+    pub(crate) fn options(&self) -> Arc<ClientOptions> {
+        Arc::clone(&self.options)
+    }
+
     /// Returns a clone of the RPC client.
     /// The client requires `&mut self` when making RPC requests,
     /// so it is less useful to return `&T` here.

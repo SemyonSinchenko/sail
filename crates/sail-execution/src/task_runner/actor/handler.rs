@@ -10,6 +10,7 @@ use sail_common::actor::{ActorAction, ActorContext};
 use sail_common_datafusion::error::CommonErrorCause;
 use tokio::sync::oneshot;
 
+use crate::diagnostics::bounded_text;
 use crate::driver::{DriverMessage, TaskStatus};
 use crate::error::{ExecutionError, ExecutionResult};
 use crate::id::{JobId, TaskAttempt, TaskKey, TaskStreamKey, WorkerId};
@@ -112,6 +113,22 @@ impl TaskRunnerActor {
         message: Option<String>,
         cause: Option<CommonErrorCause>,
     ) -> ActorAction {
+        if matches!(status, TaskStatus::Failed) {
+            let worker_id = match &self.placement {
+                TaskRunnerPlacement::Worker { worker_id, .. } => Some(*worker_id),
+                TaskRunnerPlacement::Driver { .. } => None,
+            };
+            warn!(
+                "task_failure pid={} session_id={} worker_id={worker_id:?} key={key:?} message={} cause={}",
+                std::process::id(),
+                bounded_text(&self.session_id),
+                bounded_text(message.as_deref().unwrap_or("<none>")),
+                cause
+                    .as_ref()
+                    .map(bounded_text)
+                    .unwrap_or_else(|| "<none>".into())
+            );
+        }
         if !matches!(status, TaskStatus::Running) {
             self.signals.remove(&key);
         }

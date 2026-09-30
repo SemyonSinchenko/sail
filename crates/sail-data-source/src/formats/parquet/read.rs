@@ -125,8 +125,9 @@ impl ReadFormat for ParquetReadFormat {
             .with_file_metadata_cache(Some(metadata_cache))
             .fetch_metadata()
             .await?;
-        let statistics =
+        let mut statistics =
             DFParquetMetadata::statistics_from_parquet_metadata(&metadata, &file_schema)?;
+        super::statistics::clear_floating_bounds(&mut statistics, &file_schema);
         let ordering = ordering_from_parquet_metadata(&metadata, &file_schema)?;
         Ok(ListingFileMeta {
             statistics,

@@ -11,6 +11,12 @@ use crate::options::r#gen::{ParquetReadOptions, ParquetWriteOptions};
 
 mod options;
 mod read;
+mod statistics;
+
+#[cfg(test)]
+mod read_statistics_tests;
+#[cfg(test)]
+mod statistics_tests;
 mod write;
 
 pub use read::ParquetReadFormat;

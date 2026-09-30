@@ -39,6 +39,13 @@ impl Inbox {
         n: usize,
         r: &Resources,
     ) -> Result<Self> {
+        // Topology accumulates pairs; Done only validates completion barriers.
+        // Neither phase reads per-vertex labels, including during publication.
+        let n = if matches!(mode, WccMode::Topology | WccMode::Done) {
+            0
+        } else {
+            n
+        };
         let bytes = n
             .checked_mul(size_of::<Option<i64>>())
             .and_then(|x| {

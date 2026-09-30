@@ -6,9 +6,9 @@ use crate::Result;
 pub use adjacency::WeightedAdjacency;
 pub use partition::{
     SsspAlgorithm, SsspCapFailure, SsspCompletion, SsspCompletionValues, SsspConvergence,
-    SsspEmissionCursor, SsspMessage, SsspMessageValues, SsspMode, SsspOptions, SsspOrigin,
-    SsspPartition, SsspPayload, SsspRow, SsspRowCursor, SsspStatistics, SsspStatisticsValues,
-    SsspWork,
+    SsspEmissionCursor, SsspInitialization, SsspMessage, SsspMessageValues, SsspMode, SsspOptions,
+    SsspOrigin, SsspPartition, SsspPayload, SsspRow, SsspRowCursor, SsspStatistics,
+    SsspStatisticsValues, SsspWork,
 };
 
 /// Finite nonnegative path distance, minimum hops, then numeric predecessor.

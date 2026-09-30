@@ -307,3 +307,6 @@ fn bfs_request_and_wire_schema_are_strict() {
         );
     }
 }
+
+#[path = "tests/initialization.rs"]
+mod initialization;

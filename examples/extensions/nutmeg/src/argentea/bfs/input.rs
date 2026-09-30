@@ -71,7 +71,7 @@ pub async fn initialize(
             edges.push((sources.value(i), targets.value(i)));
         }
     }
-    BfsPartition::build(
+    let prepared = BfsPartition::prepare(
         operation,
         p,
         state.base.incarnation.worker_id,
@@ -80,7 +80,12 @@ pub async fn initialize(
         request.options(),
         state.base.resources.clone(),
     )
-    .map_err(error)
+    .map_err(error)?;
+    // CSR owns its storage; raw input and its charge need not overlap labels.
+    drop(vertices);
+    drop(edges);
+    drop(admission);
+    prepared.finish().map_err(error)
 }
 fn ready(state: &BfsState, p: usize, phase: u64, stats: bool) -> Result<Option<Partition>> {
     let Some(part) = state.partition(p)? else {

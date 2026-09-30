@@ -68,6 +68,7 @@ def validate_config(config):
         raise ValueError('resource limits must be positive')
     if not re.fullmatch(r'[0-9,-]+', limits['cpuset_cpus']):
         raise ValueError('cpuset_cpus must be an explicit CPU list/range')
+    container_environment(config)
     for key in ('worker_task_slots', 'sail_pool_bytes', 'native_quota'):
         if key not in config['defaults']:
             raise ValueError(f'missing configuration key: defaults.{key}')
@@ -202,6 +203,24 @@ def docker_base(config):
     return ['docker', '--context', config['docker_context']]
 
 
+def container_environment(config):
+    """Optional `environment` map: SAIL_* settings exported into every cell container.
+
+    Only Sail settings are admitted so a matrix cannot smuggle credentials or
+    interpreter flags into the isolated trial; the map is part of the recorded
+    configuration and therefore of the cell fingerprint.
+    """
+    environment = config.get('environment', {})
+    if not isinstance(environment, dict):
+        raise ValueError('environment must be a map of SAIL_* names to strings')
+    options = []
+    for key, value in sorted(environment.items()):
+        if not (isinstance(key, str) and key.startswith('SAIL_') and isinstance(value, str)):
+            raise ValueError(f'environment entry {key!r} is not a SAIL_* string setting')
+        options.extend(['--env', f'{key}={value}'])
+    return options
+
+
 def container_options(config, name, image=None):
     limits = config['limits']
     return ['--name', name, '--init', '--cpus', str(limits['cpus']),
@@ -209,6 +228,7 @@ def container_options(config, name, image=None):
             '--memory-swap', f"{limits['memory_gib']}g", '--pids-limit', '1024',
             '--mount', f"type=volume,source={config['target_volume']},target=/targets",
             '--workdir', config['container_repo'], '--env', 'PYTHONUNBUFFERED=1',
+            *container_environment(config),
             '--entrypoint', config['container_python'], image or config['image']]
 
 

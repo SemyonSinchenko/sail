@@ -71,7 +71,7 @@ pub async fn initialize(
             edges.push((sources.value(i), targets.value(i)));
         }
     }
-    DeltaPartition::build(
+    let prepared = DeltaPartition::prepare(
         operation,
         p,
         &vertices,
@@ -79,7 +79,12 @@ pub async fn initialize(
         request.options(),
         state.base.resources.clone(),
     )
-    .map_err(error)
+    .map_err(error)?;
+    // Release actual input storage before its charge and dense residual state.
+    drop(vertices);
+    drop(edges);
+    drop(admission);
+    prepared.finish().map_err(error)
 }
 fn ready(state: &DeltaState, p: usize, phase: u64, stats: bool) -> Result<Option<Partition>> {
     let Some(part) = state.partition(p)? else {

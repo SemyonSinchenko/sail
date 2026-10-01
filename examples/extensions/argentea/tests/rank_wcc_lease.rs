@@ -93,7 +93,7 @@ fn successful_pagerank_sole_owner_releases_storage_before_host_lease() {
 #[test]
 fn prepared_sole_owner_abandon_cancel_failure_and_success_drop_in_order() {
     use grust_procedures::MemoryReservation;
-    for kind in 0..3 {
+    for kind in 0..4 {
         for action in 0..4 {
             let (resources, usage, at_release) = resources();
             let op = support::operation(3, 1_024);
@@ -101,10 +101,16 @@ fn prepared_sole_owner_abandon_cancel_failure_and_success_drop_in_order() {
             let arcs = vec![(0, 3), (3, 6), (0, 3)];
             enum Prepared {
                 Pr(PageRankInitialization),
+                Delta(DeltaInitialization),
                 Wcc(WccInitialization),
             }
             let prepared = if kind == 0 {
                 Prepared::Pr(PageRankPartition::prepare(op, 0, &ids, &arcs, resources).unwrap())
+            } else if kind == 3 {
+                Prepared::Delta(
+                    DeltaPartition::prepare(op, 0, &ids, &arcs, support::options(), resources)
+                        .unwrap(),
+                )
             } else {
                 Prepared::Wcc(
                     WccPartition::prepare(
@@ -133,6 +139,9 @@ fn prepared_sole_owner_abandon_cancel_failure_and_success_drop_in_order() {
             let blocker: Option<MemoryReservation> = if action == 2 {
                 let headroom = if kind == 0 {
                     8 * 1_024 + 127
+                } else if kind == 3 {
+                    // Admit dense residual state exactly, then reject statistics.
+                    18 * 1_024 + 256
                 } else {
                     // Admit origins+roots exactly, then reject StatisticsInbox.
                     3 * (size_of::<Option<WccOrigin>>() + size_of::<Option<(u64, u64)>>())
@@ -157,6 +166,7 @@ fn prepared_sole_owner_abandon_cancel_failure_and_success_drop_in_order() {
                 }
                 let result = match prepared {
                     Prepared::Pr(p) => p.finish().map(drop),
+                    Prepared::Delta(p) => p.finish().map(drop),
                     Prepared::Wcc(p) => p.finish().map(drop),
                 };
                 if action == 3 {

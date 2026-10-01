@@ -1,6 +1,8 @@
 //! Signed residual PageRank. These are partition protocol primitives, not a
 //! scheduler: callers supply complete, ordered producer streams and barriers.
 mod emission;
+mod initialization;
+pub use initialization::DeltaInitialization;
 mod failure;
 pub use failure::DeltaCapFailure;
 mod protocol;
@@ -108,7 +110,6 @@ pub struct DeltaPartition {
     operation: Operation,
     partition: usize,
     adjacency: Arc<Adjacency>,
-    resources: Resources,
     options: DeltaOptions,
     values: Arc<Values>,
     next_phase: u64,
@@ -118,6 +119,8 @@ pub struct DeltaPartition {
     metrics: Metrics,
     state: State,
     terminal: Option<Convergence>,
+    // Keep the host lease until every owned admitted buffer has dropped.
+    resources: Resources,
 }
 
 impl DeltaPartition {
@@ -129,25 +132,25 @@ impl DeltaPartition {
         options: DeltaOptions,
         resources: Resources,
     ) -> Result<Self> {
+        Self::prepare(operation, partition, vertices, edges, options, resources)?.finish()
+    }
+    /// Own the validated CSR before allocating dense score and residual state.
+    pub fn prepare(
+        operation: Operation,
+        partition: usize,
+        vertices: &[i64],
+        edges: &[(i64, i64)],
+        options: DeltaOptions,
+        resources: Resources,
+    ) -> Result<DeltaInitialization> {
         options.validate()?;
         let adjacency = Adjacency::build(&operation, partition, vertices, edges, &resources)?;
-        let mut values = Values::allocate(adjacency.vertices.len(), &resources)?;
-        values.scores.fill(1.0 / operation.vertices as f64);
-        let statistics = StatisticsInbox::new(operation.partitions, &resources)?;
-        Ok(Self {
+        Ok(DeltaInitialization {
             operation,
             partition,
+            options,
             adjacency,
             resources,
-            options,
-            values: Arc::new(values),
-            next_phase: 0,
-            completed: DeltaMode::Initial,
-            pushes: 0,
-            certificates: 0,
-            metrics: Metrics::default(),
-            state: State::Statistics(statistics),
-            terminal: None,
         })
     }
     pub fn partition(&self) -> usize {

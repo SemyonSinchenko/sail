@@ -143,4 +143,40 @@ fn prepare_preserves_input_validation_and_cancellation_errors() {
             .finish()
             .unwrap();
     }
+    for (damping, tolerance, max_pushes) in
+        [(f64::NAN, 1e-3, 8), (0.85, 0.0, 8), (0.85, 1e-3, u64::MAX)]
+    {
+        let (r, _, _) = resources(LIMIT);
+        let opts = DeltaOptions {
+            damping,
+            tolerance,
+            max_pushes,
+        };
+        let mut op = operation(1, 1);
+        op.generation = 0;
+        let old = DeltaPartition::build(op.clone(), 0, &[0], &[], opts, r.clone())
+            .err()
+            .unwrap();
+        let new = DeltaPartition::prepare(op, 0, &[0], &[], opts, r)
+            .err()
+            .unwrap();
+        assert_eq!(new, old);
+        assert!(old.contains("options") || old.contains("phase budget"));
+    }
+    let (r, _, _) = resources(LIMIT);
+    DeltaPartition::prepare(
+        operation(1, 1),
+        0,
+        &[0],
+        &[],
+        DeltaOptions {
+            damping: 0.85,
+            tolerance: 1e-3,
+            max_pushes: 0,
+        },
+        r,
+    )
+    .unwrap()
+    .finish()
+    .unwrap();
 }

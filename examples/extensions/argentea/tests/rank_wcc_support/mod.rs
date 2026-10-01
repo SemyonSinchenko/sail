@@ -9,10 +9,11 @@ pub const LIMIT: usize = 256 << 20;
 #[derive(Clone, Copy, Debug)]
 pub enum Kind {
     PageRank,
+    Residual,
     Reference,
     Star,
 }
-pub const KINDS: [Kind; 3] = [Kind::PageRank, Kind::Reference, Kind::Star];
+pub const KINDS: [Kind; 4] = [Kind::PageRank, Kind::Residual, Kind::Reference, Kind::Star];
 impl Kind {
     pub fn options(self) -> WccOptions {
         WccOptions {
@@ -44,10 +45,12 @@ impl Raw {
 }
 pub enum Prepared {
     PageRank(PageRankInitialization),
+    Residual(DeltaInitialization),
     Wcc(WccInitialization),
 }
 pub enum Partition {
     PageRank(PageRankPartition),
+    Residual(DeltaPartition),
     Wcc(WccPartition),
 }
 impl Prepared {
@@ -55,6 +58,10 @@ impl Prepared {
         match kind {
             Kind::PageRank => PageRankPartition::prepare(op, 0, &raw.ids, &raw.edges, resources)
                 .map(Self::PageRank),
+            Kind::Residual => {
+                DeltaPartition::prepare(op, 0, &raw.ids, &raw.edges, shared::options(), resources)
+                    .map(Self::Residual)
+            }
             _ => WccPartition::prepare(op, 0, 7, &raw.ids, &raw.edges, kind.options(), resources)
                 .map(Self::Wcc),
         }
@@ -62,6 +69,7 @@ impl Prepared {
     pub fn finish(self) -> Result<Partition> {
         match self {
             Self::PageRank(p) => p.finish().map(Partition::PageRank),
+            Self::Residual(p) => p.finish().map(Partition::Residual),
             Self::Wcc(p) => p.finish().map(Partition::Wcc),
         }
     }
@@ -71,6 +79,10 @@ impl Partition {
         match kind {
             Kind::PageRank => {
                 PageRankPartition::build(op, 0, &raw.ids, &raw.edges, resources).map(Self::PageRank)
+            }
+            Kind::Residual => {
+                DeltaPartition::build(op, 0, &raw.ids, &raw.edges, shared::options(), resources)
+                    .map(Self::Residual)
             }
             _ => WccPartition::build(op, 0, 7, &raw.ids, &raw.edges, kind.options(), resources)
                 .map(Self::Wcc),
@@ -85,6 +97,16 @@ impl Partition {
                 for (i, (id, rank)) in p.ranks().enumerate() {
                     assert_eq!(id, i as i64 * 3);
                     assert_eq!(rank.to_bits(), (1.0 / n as f64).to_bits());
+                }
+            }
+            Self::Residual(p) => {
+                assert_eq!(p.collecting_phase(), Some(0));
+                assert_eq!(p.completed_mode(), DeltaMode::Initial);
+                assert_eq!(p.state_rows().count(), n);
+                for (i, (id, score, residual)) in p.state_rows().enumerate() {
+                    assert_eq!(id, i as i64 * 3);
+                    assert_eq!(score.to_bits(), (1.0 / n as f64).to_bits());
+                    assert_eq!(residual.to_bits(), 0.0f64.to_bits());
                 }
             }
             Self::Wcc(p) => {

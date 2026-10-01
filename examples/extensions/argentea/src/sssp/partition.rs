@@ -141,7 +141,6 @@ pub struct SsspPartition {
     origin: SsspOrigin,
     options: SsspOptions,
     adjacency: Arc<WeightedAdjacency>,
-    resources: Resources,
     values: Arc<Values>,
     origins: Vec<Option<SsspOrigin>>,
     shapes: Vec<Option<(u64, u64, u64)>>,
@@ -152,6 +151,8 @@ pub struct SsspPartition {
     completed: SsspMode,
     work: SsspWork,
     terminal: Option<SsspConvergence>,
+    // Keep the host lease until every owned admitted buffer has dropped.
+    resources: Resources,
 }
 impl SsspPartition {
     pub fn build(

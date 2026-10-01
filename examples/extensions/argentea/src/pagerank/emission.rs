@@ -8,10 +8,11 @@ pub struct EmissionCursor {
     ranks: Arc<Ranks>,
     round: Arc<Round>,
     producer: usize,
+    // Sequence storage must drop before its admission and last host lease.
+    sequences: Vec<u64>,
     ownership: Arc<EmissionOwnership>,
     resources: Resources,
     meter: WorkMeter,
-    sequences: Vec<u64>,
     vertex: usize,
     edge: usize,
     entered: bool,

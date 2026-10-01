@@ -167,7 +167,6 @@ pub struct BfsPartition {
     options: BfsOptions,
     adjacency: Arc<Adjacency>,
     incoming: Option<Arc<Incoming>>,
-    resources: Resources,
     values: Arc<Values>,
     origins: Vec<Option<BfsOrigin>>,
     shapes: Vec<Option<(u64, u64, u64)>>,
@@ -178,6 +177,8 @@ pub struct BfsPartition {
     completed: BfsMode,
     work: BfsWork,
     terminal: Option<BfsConvergence>,
+    // Keep the host lease until every owned admitted buffer has dropped.
+    resources: Resources,
 }
 impl BfsPartition {
     /// Each vertex occurs once, on owner(id). Arcs are owned by their source.

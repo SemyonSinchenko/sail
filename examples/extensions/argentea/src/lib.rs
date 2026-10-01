@@ -27,7 +27,7 @@ mod delta;
 mod pagerank;
 pub use delta::{
     Convergence, DeltaCapFailure, DeltaCompletion, DeltaContribution, DeltaEmissionCursor,
-    DeltaMode, DeltaOptions, DeltaPartition, DeltaRankCursor, DeltaStatistics,
+    DeltaInitialization, DeltaMode, DeltaOptions, DeltaPartition, DeltaRankCursor, DeltaStatistics,
     DeltaStatisticsValues,
 };
 

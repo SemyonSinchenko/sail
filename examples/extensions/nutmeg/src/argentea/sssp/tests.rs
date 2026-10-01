@@ -484,3 +484,6 @@ mod adversarial;
 
 #[path = "tests/resource_failure.rs"]
 mod resource_failure;
+
+#[path = "tests/initialization.rs"]
+mod initialization;

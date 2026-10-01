@@ -1,5 +1,7 @@
 //! Producer-complete weighted SSSP state, independent of Sail scheduling.
 mod emission;
+mod initialization;
+pub use initialization::SsspInitialization;
 mod protocol;
 mod statistics;
 use super::{SsspLabel, WeightedAdjacency};
@@ -161,49 +163,33 @@ impl SsspPartition {
         options: SsspOptions,
         resources: Resources,
     ) -> Result<Self> {
+        Self::prepare(
+            operation, partition, worker_id, vertices, arcs, options, resources,
+        )?
+        .finish()
+    }
+
+    /// Build and validate the CSR without allocating labels or the frontier.
+    /// The caller may release raw inputs and their admission before `finish`.
+    pub fn prepare(
+        operation: Operation,
+        partition: usize,
+        worker_id: u64,
+        vertices: &[i64],
+        arcs: &[(i64, i64, f64)],
+        options: SsspOptions,
+        resources: Resources,
+    ) -> Result<SsspInitialization> {
         options.validate()?;
         let adjacency =
             WeightedAdjacency::build(&operation, partition, vertices, arcs, &resources)?;
-        let origin = SsspOrigin {
-            worker_id,
-            adjacency_id: adjacency.identity(),
-        };
-        let admission = resources
-            .execution
-            .reserve(
-                operation.partitions
-                    * (size_of::<Option<SsspOrigin>>() + size_of::<Option<(u64, u64, u64)>>())
-                    + 128,
-            )
-            .map_err(|e| e.to_string())?;
-        let mut origins = filled(operation.partitions, None)?;
-        origins[partition] = Some(origin);
-        let shapes = filled(operation.partitions, None)?;
-        let mut values = Values::new(vertices.len(), &resources)?;
-        if let Ok(i) = adjacency.vertices().binary_search(&options.source) {
-            values.labels[i] = Some(SsspLabel::source(options.source));
-            values.active.push(i);
-            values.reached = 1;
-            values.reachable_edges = adjacency.outgoing_at(i).len() as u64;
-        }
-        let state = State::Statistics(StatisticsInbox::new(operation.partitions, &resources)?);
-        Ok(Self {
+        Ok(SsspInitialization {
             operation,
             partition,
-            origin,
+            worker_id,
             options,
-            adjacency,
             resources,
-            values: Arc::new(values),
-            origins,
-            shapes,
-            _origin_admission: admission,
-            state,
-            next_phase: 0,
-            rounds: 0,
-            completed: SsspMode::Topology,
-            work: SsspWork::default(),
-            terminal: None,
+            adjacency,
         })
     }
     pub fn partition(&self) -> usize {

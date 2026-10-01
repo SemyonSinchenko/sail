@@ -18,8 +18,9 @@ pub use wcc::{
 mod bfs;
 pub use bfs::{
     BfsAlgorithm, BfsCapFailure, BfsCompletion, BfsCompletionValues, BfsConvergence,
-    BfsEmissionCursor, BfsMessage, BfsMessageValues, BfsMode, BfsOptions, BfsOrigin, BfsPartition,
-    BfsPayload, BfsRow, BfsRowCursor, BfsStatistics, BfsStatisticsValues, BfsWork,
+    BfsEmissionCursor, BfsInitialization, BfsMessage, BfsMessageValues, BfsMode, BfsOptions,
+    BfsOrigin, BfsPartition, BfsPayload, BfsRow, BfsRowCursor, BfsStatistics, BfsStatisticsValues,
+    BfsWork,
 };
 mod delta;
 mod pagerank;

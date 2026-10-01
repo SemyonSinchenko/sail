@@ -1,6 +1,8 @@
 //! Integer BFS over retained source-owned partitions. No scheduler or transport.
 //! Input arcs are directed; undirected callers normalize each edge to both arcs.
 mod emission;
+mod initialization;
+pub use initialization::BfsInitialization;
 mod protocol;
 mod statistics;
 use crate::{Operation, Resources, Result, Round, adjacency::Adjacency, reserve_vec};
@@ -191,51 +193,32 @@ impl BfsPartition {
         options: BfsOptions,
         resources: Resources,
     ) -> Result<Self> {
+        Self::prepare(
+            operation, partition, worker_id, vertices, arcs, options, resources,
+        )?
+        .finish()
+    }
+
+    /// Build and validate the CSR without allocating labels or the frontier.
+    /// The caller may release raw inputs and their admission before `finish`.
+    pub fn prepare(
+        operation: Operation,
+        partition: usize,
+        worker_id: u64,
+        vertices: &[i64],
+        arcs: &[(i64, i64)],
+        options: BfsOptions,
+        resources: Resources,
+    ) -> Result<BfsInitialization> {
         options.validate()?;
         let adjacency = Adjacency::build(&operation, partition, vertices, arcs, &resources)?;
-        let origin = BfsOrigin {
-            worker_id,
-            adjacency_id: adjacency.identity,
-        };
-        let origin_admission = resources
-            .execution
-            .reserve(
-                operation.partitions
-                    * (size_of::<Option<BfsOrigin>>() + size_of::<Option<(u64, u64, u64)>>())
-                    + 128,
-            )
-            .map_err(|e| e.to_string())?;
-        let mut origins = filled(operation.partitions, None)?;
-        let shapes = filled(operation.partitions, None)?;
-        origins[partition] = Some(origin);
-        let mut values = Values::new(vertices.len(), &resources)?;
-        values.remaining = adjacency.targets.len() as u64;
-        if let Ok(i) = adjacency.vertices.binary_search(&options.source) {
-            values.depths[i] = Some(0);
-            values.parents[i] = Some(options.source);
-            values.frontier.push(i);
-            values.reached = 1;
-            values.remaining -= (adjacency.offsets[i + 1] - adjacency.offsets[i]) as u64;
-        }
-        let state = State::Statistics(StatisticsInbox::new(operation.partitions, &resources)?);
-        Ok(Self {
+        Ok(BfsInitialization {
             operation,
             partition,
-            origin,
+            worker_id,
             options,
-            adjacency,
-            incoming: None,
             resources,
-            values: Arc::new(values),
-            origins,
-            shapes,
-            _origin_admission: origin_admission,
-            state,
-            next_phase: 0,
-            levels: 0,
-            completed: BfsMode::Topology,
-            work: BfsWork::default(),
-            terminal: None,
+            adjacency,
         })
     }
     pub fn partition(&self) -> usize {

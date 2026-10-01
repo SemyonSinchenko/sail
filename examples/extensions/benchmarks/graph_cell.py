@@ -19,6 +19,7 @@ from measurement import Sampler, cgroup_snapshot, cpu_ticks, read_text, steal_fr
 from runtime import (algorithm_method, git, native_package_identity, package_versions, record_result_evidence,
                      server, sha256, validate_admission_settings)
 from validation_outcome import effective_outcome
+from ranking_validation import validate_pagerank_rows
 
 
 REPO = Path(__file__).resolve().parents[3]
@@ -66,18 +67,8 @@ def validate(spark, output, dataset, algorithm, expected_rows, tolerance, dampin
         assert not actual.where(F.col('component').isNull()).limit(1).count()
         return dict(**cardinality, membership_mismatches=mismatches,
                     components=minima.count(), canonicalization='minimum numeric vertex ID per output component')
-    invalid = actual.where(F.col('score').isNull() | F.isnan('score') |
-                           (F.abs(F.col('score')) == F.lit(float('inf'))) | (F.col('score') < 0)).count()
-    assert invalid == 0, f'{invalid} invalid PageRank scores'
-    invalid_meta = actual.where(F.col('iterations').isNull() | F.col('converged').isNull() |
-                                (F.col('iterations') < (0 if optimized else 1)) |
-                                (F.col('iterations') > max_iterations)).count()
-    assert invalid_meta == 0, f'{invalid_meta} invalid PageRank metadata rows'
-    if native or optimized:
-        invalid_residual = actual.where(F.col('residual').isNull() | F.isnan('residual') |
-                                       (F.col('residual') < 0) |
-                                       (F.col('residual') == F.lit(float('inf')))).count()
-        assert invalid_residual == 0, f'{invalid_residual} invalid native residual rows'
+    validate_pagerank_rows(actual, max_iterations=max_iterations,
+                           native=native, optimized=optimized)
     joined = actual.join(reference.select('id', 'pagerank'), 'id')
     checks = joined.agg(
         F.sum('score').alias('rank_sum'),
@@ -269,15 +260,19 @@ def certify(spark, actual, dataset, algorithm, expected_rows, tolerance, damping
                     components=minima.count(), component_count_verified=False,
                     verification_scope='partial_wcc_partition',
                     certificate='edge-consistent partition whose labels name input vertices; component connectivity and count unverified')
-    invalid = actual.where(F.col('score').isNull() | F.isnan('score') |
-                           (F.abs(F.col('score')) == F.lit(float('inf'))) | (F.col('score') < 0)).count()
-    assert invalid == 0, f'{invalid} invalid PageRank scores'
+    validate_pagerank_rows(actual, max_iterations=max_iterations,
+                           native=native, optimized=optimized)
     checks = actual.agg(F.sum('score').alias('rank_sum'), F.min('iterations').alias('min_iterations'),
                         F.max('iterations').alias('max_iterations'),
                         F.min(F.col('converged').cast('int')).alias('all_converged'),
-                        F.max('residual').alias('reported_residual')).first().asDict()
+                        F.max('residual').alias('reported_residual'),
+                        F.min('residual').alias('min_reported_residual')).first().asDict()
     if checks['all_converged'] != 1:
         raise NonConvergedError(f'PageRank reached its iteration cap: {checks}')
+    assert checks['min_iterations'] == checks['max_iterations'], checks
+    assert checks['reported_residual'] == checks['min_reported_residual'], checks
+    if checks['reported_residual'] is not None:
+        assert checks['reported_residual'] <= tolerance, checks
     assert math.isclose(checks['rank_sum'], 1.0, abs_tol=1e-10), checks
     degrees = edges.groupBy('src').count().withColumnRenamed('count', 'degree')
     weighted = edges.join(degrees, 'src')

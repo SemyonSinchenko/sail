@@ -1,28 +1,49 @@
 """Parquet generations with explicit capability-based cleanup."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from .lifecycle import GraphResult
+
+if TYPE_CHECKING:
+    from pyspark.sql import DataFrame
+    from pyspark.sql.connect.session import SparkSession
+
+    from .lifecycle import CancellationToken
+    from .utils import GraphUtils
 
 
 class StagingRun:
-    def __init__(self, spark, utils, cancellation, partitions):
+    """One owned staging directory holding the Parquet generations of a run."""
+
+    def __init__(self, spark: SparkSession, utils: GraphUtils, cancellation: CancellationToken,
+                 partitions: int) -> None:
         self.spark = spark
         self.utils = utils
         self.cancellation = cancellation
-        self.partitions = partitions
+        self.partitions: int = partitions
         self.path, self.token = utils.allocate()
-        self.closed = False
-        self.write_uncertain = False
-        self.result_path = None
-        self._stages = {}
-        self._serial = 0
+        self.closed: bool = False
+        self.write_uncertain: bool = False
+        self.result_path: str | None = None
+        self._stages: dict[str, DataFrame | None] = {}
+        self._serial: int = 0
 
-    def touch(self):
+    def touch(self) -> None:
         if self.closed:
             raise RuntimeError("graph staging run is closed")
         if not self.utils.exists(self.path, self.token):
             raise RuntimeError("graph staging session expired or its files were removed")
 
-    def materialize(self, frame, *, expected_rows=None):
+    def materialize(self, frame: DataFrame) -> tuple[str, DataFrame]:
+        """Write `frame` as the next generation and return its path and stored relation.
+
+        The stored relation is read back from the written files; its schema is
+        compared by names and types (Parquet readers may widen nullability).
+        Row counts are not verified: the graph is assumed valid and the engine's
+        write is trusted to be complete once it has returned.
+        """
         self.cancellation.check()
         self.touch()
         self.cancellation.check()
@@ -42,27 +63,20 @@ class StagingRun:
             # the known schema when there is no Parquet footer to infer it from.
             stored = self.spark.read.schema(frame.schema).parquet(path)
         if stored.schema != frame.schema:
-            # Parquet readers may widen nullability; column names/types are
-            # contractual, while nullability is not a portable file guarantee.
             actual = [(field.name, field.dataType) for field in stored.schema]
             expected = [(field.name, field.dataType) for field in frame.schema]
             if actual != expected:
                 raise RuntimeError("materialized graph stage changed its schema")
-        if expected_rows is not None:
-            self.cancellation.check()
-            if stored.count() != expected_rows:
-                raise RuntimeError("materialized graph stage changed its vertex count")
-        # Successful writes and reads are the commit check. Output file count
-        # is deliberately not compared with the requested partition count.
         self.cancellation.check()
         self._stages[path] = stored
         return path, stored
 
-    def remove(self, path):
+    def remove(self, path: str) -> None:
         self.utils.remove(path, self.token)
         self._stages.pop(path, None)
 
-    def finish(self, path, frame, *, algorithm, iterations, converged):
+    def finish(self, path: str, frame: DataFrame, *, algorithm: str, iterations: int,
+               converged: bool | None) -> GraphResult:
         self.cancellation.check()
         for obsolete in list(self._stages):
             if obsolete != path:
@@ -71,7 +85,7 @@ class StagingRun:
         self.result_path = path
         return GraphResult(self, frame, algorithm=algorithm, iterations=iterations, converged=converged)
 
-    def close(self):
+    def close(self) -> None:
         if not self.closed:
             self.utils.remove(self.path, self.token)
             self.closed = True

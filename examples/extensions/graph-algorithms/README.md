@@ -122,12 +122,32 @@ with graph.wcc(vertices, edges, method="randomized_fused", seed=42,
 spark.stop()
 ```
 
-Inputs require unique, non-null BIGINT vertex `id` and BIGINT edge `src`/`dst`.
-Every endpoint must refer to an existing vertex. Invalid graphs fail explicitly.
-Properties are ignored; results contain the structural columns shown above.
-Duplicate edges and self-loops are permitted. Isolated vertices are preserved.
+### Valid graph contract
+
+Pecan assumes a valid graph and never spends a job checking it. The caller
+guarantees, and Pecan does not verify:
+
+- vertex `id` is BIGINT, unique and non-null;
+- edge `src` and `dst` are BIGINT, non-null, and name existing vertices;
+- for shortest paths, `weight` is DOUBLE, finite and non-negative, and
+  distance sums stay finite;
+- for traversals, the source is a vertex;
+- `distance / delta` fits the engine's floor for delta-star.
+
+The only input check is the schema (column names and BIGINT/DOUBLE types),
+which costs no job. A graph that breaks the contract produces an undefined
+result, not an error. Properties are ignored; results contain the structural
+columns shown above. Duplicate edges and self-loops are permitted. Isolated
+vertices are preserved. Arguments (iteration caps, tolerances, seeds,
+methods, sources) are validated once by the Pydantic option models in
+`pyspark_pecan.types`, so a bad argument fails before any server access.
 The client separately snapshots the two input relations into Parquet; this is
 not an atomic snapshot across mutable input sources.
+
+The package is fully typed: every definition carries type hints, observer
+events are `IterationEvent` models (`event.as_dict()` gives the flat record
+shape), contraction rounds are `ContractionStep` models, and `mypy` and
+`ruff` run clean on `src/pyspark_pecan`.
 
 | Method | Stopping rule | Defaults and limits |
 |---|---|---|

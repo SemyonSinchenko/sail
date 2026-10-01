@@ -1,26 +1,53 @@
-"""Relational graph algorithms; only bounded receipts/scalar reductions collect."""
+"""Relational graph algorithms; only bounded receipts/scalar reductions collect.
 
-import math
+Pecan assumes a valid graph (README, "Valid graph contract"): BIGINT ids that
+are unique and non-null, edges whose endpoints exist, finite non-negative
+DOUBLE weights where weights are used. Nothing here checks those properties;
+argument domains are validated once by the Pydantic option models.
+"""
+
+from __future__ import annotations
+
 import warnings
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 from pyspark.sql.connect import functions as F
 from pyspark.sql.types import LongType
 
-from .lifecycle import CancellationToken, GraphCancelledError
+from .lifecycle import CancellationToken, GraphCancelledError, GraphResult
 from .staging import StagingRun
+from .types import (
+    EventKind,
+    IterationEvent,
+    PageRankMethod,
+    PageRankOptions,
+    TraversalMethod,
+    TraversalOptions,
+    WccMethod,
+    WccOptions,
+)
 from .utils import GraphUtils
+
+if TYPE_CHECKING:
+    from pyspark.sql import DataFrame, Row
+    from pyspark.sql.connect.session import SparkSession
+
+Observer = Callable[[IterationEvent], None]
+
+
+class Body(Protocol):
+    """An algorithm body: runs inside an owned staging run over the snapshotted inputs."""
+
+    def __call__(self, run: StagingRun, vertices: DataFrame, edges: DataFrame, size: int) -> GraphResult: ...
 
 
 class ConvergenceError(RuntimeError):
     """The iteration limit was reached before the requested stopping rule."""
 
 
-def _positive_integer(value, name):
-    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
-        raise ValueError(f"{name} must be a positive integer")
-
-
-def _check_input_schema(spark, vertices, edges):
+def _check_input_schema(spark: SparkSession, vertices: DataFrame, edges: DataFrame) -> None:
+    """The one input check: column names and types, free of any job."""
     if vertices.sparkSession is not spark or edges.sparkSession is not spark:
         raise ValueError("vertices and edges must belong to this Spark session")
     for frame, columns in ((vertices, ("id",)), (edges, ("src", "dst"))):
@@ -31,64 +58,67 @@ def _check_input_schema(spark, vertices, edges):
                 raise ValueError(f"graph column {column!r} must have BIGINT type")
 
 
-def _snapshot(run, vertices, edges, edge_columns=("src", "dst")):
+def _snapshot(run: StagingRun, vertices: DataFrame, edges: DataFrame,
+              edge_columns: tuple[str, ...] = ("src", "dst")) -> tuple[DataFrame, DataFrame, int]:
+    """Materialize the projected inputs once so every round reads a stable copy.
+
+    The graph is assumed valid; no null, uniqueness or membership job runs.
+    The vertex count is the one scalar the algorithms need (1/N terms).
+    """
     _, vertices = run.materialize(vertices.select("id"))
     _, edges = run.materialize(edges.select(*edge_columns))
-    run.cancellation.check()
-    if vertices.where(F.col("id").isNull()).limit(1).count():
-        raise ValueError("vertex IDs must not be null")
-    run.cancellation.check()
-    if vertices.groupBy("id").count().where(F.col("count") > 1).limit(1).count():
-        raise ValueError("vertex IDs must be unique")
-    run.cancellation.check()
-    if edges.where(F.col("src").isNull() | F.col("dst").isNull()).limit(1).count():
-        raise ValueError("edge endpoints must not be null")
-    for endpoint in ("src", "dst"):
-        run.cancellation.check()
-        if edges.join(vertices, edges[endpoint] == vertices.id, "left_anti").limit(1).count():
-            raise ValueError(f"edge {endpoint} does not reference a vertex")
     run.cancellation.check()
     return vertices, edges, vertices.count()
 
 
-def physical_plan(frame):
+def physical_plan(frame: DataFrame) -> str:
     """The physical plan the server would execute for `frame`, as text (a diagnostic)."""
-    text = frame._explain_string(extended=True)
+    # A private Connect DataFrame method; DataFrame.__getattr__ types unknown names as columns.
+    text: str = cast(Any, frame)._explain_string(extended=True)
     marker = "== Physical Plan =="
     return text[text.index(marker):] if marker in text else text
+
+
+def first_row(frame: DataFrame) -> Row:
+    """The first row of a bounded scalar reduction; such frames always have one row."""
+    row = frame.first()
+    assert row is not None
+    return row
 
 
 class GraphAlgorithms:
     """Graph algorithms over BIGINT id/src/dst tables.
 
-    Input tables are separately materialized once before validation. This is
-    stable during an algorithm, but is not an atomic snapshot across mutable
-    sources. Results contain structural columns, not input properties.
+    Input tables are separately materialized once. This is stable during an
+    algorithm, but is not an atomic snapshot across mutable sources. Results
+    contain structural columns, not input properties.
     """
 
-    def __init__(self, spark, *, observer=None, record_plans=False):
+    def __init__(self, spark: SparkSession, *, observer: Observer | None = None,
+                 record_plans: bool = False) -> None:
         self.spark = spark
         self.utils = GraphUtils(spark)
-        self.observer = observer
+        self.observer: Observer | None = observer
         # With record_plans, an iteration's observer event carries the physical
         # plan of the frame the iteration materializes (one extra planning round
         # trip per iteration; the plan is text, not executed twice).
-        self.record_plans = record_plans
+        self.record_plans: bool = record_plans
 
-    def _observe(self, run, algorithm, step, kind, *, plan_of=None, **metrics):
+    def _observe(self, run: StagingRun, algorithm: str, step: int, kind: EventKind, *,
+                 plan_of: DataFrame | None = None, **metrics: Any) -> None:
         if self.observer is not None:
-            if plan_of is not None and self.record_plans:
-                metrics["plan"] = physical_plan(plan_of)
-            self.observer({"kind": kind, "algorithm": algorithm,
-                           "iteration": step, "run_path": run.path, **metrics})
+            plan = physical_plan(plan_of) if plan_of is not None and self.record_plans else None
+            self.observer(IterationEvent(kind=kind, algorithm=algorithm, iteration=step,
+                                         run_path=run.path, plan=plan, **metrics))
 
-    def _run(self, vertices, edges, partitions, cancellation, body, *, edge_columns=("src", "dst")):
-        _positive_integer(partitions, "partitions")
+    def _run(self, vertices: DataFrame, edges: DataFrame, partitions: int,
+             cancellation: CancellationToken | None, body: Body, *,
+             edge_columns: tuple[str, ...] = ("src", "dst")) -> GraphResult:
         cancellation = cancellation or CancellationToken()
         cancellation.check()
         _check_input_schema(self.spark, vertices, edges)
         cancellation.attach(self.spark)
-        run = None
+        run: StagingRun | None = None
         try:
             run = StagingRun(self.spark, self.utils, cancellation, partitions)
             vertices, edges, size = _snapshot(run, vertices, edges, edge_columns)
@@ -97,13 +127,13 @@ class GraphAlgorithms:
             # Remove the query tag before issuing cleanup, so cancellation of
             # the algorithm cannot accidentally target its cleanup operation.
             cancellation.detach()
-            terminal = error
+            terminal: BaseException = error
             if cancellation.cancelled and not isinstance(error, GraphCancelledError):
                 terminal = GraphCancelledError("graph algorithm cancelled")
             if run is not None:
-                terminal.run_path = run.path
-                terminal.cleanup_deferred = run.write_uncertain
-                message = None
+                terminal.run_path = run.path  # type: ignore[attr-defined]
+                terminal.cleanup_deferred = run.write_uncertain  # type: ignore[attr-defined]
+                message: str | None = None
                 if run.write_uncertain:
                     message = (
                         f"write completion is uncertain; cleanup deferred for {run.path}. "
@@ -114,21 +144,22 @@ class GraphAlgorithms:
                     try:
                         run.close()
                     except Exception as cleanup_error:
-                        terminal.cleanup_deferred = True
+                        terminal.cleanup_deferred = True  # type: ignore[attr-defined]
                         message = f"graph cleanup failed; session teardown will retry: {cleanup_error}"
                 if message is not None:
                     if hasattr(terminal, "add_note"):
                         terminal.add_note(message)
                     else:
-                        warnings.warn(message, RuntimeWarning)
+                        warnings.warn(message, RuntimeWarning, stacklevel=2)
             if terminal is not error:
                 raise terminal from error
             raise
         finally:
             cancellation.detach()
 
-    def pagerank(self, vertices, edges, *, reset_probability=0.15,
-                 max_iterations=20, tolerance=None, partitions=4, cancellation=None, method="power"):
+    def pagerank(self, vertices: DataFrame, edges: DataFrame, *, reset_probability: float = 0.15,
+                 max_iterations: int = 20, tolerance: float | None = None, partitions: int = 4,
+                 cancellation: CancellationToken | None = None, method: PageRankMethod = "power") -> GraphResult:
         """Probability-normalized directed PageRank with uniform restart.
 
         Initialize rank=1/N. At each step, redistribute dangling rank uniformly,
@@ -146,29 +177,21 @@ class GraphAlgorithms:
         methods raise ConvergenceError at the limit. Output: id BIGINT,
         pagerank DOUBLE. Fixed-step power behavior remains unchanged.
         """
-        _positive_integer(max_iterations, "max_iterations")
-        if (isinstance(reset_probability, bool) or not isinstance(reset_probability, (int, float))
-                or not math.isfinite(reset_probability) or not 0 < reset_probability <= 1):
-            raise ValueError("reset_probability must be finite and in (0, 1]")
-        if tolerance is not None and (
-            isinstance(tolerance, bool) or not isinstance(tolerance, (int, float))
-            or not math.isfinite(tolerance) or tolerance <= 0
-        ):
-            raise ValueError("tolerance must be a positive finite number")
-
-        if method == "delta":
-            if tolerance is None:
+        options = PageRankOptions(reset_probability=reset_probability, max_iterations=max_iterations,
+                                  tolerance=tolerance, partitions=partitions, method=method)
+        if options.method == "delta":
+            if options.tolerance is None:
                 raise ValueError("delta PageRank requires a positive tolerance")
             from .pagerank_delta import execute as execute_delta
-            return execute_delta(self, vertices, edges, reset_probability=reset_probability,
-                                 max_iterations=max_iterations, tolerance=tolerance,
-                                 partitions=partitions, cancellation=cancellation)
-        if method != "power":
-            raise ValueError("PageRank method must be power or delta")
+            return execute_delta(self, vertices, edges, options=options, cancellation=cancellation)
 
-        def execute(run, vertices, edges, size):
+        reset = options.reset_probability
+        damping = 1.0 - reset
+        tolerance_value = options.tolerance
+
+        def execute(run: StagingRun, vertices: DataFrame, edges: DataFrame, size: int) -> GraphResult:
             if not size:
-                path, result = run.materialize(vertices.withColumn("pagerank", F.lit(0.0)), expected_rows=0)
+                path, result = run.materialize(vertices.withColumn("pagerank", F.lit(0.0)))
                 return run.finish(path, result, algorithm="pagerank", iterations=0, converged=True)
             _, weighted = run.materialize(
                 edges.join(edges.groupBy("src").count().withColumnRenamed("count", "degree"), "src")
@@ -177,42 +200,44 @@ class GraphAlgorithms:
             _, dangling = run.materialize(
                 vertices.join(edges.select(F.col("src").alias("id")).distinct(), "id", "left_anti")
             )
-            path, rank = run.materialize(vertices.withColumn("pagerank", F.lit(1.0 / size)), expected_rows=size)
-            converged = None if tolerance is None else False
-            for step in range(1, max_iterations + 1):
+            path, rank = run.materialize(vertices.withColumn("pagerank", F.lit(1.0 / size)))
+            converged: bool | None = None if tolerance_value is None else False
+            step = 0
+            for step in range(1, options.max_iterations + 1):
                 run.cancellation.check()
                 self._observe(run, "pagerank", step, "iteration_start")
                 run.cancellation.check()
-                dangling_mass = rank.join(dangling, "id").agg(F.sum("pagerank")).first()[0] or 0.0
+                dangling_mass: float = first_row(rank.join(dangling, "id").agg(F.sum("pagerank")))[0] or 0.0
                 message = weighted.join(rank, weighted.src == rank.id).select(
                     weighted.dst.alias("id"), (rank.pagerank / weighted.degree).alias("message")
                 ).groupBy("id").agg(F.sum("message").alias("incoming"))
                 updated = vertices.join(message, "id", "left").select(
-                    "id", (F.lit(reset_probability / size) + F.lit(1.0 - reset_probability) * (
+                    "id", (F.lit(reset / size) + F.lit(damping) * (
                         F.coalesce(F.col("incoming"), F.lit(0.0)) + F.lit(dangling_mass / size)
                     )).alias("pagerank"),
                 )
-                next_path, next_rank = run.materialize(updated, expected_rows=size)
-                if tolerance is not None:
+                next_path, next_rank = run.materialize(updated)
+                if tolerance_value is not None:
                     run.cancellation.check()
                     before = rank.select("id", F.col("pagerank").alias("before"))
-                    change = next_rank.join(before, "id").agg(
+                    change: float = first_row(next_rank.join(before, "id").agg(
                         F.sum(F.abs(F.col("pagerank") - F.col("before")))
-                    ).first()[0]
-                    converged = change <= tolerance
+                    ))[0]
+                    converged = change <= tolerance_value
                 run.remove(path)
                 path, rank = next_path, next_rank
                 self._observe(run, "pagerank", step, "iteration_end")
                 if converged:
                     break
             if converged is False:
-                raise ConvergenceError(f"PageRank did not reach tolerance in {max_iterations} iterations")
+                raise ConvergenceError(f"PageRank did not reach tolerance in {options.max_iterations} iterations")
             return run.finish(path, rank, algorithm="pagerank", iterations=step, converged=converged)
 
-        return self._run(vertices, edges, partitions, cancellation, execute)
+        return self._run(vertices, edges, options.partitions, cancellation, execute)
 
-    def wcc(self, vertices, edges, *, max_iterations=100, partitions=4, cancellation=None,
-            method="min_label", seed=42):
+    def wcc(self, vertices: DataFrame, edges: DataFrame, *, max_iterations: int = 100, partitions: int = 4,
+            cancellation: CancellationToken | None = None, method: WccMethod = "min_label",
+            seed: int = 42) -> GraphResult:
         """Exact weak components by propagation or seeded randomized contraction.
 
         Treat every edge as undirected. The default method="min_label"
@@ -228,24 +253,19 @@ class GraphAlgorithms:
         isolates label themselves. Reaching the cap raises ConvergenceError.
         Output: id BIGINT, component BIGINT.
         """
-        _positive_integer(max_iterations, "max_iterations")
-
-        if method in ("randomized", "randomized_fused"):
+        options = WccOptions(max_iterations=max_iterations, partitions=partitions, method=method, seed=seed)
+        if options.method in ("randomized", "randomized_fused"):
             from .wcc_randomized import execute as execute_randomized
-            return execute_randomized(self, vertices, edges, max_iterations=max_iterations,
-                                      partitions=partitions, cancellation=cancellation, seed=seed,
-                                      fused=method == "randomized_fused")
-        if method != "min_label":
-            raise ValueError("WCC method must be min_label, randomized or randomized_fused")
+            return execute_randomized(self, vertices, edges, options=options, cancellation=cancellation)
 
-        def execute(run, vertices, edges, size):
+        def execute(run: StagingRun, vertices: DataFrame, edges: DataFrame, size: int) -> GraphResult:
             _, adjacency = run.materialize(edges.unionByName(
                 edges.select(F.col("dst").alias("src"), F.col("src").alias("dst"))
             ).distinct())
-            path, labels = run.materialize(vertices.withColumn("component", F.col("id")), expected_rows=size)
+            path, labels = run.materialize(vertices.withColumn("component", F.col("id")))
             if not size:
                 return run.finish(path, labels, algorithm="wcc-min-label", iterations=0, converged=True)
-            for step in range(1, max_iterations + 1):
+            for step in range(1, options.max_iterations + 1):
                 run.cancellation.check()
                 self._observe(run, "wcc-min-label", step, "iteration_start")
                 run.cancellation.check()
@@ -253,35 +273,40 @@ class GraphAlgorithms:
                     adjacency.dst.alias("id"), labels.component
                 )
                 updated = labels.unionByName(messages).groupBy("id").agg(F.min("component").alias("component"))
-                next_path, next_labels = run.materialize(updated, expected_rows=size)
+                next_path, next_labels = run.materialize(updated)
                 before = labels.select("id", F.col("component").alias("before"))
-                changed = next_labels.join(before, "id").where(F.col("component") != F.col("before")).limit(1).count()
+                changed: int = next_labels.join(before, "id").where(
+                    F.col("component") != F.col("before")).limit(1).count()
                 run.remove(path)
                 path, labels = next_path, next_labels
                 self._observe(run, "wcc-min-label", step, "iteration_end")
                 if not changed:
                     return run.finish(path, labels, algorithm="wcc-min-label", iterations=step, converged=True)
-            raise ConvergenceError(f"WCC did not reach a fixed point in {max_iterations} iterations")
+            raise ConvergenceError(f"WCC did not reach a fixed point in {options.max_iterations} iterations")
 
-        return self._run(vertices, edges, partitions, cancellation, execute)
+        return self._run(vertices, edges, options.partitions, cancellation, execute)
 
-    def bfs(self, vertices, edges, *, source, method="frontier", directed=True,
-            max_iterations=1000, partitions=4, cancellation=None):
+    def bfs(self, vertices: DataFrame, edges: DataFrame, *, source: int, method: TraversalMethod = "frontier",
+            directed: bool = True, max_iterations: int = 1000, partitions: int = 4,
+            cancellation: CancellationToken | None = None) -> GraphResult:
         """Single-source hop distances and a parent tree; unreachable rows are null.
 
         method="reference" relaxes all reached vertices each round; "frontier"
         expands only changed vertices. "push_pull" switches relational join
         orientation; it does not promise native adjacency early exit.
-        The source must exist and has parent=source.
+        The source is assumed to exist and has parent=source.
         The cap includes the final round certifying no further changes.
         """
         from .traversal import execute
-        return execute(self, vertices, edges, source=source, weighted=False,
-                       method=method, directed=directed, max_iterations=max_iterations,
-                       partitions=partitions, cancellation=cancellation)
+        options = TraversalOptions(source=source, method=method, directed=directed,
+                                   max_iterations=max_iterations, partitions=partitions)
+        if options.method == "delta_star":
+            raise ValueError("unsupported traversal method")
+        return execute(self, vertices, edges, options=options, weighted=False, cancellation=cancellation)
 
-    def sssp(self, vertices, edges, *, source, method="frontier", directed=True,
-             max_iterations=1000, partitions=4, cancellation=None, delta=1.0):
+    def sssp(self, vertices: DataFrame, edges: DataFrame, *, source: int, method: TraversalMethod = "frontier",
+             directed: bool = True, max_iterations: int = 1000, partitions: int = 4,
+             cancellation: CancellationToken | None = None, delta: float = 1.0) -> GraphResult:
         """Single-source shortest distances for finite nonnegative DOUBLE weights.
 
         Edges require a `weight` column. Reference is synchronous Bellman–Ford;
@@ -290,10 +315,13 @@ class GraphAlgorithms:
         this differs from classical light/heavy delta-stepping. Equal-distance
         paths prefer fewer hops, then the smaller parent ID, preventing parent
         cycles on zero-weight edges. Unreachable distance/parent/hops are null.
-        Finite-distance overflow raises an error rather than marking a vertex
-        unreachable. Both methods require an explicit convergence certificate.
+        Weights are assumed finite and non-negative and distance sums are
+        assumed finite (the valid graph contract); nothing checks them.
+        Both methods require an explicit convergence certificate.
         """
         from .traversal import execute
-        return execute(self, vertices, edges, source=source, weighted=True,
-                       method=method, directed=directed, max_iterations=max_iterations,
-                       partitions=partitions, cancellation=cancellation, delta=delta)
+        options = TraversalOptions(source=source, method=method, directed=directed,
+                                   max_iterations=max_iterations, partitions=partitions, delta=delta)
+        if options.method == "push_pull":
+            raise ValueError("unsupported traversal method")
+        return execute(self, vertices, edges, options=options, weighted=True, cancellation=cancellation)

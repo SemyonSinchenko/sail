@@ -4,8 +4,17 @@ import numpy as np
 import pytest
 
 from pyspark_pecan import CancellationToken, ConvergenceError, GraphAlgorithms, GraphCancelledError
-from pyspark_pecan.pagerank_delta import execute
+from pyspark_pecan.pagerank_delta import execute as _execute
 from pyspark_pecan.staging import StagingRun
+from pyspark_pecan.types import PageRankOptions
+
+
+def execute(graph, vertices, edges, *, cancellation=None, **options):
+    """The delta controller with validated options, as `GraphAlgorithms.pagerank(method='delta')` calls it."""
+    resolved = PageRankOptions(method="delta", **options)
+    if resolved.tolerance is None:
+        raise ValueError("delta PageRank requires a positive tolerance")
+    return _execute(graph, vertices, edges, options=resolved, cancellation=cancellation)
 
 
 FRONTIER_EDGES = [
@@ -94,7 +103,7 @@ def test_frontier_shrinks_and_reactivates_without_losing_accumulated_residual(sp
         return result
 
     monkeypatch.setattr(StagingRun, "materialize", materialize)
-    graph = GraphAlgorithms(spark, observer=events.append)
+    graph = GraphAlgorithms(spark, observer=lambda e: events.append(e.as_dict()))
     ids = list(range(12))
     # The standard reset leaves enough tail rounds for this graph to exercise
     # both a genuinely small frontier and later reactivation under the new
@@ -177,7 +186,7 @@ def test_uncertified_limit_and_observer_cancellation_clean_the_owned_run(spark, 
                 tolerance=1e-14, max_iterations=1)
     assert graph.utils.remove(*allocated[-1]) == 0
     token = CancellationToken()
-    graph.observer = lambda event: token.cancel() if event["kind"] == "iteration_end" else None
+    graph.observer = lambda event: token.cancel() if event.kind == "iteration_end" else None
     with pytest.raises(GraphCancelledError):
         execute(graph, *frames(spark, list(range(12)), FRONTIER_EDGES),
                 tolerance=1e-14, max_iterations=20, cancellation=token)

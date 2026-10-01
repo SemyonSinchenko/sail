@@ -78,31 +78,12 @@ def test_tolerance_and_limit_are_explicit(spark):
         graph.wcc(*frames(spark), max_iterations=1)
 
 
-@pytest.mark.parametrize("ids,edges,message", [
-    ([0, 0], [], "unique"), ([None], [], "must not be null"),
-    ([0], [(0, None)], "endpoints must not be null"), ([0], [(0, 1)], "does not reference"),
-])
-def test_invalid_graph_cleans_partial_snapshots(spark, monkeypatch, ids, edges, message):
-    graph = GraphAlgorithms(spark)
-    allocated = []
-    original = graph.utils.allocate
-    def allocate(**kwargs):
-        run = original(**kwargs)
-        allocated.append(run)
-        return run
-    monkeypatch.setattr(graph.utils, "allocate", allocate)
-    with pytest.raises(ValueError, match=message):
-        graph.wcc(*frames(spark, ids, edges))
-    assert len(allocated) == 1
-    assert graph.utils.remove(*allocated[0]) == 0
-
-
 def test_cancel_between_iterations_cleans_stages(spark, monkeypatch):
     token = CancellationToken()
     events = []
     def observe(event):
-        events.append(event)
-        if event["kind"] == "iteration_end":
+        events.append(event.as_dict())
+        if event.kind == "iteration_end":
             token.cancel()
     graph = GraphAlgorithms(spark, observer=observe)
     allocated = []

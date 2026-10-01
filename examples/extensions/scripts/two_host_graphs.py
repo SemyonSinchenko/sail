@@ -48,20 +48,20 @@ def exercise(endpoint, worker_hosts, evidence, *, pagerank_method="power", wcc_m
             """).collect()]
 
         def observe(event):
-            if event["kind"] not in {"iteration_start", "iteration_end"}:
+            if event.kind not in {"iteration_start", "iteration_end"}:
                 return
-            key = event["algorithm"], event["iteration"]
+            key = event.algorithm, event.iteration
             recorded = stages()
-            if event["kind"] == "iteration_start":
+            if event.kind == "iteration_start":
                 starts[key] = max((row["job_id"] for row in recorded), default=0)
-            elif event["kind"] == "iteration_end":
+            elif event.kind == "iteration_end":
                 # Input snapshot and graph validation precede iteration_start.
                 # System-table observation queries execute on the driver; only
                 # distributed stages in this interval count as algorithm work.
                 selected = [row for row in recorded if row["job_id"] > starts[key]
                             and row["placement"] == "Worker" and row["partitions"] >= 2]
                 assert selected, f"no distributed algorithm stage in {key}"
-                metrics = {name: value for name, value in event.items()
+                metrics = {name: value for name, value in event.as_dict().items()
                            if name not in {"kind", "algorithm", "iteration", "run_path"}}
                 windows.append(dict(algorithm=key[0], iteration=key[1], stages=selected, metrics=metrics))
 

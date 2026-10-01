@@ -9,6 +9,8 @@ the measured call and may itself require many distributed rounds.
 import math
 from pyspark.sql.connect import functions as F
 from pyspark_pecan import GraphAlgorithms
+from pyspark_pecan.algorithms import _check_input_schema, _positive_integer
+from traversal_parent_witness import parent_witness_depth
 
 
 def certify(spark, actual, vertices, edges, *, source, weighted, directed=True,
@@ -55,7 +57,11 @@ def certify(spark, actual, vertices, edges, *, source, weighted, directed=True,
     assert not links.where(F.col('target_distance')-F.col('candidate')>F.col('allowed')).limit(1).count(), 'triangle inequality violated'
     tight=links.where(F.abs(F.col('target_distance')-F.col('candidate'))<=F.col('allowed')).select('src','dst')
     wanted=reached.count()
-    graph=GraphAlgorithms(spark)
+    # These preconditions previously ran in _run even for a zero-round witness.
+    # Share its validators so choosing a parent witness cannot widen inputs.
+    _positive_integer(partitions,'partitions')
+    _check_input_schema(spark,vertices,tight)
+    parent_depth=parent_witness_depth(actual,tight,source=source,vertices=count,max_rounds=max_rounds)
 
     def witness(run, checked_vertices, checked_edges, size):
         path,seen=run.materialize(checked_vertices.where(F.col('id')==source))
@@ -81,7 +87,12 @@ def certify(spark, actual, vertices, edges, *, source, weighted, directed=True,
         run.close()
         return rounds
 
-    rounds=graph._run(vertices,tight,partitions,None,witness)
+    if parent_depth is None:
+        rounds=GraphAlgorithms(spark)._run(vertices,tight,partitions,None,witness)
+        witness_method='tight_edge_bfs'
+    else:
+        rounds=None  # No BFS was run; parent depth is an upper bound, not BFS rounds.
+        witness_method='parent_hops'
     # Every simple path has at most V-1 edges. Each local inequality/witness
     # admits at most slack plus one rounded addition; report the accumulated
     # conservative bound, not a full-vector relative-error claim.
@@ -89,6 +100,7 @@ def certify(spark, actual, vertices, edges, *, source, weighted, directed=True,
     bound=(count-1)*(slack+rounding)
     assert math.isfinite(bound),'certificate error bound overflow'
     return dict(**cardinality,reached=wanted,certificate='all-edge inequalities and rooted tight-edge reachability',
-                witness_rounds=rounds,relative_edge_tolerance=tolerance,
+                witness_rounds=rounds,witness_method=witness_method,
+                parent_witness_max_hops=parent_depth,relative_edge_tolerance=tolerance,
                 max_edge_slack=slack,conservative_absolute_distance_error_bound=bound,
                 reference='distributed certificate; no precomputed reference vector')

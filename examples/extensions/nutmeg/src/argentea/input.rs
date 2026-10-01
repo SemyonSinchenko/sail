@@ -72,8 +72,8 @@ pub async fn initialize(
             edges.push((sources.value(row), targets.value(row)));
         }
     }
-    // Staging admission remains live during the additional CSR build admission.
-    let result = PageRankPartition::build(
+    // Keep raw input admitted until CSR construction has finished.
+    let prepared = PageRankPartition::prepare(
         operation,
         partition,
         &vertices,
@@ -81,6 +81,11 @@ pub async fn initialize(
         state.resources.clone(),
     )
     .map_err(error)?;
+    // Release actual storage before releasing its charge, then allocate ranks.
+    drop(vertices);
+    drop(edges);
+    drop(admission);
+    let result = prepared.finish().map_err(error)?;
     state.audit("init", request, partition, result.adjacency_identity())?;
     Ok(result)
 }

@@ -12,8 +12,9 @@ pub use sssp::*;
 mod wcc;
 pub use wcc::{
     WccAlgorithm, WccCapFailure, WccCompletion, WccCompletionValues, WccConvergence,
-    WccEmissionCursor, WccMessage, WccMessageValues, WccMode, WccOptions, WccOrigin, WccPartition,
-    WccPayload, WccRow, WccRowCursor, WccStatistics, WccStatisticsValues, WccWork, wcc_head,
+    WccEmissionCursor, WccInitialization, WccMessage, WccMessageValues, WccMode, WccOptions,
+    WccOrigin, WccPartition, WccPayload, WccRow, WccRowCursor, WccStatistics, WccStatisticsValues,
+    WccWork, wcc_head,
 };
 mod bfs;
 pub use bfs::{
@@ -32,7 +33,8 @@ pub use delta::{
 
 use grust_procedures::ExecutionContext;
 pub use pagerank::{
-    Contribution, Emission, EmissionCursor, PageRankPartition, RankCursor, RoundResult,
+    Contribution, Emission, EmissionCursor, PageRankInitialization, PageRankPartition, RankCursor,
+    RoundResult,
 };
 use sail_native_resource_ffi::MemoryLease;
 use std::sync::Arc;

@@ -1,5 +1,7 @@
 mod emission;
+mod initialization;
 pub use emission::EmissionCursor;
+pub use initialization::PageRankInitialization;
 
 use crate::adjacency::Adjacency;
 use crate::{Operation, Resources, Result, Round, reserve_vec};
@@ -115,24 +117,23 @@ impl PageRankPartition {
         edges: &[(i64, i64)],
         resources: Resources,
     ) -> Result<Self> {
+        Self::prepare(operation, partition, vertices, edges, resources)?.finish()
+    }
+
+    /// Own the validated CSR before allocating ranks, allowing temporary input
+    /// vectors and their admission to be released before `finish`.
+    pub fn prepare(
+        operation: Operation,
+        partition: usize,
+        vertices: &[i64],
+        edges: &[(i64, i64)],
+        resources: Resources,
+    ) -> Result<PageRankInitialization> {
         let adjacency = Adjacency::build(&operation, partition, vertices, edges, &resources)?;
-        let n = adjacency.vertices.len();
-        let ranks_admission = resources
-            .execution
-            .reserve(n * 8 + 128)
-            .map_err(|e| e.to_string())?;
-        let mut ranks = reserve_vec(n)?;
-        ranks.resize(n, 1.0 / operation.vertices as f64);
-        Ok(Self {
+        Ok(PageRankInitialization {
             operation,
             partition,
             adjacency,
-            ranks: Arc::new(Ranks {
-                values: ranks,
-                _admission: ranks_admission,
-            }),
-            next_round: 0,
-            state: State::Ready,
             resources,
         })
     }

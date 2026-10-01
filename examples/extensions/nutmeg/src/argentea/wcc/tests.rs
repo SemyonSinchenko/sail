@@ -431,3 +431,5 @@ async fn signed_extremes_survive_wcc_wire_and_retained_result_slice() {
 
 #[path = "tests/resource_failure.rs"]
 mod resource_failure;
+
+mod initialization;

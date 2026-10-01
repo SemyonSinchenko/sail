@@ -1,5 +1,7 @@
 use super::*;
 mod controls;
+pub(super) mod initialization;
+pub(super) mod lifetime_allocations;
 use arrow::{
     array::{Array, ArrayRef, Float64Array, Int64Array},
     datatypes::{DataType, Field, Schema},

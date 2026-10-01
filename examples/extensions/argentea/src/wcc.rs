@@ -1,4 +1,6 @@
 //! Extension-owned WCC state. Transport and scheduling remain outside this crate.
+mod initialization;
+pub use initialization::WccInitialization;
 mod emission;
 mod protocol;
 mod statistics;
@@ -182,7 +184,6 @@ pub struct WccPartition {
     options: WccOptions,
     adjacency: Arc<Adjacency>,
     incoming: Option<Arc<Adjacency>>,
-    resources: Resources,
     values: Arc<Values>,
     candidates: Option<Arc<protocol::Candidates>>,
     routed: Option<Arc<Routed>>,
@@ -197,6 +198,8 @@ pub struct WccPartition {
     crossing: u64,
     work: WccWork,
     terminal: Option<WccConvergence>,
+    // Every owned native buffer and admission must precede the host lease.
+    resources: Resources,
 }
 impl WccPartition {
     /// Source-owned original arcs are interpreted as undirected. All endpoints
@@ -210,47 +213,30 @@ impl WccPartition {
         options: WccOptions,
         resources: Resources,
     ) -> Result<Self> {
+        Self::prepare(
+            operation, partition, worker_id, vertices, arcs, options, resources,
+        )?
+        .finish()
+    }
+    /// Own the validated CSR before allocating roots and protocol state.
+    pub fn prepare(
+        operation: Operation,
+        partition: usize,
+        worker_id: u64,
+        vertices: &[i64],
+        arcs: &[(i64, i64)],
+        options: WccOptions,
+        resources: Resources,
+    ) -> Result<WccInitialization> {
         options.native_phase_bound()?;
         let adjacency = Adjacency::build(&operation, partition, vertices, arcs, &resources)?;
-        let origin = WccOrigin {
-            worker_id,
-            adjacency_id: adjacency.identity,
-        };
-        let admission = resources
-            .execution
-            .reserve(
-                operation.partitions
-                    * (size_of::<Option<WccOrigin>>() + size_of::<Option<(u64, u64)>>())
-                    + 256,
-            )
-            .map_err(|e| e.to_string())?;
-        let mut origins = filled(operation.partitions, None)?;
-        origins[partition] = Some(origin);
-        let shapes = filled(operation.partitions, None)?;
-        let values = Arc::new(Values::new(&adjacency.vertices, &resources)?);
-        let state = State::Statistics(StatisticsInbox::new(operation.partitions, &resources)?);
-        Ok(Self {
+        Ok(WccInitialization {
             operation,
             partition,
-            origin,
+            worker_id,
             options,
             adjacency,
-            incoming: None,
             resources,
-            values,
-            candidates: None,
-            routed: None,
-            origins,
-            shapes,
-            _origin_admission: admission,
-            state,
-            next_phase: 0,
-            rounds: 0,
-            completed: WccMode::Topology,
-            changed: 0,
-            crossing: 0,
-            work: WccWork::default(),
-            terminal: None,
         })
     }
     pub fn partition(&self) -> usize {

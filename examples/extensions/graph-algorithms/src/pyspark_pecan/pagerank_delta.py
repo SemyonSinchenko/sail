@@ -20,48 +20,59 @@ Parquet edge table; this client does not claim indexed adjacency or fewer
 physical edge reads. Scalar frontier counts report propagated edge messages.
 """
 
+from __future__ import annotations
+
 import math
+from typing import TYPE_CHECKING, Any
 
 from pyspark.sql.connect import functions as F
 
+from ._contracts import ConvergenceError, first_row
+from .types import EventKind, MassResidual
 
-def _observe(graph, run, step, kind, **metrics):
-    if graph.observer is not None:
-        graph.observer(dict(kind=kind, algorithm="pagerank-delta", iteration=step,
-                            run_path=run.path, **metrics))
-    run.cancellation.check()
+if TYPE_CHECKING:
+    from pyspark.sql import DataFrame
+
+    from .algorithms import GraphAlgorithms
+    from .lifecycle import CancellationToken, GraphResult
+    from .staging import StagingRun
+    from .types import PageRankOptions
 
 
-def _statistics(run, state, size):
+def _statistics(run: StagingRun, state: DataFrame) -> MassResidual:
+    """Mass and residual of a state; the scalars are checked for finiteness (no extra job)."""
     run.cancellation.check()
     row = state.agg(
-        F.count("*").alias("rows"), F.sum("pagerank").alias("mass"),
+        F.sum("pagerank").alias("mass"),
         F.min("pagerank").alias("minimum"),
         F.sum(F.abs(F.col("pending"))).alias("residual"),
     ).first()
+    assert row is not None
     run.cancellation.check()
-    if row["rows"] != size:
-        raise RuntimeError("delta PageRank state changed its vertex count")
-    if (not math.isfinite(row.mass) or row.mass <= 0 or
-            not math.isfinite(row.residual) or not math.isfinite(row.minimum) or row.minimum < 0):
+    mass: float = row["mass"]
+    residual: float = row["residual"]
+    minimum: float = row["minimum"]
+    if (not math.isfinite(mass) or mass <= 0 or
+            not math.isfinite(residual) or not math.isfinite(minimum) or minimum < 0):
         raise ArithmeticError("delta PageRank produced invalid floating-point state")
-    return row.mass, row.residual
+    return MassResidual(mass=mass, residual=residual)
 
 
-def _incoming(edges, state, column):
+def _incoming(edges: DataFrame, state: DataFrame, column: str) -> DataFrame:
     return edges.join(state, edges.src == state.id).select(
         edges.dst.alias("id"), (state[column] / state.degree).alias("message"),
     ).groupBy("id").agg(F.sum("message").alias("incoming"))
 
 
-def _certificate(run, state, edges, size, damping, reset, mass):
+def _certificate(run: StagingRun, state: DataFrame, edges: DataFrame, size: int, damping: float,
+                 reset: float, mass: float) -> tuple[str, DataFrame, MassResidual]:
     """Materialize normalized scores and a freshly recomputed true residual."""
     normalized = state.select(
         "id", "degree", (F.col("pagerank") / F.lit(mass)).alias("pagerank"),
         "ever_active", "active_previous",
     )
     run.cancellation.check()
-    dangling = normalized.where(F.col("degree") == 0).agg(F.sum("pagerank")).first()[0] or 0.0
+    dangling: float = first_row(normalized.where(F.col("degree") == 0).agg(F.sum("pagerank")))[0] or 0.0
     run.cancellation.check()
     incoming = _incoming(edges, normalized, "pagerank")
     certified = normalized.join(incoming, "id", "left").select(
@@ -71,21 +82,20 @@ def _certificate(run, state, edges, size, damping, reset, mass):
         ) - F.col("pagerank")).alias("pending"),
     )
     path, certified = run.materialize(certified)
-    mass, residual = _statistics(run, certified, size)
-    return path, certified, mass, residual
+    return path, certified, _statistics(run, certified)
 
 
-def _finish(run, state, steps, residual, reset):
+def _finish(run: StagingRun, state: DataFrame, steps: int, residual: float, reset: float) -> GraphResult:
     path, result = run.materialize(state.select("id", "pagerank"))
-    result = run.finish(path, result, algorithm="pagerank-delta", iterations=steps, converged=True)
-    result.method = "delta"
-    result.residual = residual
-    result.error_bound = residual / reset
-    return result
+    handle = run.finish(path, result, algorithm="pagerank-delta", iterations=steps, converged=True)
+    handle.method = "delta"
+    handle.residual = residual
+    handle.error_bound = residual / reset
+    return handle
 
 
-def execute(graph, vertices, edges, *, reset_probability=0.15, max_iterations=20,
-            tolerance=None, partitions=4, cancellation=None):
+def execute(graph: GraphAlgorithms, vertices: DataFrame, edges: DataFrame, *, options: PageRankOptions,
+            cancellation: CancellationToken | None) -> GraphResult:
     """Run frontier pushes; tolerance bounds the final global fixed-point L1 residual.
 
     Unlike fixed-K power iteration, delta execution requires a positive tolerance.
@@ -93,19 +103,19 @@ def execute(graph, vertices, edges, *, reset_probability=0.15, max_iterations=20
     certificates. A stationary uniform initialization therefore uses zero pushes.
     Failure to certify at the limit raises ConvergenceError and cleans the run.
     """
-    from .algorithms import ConvergenceError, _positive_integer
-
-    _positive_integer(max_iterations, "max_iterations")
-    if (isinstance(reset_probability, bool) or not isinstance(reset_probability, (int, float))
-            or not math.isfinite(reset_probability) or not 0 < reset_probability <= 1):
-        raise ValueError("reset_probability must be finite and in (0, 1]")
-    if (isinstance(tolerance, bool) or not isinstance(tolerance, (int, float))
-            or not math.isfinite(tolerance) or tolerance <= 0):
-        raise ValueError("delta PageRank tolerance must be a positive finite number")
-    reset = float(reset_probability)
+    if options.tolerance is None:
+        raise ValueError("delta PageRank requires a positive tolerance")
+    tolerance: float = options.tolerance
+    reset = options.reset_probability
     damping = 1.0 - reset
+    max_iterations = options.max_iterations
 
-    def body(run, vertices, edges, size):
+    def observe(run: StagingRun, step: int, kind: EventKind, **metrics: Any) -> None:
+        graph._observe(run, "pagerank-delta", step, kind, **metrics)
+        run.cancellation.check()
+
+    def body(run: StagingRun, vertices: DataFrame, edges: DataFrame, size: int | None) -> GraphResult:
+        assert size is not None  # PageRank requests N for normalization.
         if not size:
             empty = vertices.withColumn("pagerank", F.lit(0.0))
             return _finish(run, empty, 0, 0.0, reset)
@@ -117,20 +127,17 @@ def execute(graph, vertices, edges, *, reset_probability=0.15, max_iterations=20
             F.lit(1.0 / size).alias("pagerank"),
             F.lit(False).alias("ever_active"), F.lit(False).alias("active_previous"),
         ))
-        next_path, state, mass, residual = _certificate(
-            run, state, edges, size, damping, reset, 1.0,
-        )
+        next_path, state, stats = _certificate(run, state, edges, size, damping, reset, 1.0)
         run.remove(path)
         path = next_path
-        _observe(graph, run, 0, "certificate", residual=residual,
-                 error_bound=residual / reset)
-        if residual <= tolerance:
-            return _finish(run, state, 0, residual, reset)
+        observe(run, 0, "certificate", residual=stats.residual, error_bound=stats.residual / reset)
+        if stats.residual <= tolerance:
+            return _finish(run, state, 0, stats.residual, reset)
 
         for step in range(1, max_iterations + 1):
-            _observe(graph, run, step, "iteration_start")
-            activation_mass = mass
-            threshold = min(residual / (2.0 * size), tolerance * activation_mass / (4.0 * size))
+            observe(run, step, "iteration_start")
+            activation_mass = stats.mass
+            threshold = min(stats.residual / (2.0 * size), tolerance * activation_mass / (4.0 * size))
             active_path, active = run.materialize(state.where(
                 F.abs(F.col("pending")) > F.lit(threshold),
             ).select("id", "degree", F.col("pending").alias("push"),
@@ -141,12 +148,14 @@ def execute(graph, vertices, edges, *, reset_probability=0.15, max_iterations=20
                 F.sum(F.when(F.col("degree") == 0, F.col("push")).otherwise(0.0)).alias("dangling"),
                 F.sum((F.col("ever_active") & ~F.col("active_previous")).cast("long")).alias("reactivated"),
             ).first()
+            assert activity is not None
             run.cancellation.check()
             if activity.vertices == 0:
                 raise ArithmeticError("positive PageRank residual produced an empty frontier")
             incoming = _incoming(edges, active, "push")
             selected = active.select("id", "push")
             next_state = state.join(selected, "id", "left").join(incoming, "id", "left")
+            # A null `push` means the vertex was not in the frontier this step.
             push = F.coalesce(F.col("push"), F.lit(0.0))
             next_state = next_state.select(
                 "id", "degree", (F.col("pagerank") + push).alias("pagerank"),
@@ -157,30 +166,27 @@ def execute(graph, vertices, edges, *, reset_probability=0.15, max_iterations=20
                 )).alias("pending"),
             )
             next_path, next_state = run.materialize(next_state)
-            mass, residual = _statistics(run, next_state, size)
+            stats = _statistics(run, next_state)
             run.remove(active_path)
             run.remove(path)
             path, state = next_path, next_state
-            bound = 2.0 * residual / mass
-            _observe(graph, run, step, "iteration_end", frontier_size=activity.vertices,
-                     active_edges=activity.edges or 0, reactivated_vertices=activity.reactivated or 0,
-                     residual=residual, normalized_residual_bound=bound,
-                     activation_threshold=threshold, activation_mass=activation_mass)
+            bound = 2.0 * stats.residual / stats.mass
+            observe(run, step, "iteration_end", frontier_size=activity.vertices,
+                    active_edges=activity.edges or 0, reactivated_vertices=activity.reactivated or 0,
+                    residual=stats.residual, normalized_residual_bound=bound,
+                    activation_threshold=threshold, activation_mass=activation_mass)
             if bound <= tolerance or step == max_iterations:
-                next_path, certified, mass, residual = _certificate(
-                    run, state, edges, size, damping, reset, mass,
-                )
+                next_path, certified, stats = _certificate(run, state, edges, size, damping, reset, stats.mass)
                 run.remove(path)
                 path, state = next_path, certified
-                _observe(graph, run, step, "certificate", residual=residual,
-                         error_bound=residual / reset)
-                if residual <= tolerance:
-                    return _finish(run, state, step, residual, reset)
+                observe(run, step, "certificate", residual=stats.residual, error_bound=stats.residual / reset)
+                if stats.residual <= tolerance:
+                    return _finish(run, state, step, stats.residual, reset)
                 # A failed certificate rebases state to the normalized scores
                 # and recomputed residual before any further frontier pushes.
         raise ConvergenceError(
             f"delta PageRank did not reach global residual tolerance in {max_iterations} iterations "
-            f"(residual={residual}, tolerance={tolerance})"
+            f"(residual={stats.residual}, tolerance={tolerance})"
         )
 
-    return graph._run(vertices, edges, partitions, cancellation, body)
+    return graph._run(vertices, edges, options.partitions, cancellation, body)

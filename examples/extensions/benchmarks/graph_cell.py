@@ -171,9 +171,11 @@ def execute(spark, args, manifest, receipt, sampler):
                 tables = Nutmeg(spark).tables(vertices, edges, node_id='id', source='src', target='dst')
                 vertices = tables.nodes.select(F.col('node_id').alias('id'))
                 edges = tables.edges.select(F.col('source').alias('src'), F.col('target').alias('dst'))
+            # Pecan emits typed IterationEvent models; receipts keep the flat dict shape.
             graph = GraphAlgorithms(spark, observer=lambda event: events.append(
-                dict({key: value for key, value in event.items() if key != 'run_path'},
+                dict({key: value for key, value in event.as_dict().items() if key != 'run_path'},
                      elapsed_seconds=time.perf_counter() - started)))
+            receipt['pecan_input_policy'] = 'assume_valid_finite_path_sums'
             options = dict(max_iterations=args.max_iterations, partitions=args.partitions)
             if args.algorithm == 'pagerank':
                 options.update(reset_probability=1 - args.damping, tolerance=args.tolerance,

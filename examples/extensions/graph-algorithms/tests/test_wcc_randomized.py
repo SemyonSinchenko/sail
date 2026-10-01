@@ -3,6 +3,7 @@ import pytest
 from pyspark.errors import PySparkException
 
 from pyspark_pecan import CancellationToken, ConvergenceError, GraphAlgorithms, GraphCancelledError
+from pyspark_pecan.types import WccOptions
 from pyspark_pecan.wcc_randomized import MASK, SplitMix64, signed
 
 
@@ -18,8 +19,8 @@ def test_splitmix64_shared_native_vectors():
 
 @pytest.mark.parametrize('seed', [-1, 1 << 64, True, 1.5, '42'])
 def test_invalid_seed(seed):
-    with pytest.raises(ValueError, match='unsigned 64-bit'):
-        SplitMix64(seed)
+    with pytest.raises(ValueError, match='seed'):
+        WccOptions(seed=seed)
 
 
 def _remainder(value, modulus):
@@ -82,9 +83,9 @@ def test_chain_contracts_and_backpropagates_in_bounded_rounds(spark, seed, metho
         assert result.frame.count() == size
         assert [r.component for r in result.frame.select('component').distinct().collect()] == [0]
         assert 1 < result.iterations < 32
-        assert result.contractions[0]['edges_before'] == size - 1
-        assert result.contractions[-1]['edges_after'] == 0
-        assert all(step['edges_after'] < step['edges_before'] for step in result.contractions)
+        assert result.contractions[0].edges_before == size - 1
+        assert result.contractions[-1].edges_after == 0
+        assert all(step.edges_after < step.edges_before for step in result.contractions)
 
 
 @pytest.mark.integration
@@ -110,7 +111,7 @@ def test_cancellation_and_cap_retain_cleanup_contract(spark, method, monkeypatch
     vertices, edges = frames(spark, list(range(128)), [(i, i + 1) for i in range(127)])
     token = CancellationToken()
     def observe(event):
-        if event['kind'] == 'iteration_end':
+        if event.kind == 'iteration_end':
             token.cancel()
     graph = GraphAlgorithms(spark, observer=observe)
     with pytest.raises(GraphCancelledError) as cancelled:

@@ -52,7 +52,7 @@ def build_plan(spark, vertices, edges, *, vertices_count, iterations=2, partitio
                reset_probability=0.15, batch_rows=4096, operation_id=None, snapshot_id=None):
     """Describe one native DAG; this function performs no Spark action.
 
-    Inputs must already be validated snapshots with explicit BIGINT owner
+    Inputs must obey the valid-graph contract, with explicit BIGINT owner
     columns. The public Argentea.pagerank() method prepares these inputs.
     """
     options(iterations=iterations, partitions=partitions,
@@ -126,8 +126,8 @@ class Argentea:
 
         Initializes 1/N; redistributes dangling mass uniformly; retains parallel
         edges, loops and isolates. convergence is intentionally not asserted.
-        Every native round is in one physical job. Snapshot validation and result
-        reading are ordinary separate Sail jobs. This bounded spike requires
+        Every native round is in one physical job. Input snapshots, required
+        cardinality and result reads are ordinary separate Sail jobs. This bounded spike requires
         worker mode; invoking it against a local-mode server fails explicitly.
         """
         options(iterations=iterations, partitions=partitions,
@@ -147,7 +147,7 @@ class Argentea:
             run.cancellation.check()
             # One terminal action drives init -> all rounds -> result. StagingRun
             # owns partial writes and applies the existing uncertain-write policy.
-            path, stored = run.materialize(frame, expected_rows=count)
+            path, stored = run.materialize(frame)
             retained = run.finish(path, stored, algorithm='argentea-pagerank-power',
                                   iterations=iterations, converged=None)
             return ArgenteaResult(retained, request, plan_bytes)

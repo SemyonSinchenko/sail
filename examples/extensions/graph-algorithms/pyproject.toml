@@ -7,7 +7,7 @@ name = "pyspark-pecan"
 version = "0.1.0"
 description = "Pecan: client-controlled relational graph algorithms over Spark Connect"
 requires-python = ">=3.10"
-dependencies = ["pyspark[connect]==4.0.1", "protobuf>=7.36.1,<8"]
+dependencies = ["pyspark[connect]==4.0.1", "protobuf>=7.36.1,<8", "pydantic>=2.11,<3"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

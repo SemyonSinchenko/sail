@@ -180,7 +180,7 @@ class ArgenteaSssp:
                     self.observer(dict(kind='native_plan',request=dict(base),native_phase_count=len(schedule),
                                        frame=frame,plan_bytes=plan_bytes,view_registrations=composition.registrations))
                 run.cancellation.check()
-                path,stored=run.materialize(frame,expected_rows=count)
+                path,stored=run.materialize(frame)
                 diagnostics=_diagnostics(stored,base,run.cancellation)
             retained=run.finish(path,stored,algorithm='argentea-'+base['algorithm'],
                                 iterations=diagnostics['rounds'],converged=True)

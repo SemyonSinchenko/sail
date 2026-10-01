@@ -81,8 +81,9 @@ def execute(spark,args,receipt,sampler):
                 vertices=tables.nodes.select(F.col('node_id').alias('id'))
                 edges=tables.edges.select(F.col('source').alias('src'),F.col('target').alias('dst'),'weight')
             graph=GraphAlgorithms(spark,observer=lambda event:events.append(
-                dict({k:v for k,v in event.items() if k!='run_path'},elapsed_seconds=time.perf_counter()-started)),
+                dict({k:v for k,v in event.as_dict().items() if k!='run_path'},elapsed_seconds=time.perf_counter()-started)),
                 record_plans=getattr(args,'record_plans',False))
+            receipt['pecan_input_policy'] = 'assume_valid_finite_path_sums'
             options=dict(source=args.source,method=selected,directed=args.directed,
                          partitions=args.partitions,max_iterations=args.max_iterations)
             if args.algorithm=='sssp':

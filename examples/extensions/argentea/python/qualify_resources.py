@@ -58,7 +58,7 @@ def invalid_cardinality(spark, nodes, edges, observe):
         native_edges = links.select('src','dst',F.pmod(F.col('src'),F.lit(3)).cast('long').alias('owner'))
         frame,request = build_plan(spark,native_nodes,native_edges,vertices_count=size+1,iterations=2,partitions=3)
         observe(dict(request=request,plan_bytes=frame._plan.to_proto(spark.client).SerializeToString()))
-        run.materialize(frame,expected_rows=size)
+        run.materialize(frame)
         raise AssertionError('wrong declared global vertex count unexpectedly completed')
     GraphAlgorithms(spark)._run(nodes,edges,3,None,body)
 

@@ -70,7 +70,7 @@ def controller(monkeypatch, frame, repartition_checkpoints):
     graph = GraphAlgorithms(Session(frame), repartition_checkpoints=repartition_checkpoints)
     monkeypatch.setattr(algorithms, "_check_input_schema", lambda *_: None)
 
-    def snapshot(run, *_):
+    def snapshot(run, *_, count_vertices=True):
         run.materialize(frame)
         return None, None, 1
 
@@ -103,15 +103,15 @@ def test_failed_write_retains_owned_run_and_preserves_cause(monkeypatch, cancell
 
 
 @pytest.mark.parametrize("repartition_checkpoints", [True, False])
-def test_validation_after_completed_write_can_remove_run(monkeypatch, repartition_checkpoints):
+def test_algorithm_failure_after_completed_write_can_remove_run(monkeypatch, repartition_checkpoints):
     graph = controller(monkeypatch, Frame(lambda _: None), repartition_checkpoints)
-    failure = ValueError("invalid graph after snapshot")
+    failure = ValueError("algorithm failed after snapshot")
 
-    def validate(*_):
+    def fail_body(*_):
         raise failure
 
     with pytest.raises(ValueError) as raised:
-        graph._run(None, None, 1, CancellationToken(), validate)
+        graph._run(None, None, 1, CancellationToken(), fail_body)
     assert raised.value is failure
     assert raised.value.cleanup_deferred is False
     assert graph.utils.removed == [("file:///staging/owned-run", "run-token")]

@@ -57,8 +57,8 @@ def test_fused_preserves_each_representative_map_and_removes_priority_writes(spa
     assert original['priorities'] == original['iterations']
     assert fused['priorities'] == 0
     assert original['stages'] - fused['stages'] == original['iterations'] + 1
-    assert original['contractions'][0]['edges_before'] == 63
-    assert fused['contractions'][0]['edges_before'] == 126
+    assert original['contractions'][0].edges_before == 63
+    assert fused['contractions'][0].edges_before == 126
     assert original['contractions'][1:] == fused['contractions'][1:]
-    assert {k: v for k, v in original['contractions'][0].items() if k != 'edges_before'} == {
-        k: v for k, v in fused['contractions'][0].items() if k != 'edges_before'}
+    assert original['contractions'][0].model_dump(exclude={'edges_before'}) == \
+        fused['contractions'][0].model_dump(exclude={'edges_before'})

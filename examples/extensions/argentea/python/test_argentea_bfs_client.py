@@ -107,13 +107,10 @@ def test_bad_result_diagnostics_cannot_be_retained(scalar_collect,changes):
 @pytest.fixture
 def bfs_wrapper(wrapper,scalar_collect,monkeypatch):
     scalar_collect.row=diagnostic_row()
-    wrapper.stored=Stored();wrapper.source_count=1;wrapper.count_calls=[]
+    wrapper.stored=Stored();wrapper.count_calls=[]
     wrapper.spark.session_id='fixture-session'
     def count(frame):
-        plan=frame._plan.plan(None)
-        assert plan.HasField('filter'), 'only source presence may count in the wrapper'
-        wrapper.count_calls.append(plan)
-        return wrapper.source_count
+        pytest.fail('BFS wrapper must not issue input validation count queries')
     monkeypatch.setattr(DataFrame,'count',count)
     return wrapper
 
@@ -124,7 +121,7 @@ def test_public_bfs_keeps_one_native_materialization_and_server_side_arc_normali
     observed=[];state=bfs_wrapper
     result=client.ArgenteaBfs(state.spark,observer=observed.append).bfs(
         source('v',state.spark),source('e',state.spark),source=-5,method=method,directed=directed,partitions=3)
-    assert len(state.count_calls)==1 and state.events.count('write-native-result')==1
+    assert state.count_calls==[] and state.events.count('write-native-result')==1
     assert len(observed)==1 and observed[0]['native_phase_count']==32
     assert len(observed[0]['view_registrations'])==32 and not state.views
     # Inspect the serialized init edge child, before the owner projection.
@@ -148,14 +145,6 @@ def test_public_bfs_keeps_one_native_materialization_and_server_side_arc_normali
     assert state.stored.exports==[('caller/bfs','error')]
     result.close()
     with pytest.raises(RuntimeError,match='closed'):_=result.frame
-
-
-def test_absent_source_closes_snapshots_before_any_view_registration(bfs_wrapper):
-    bfs_wrapper.source_count=0
-    with pytest.raises(ValueError,match='source must occur'):
-        client.ArgenteaBfs(bfs_wrapper.spark).bfs(source('v'),source('e'),source=-5,partitions=3)
-    assert bfs_wrapper.run.closed and bfs_wrapper.registrations==[]
-    assert 'write-native-result' not in bfs_wrapper.events
 
 
 def test_bfs_native_failure_defers_uncertain_write_but_drops_views(bfs_wrapper):

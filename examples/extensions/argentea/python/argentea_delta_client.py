@@ -92,7 +92,7 @@ def build_plan(spark, vertices, edges, *, vertices_count, max_pushes=7, partitio
     limit at larger K. The public client composes bounded session views instead;
     neither helper raises or bypasses the host wire guard.
 
-    Inputs are already validated snapshots: vertices(id,owner), edges(src,dst,
+    Inputs are valid-graph snapshots: vertices(id,owner), edges(src,dst,
     owner), all BIGINT. Init emits statistics 0; each j in 0..2K has decide(j)
     and apply(j); result consumes statistics 2K+1. Converged owners relay DONE
     through remaining slots, retaining their certified snapshot. Host scan,
@@ -185,8 +185,8 @@ class ArgenteaDelta:
         dropped before returning; uncertain registration/drop failures expose
         view_cleanup_deferred and remain session-owned. The raw build_plan
         helper is for reference and may exceed the host wire nesting limit.
-        Pecan validates separate input snapshots;
-        materialization checks and the scalar diagnostic read use ordinary jobs.
+        Pecan owns separate input snapshots and assumes valid graph data;
+        snapshot writes, required cardinality and scalar diagnostics use ordinary jobs.
         This is no cross-job native handle or atomic two-table snapshot. Failed
         writes retain Pecan's uncertain-write/session-cleanup policy.
         """
@@ -209,7 +209,7 @@ class ArgenteaDelta:
                                        native_phase_count=4*max_pushes+4, plan_bytes=plan_bytes,
                                        frame=frame, view_registrations=composition.registrations))
                 run.cancellation.check()
-                path, stored = run.materialize(frame, expected_rows=count)
+                path, stored = run.materialize(frame)
                 diagnostics = _read_diagnostics(stored, request, run.cancellation)
             retained = run.finish(path, stored, algorithm='argentea-pagerank-delta',
                                   iterations=diagnostics['pushes'], converged=True)

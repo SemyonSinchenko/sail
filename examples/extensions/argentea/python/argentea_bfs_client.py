@@ -151,10 +151,11 @@ class ArgenteaBfs:
             partitions=2,alpha=14,beta=24,max_phase_budget=32,batch_rows=4096,cancellation=None):
         """Unweighted BFS with exact minimum-numeric-ID preceding-level parent.
 
-        Pecan validates separate BIGINT snapshots. Undirected input is expanded
+        Pecan owns separate BIGINT snapshots under the valid-graph contract.
+        Undirected input is expanded
         to both arcs server-side; duplicates and loops do not change distances.
-        No graph rows collect in this client. A scalar source-presence check and
-        stored-result diagnostics use ordinary jobs. All native phases execute
+        No graph rows collect in this client. Inputs obey the valid-graph
+        contract; stored-result diagnostics use ordinary jobs. All native phases execute
         in one job through bounded lazy views and retained worker adjacency.
 
         A reachable depth D needs D+1 expansions to prove an empty frontier;
@@ -169,10 +170,6 @@ class ArgenteaBfs:
         from pyspark_pecan import GraphAlgorithms,GraphCancelledError
         def body(run,nodes,links,count):
             run.cancellation.check()
-            present = nodes.where(F.col('id')==F.lit(source)).count()
-            run.cancellation.check()
-            if present!=1:
-                raise ValueError('BFS source must occur exactly once in the vertex snapshot')
             if not directed:
                 links = links.unionByName(links.select(F.col('dst').alias('src'),F.col('src').alias('dst')))
             native_nodes = nodes.select('id',F.pmod(F.col('id'),F.lit(partitions)).cast('long').alias('owner'))
@@ -188,7 +185,7 @@ class ArgenteaBfs:
                     self.observer(dict(kind='native_plan',request=dict(base),native_phase_count=2*max_levels+4,
                                        frame=frame,plan_bytes=plan_bytes,view_registrations=composition.registrations))
                 run.cancellation.check()
-                path,stored = run.materialize(frame,expected_rows=count)
+                path,stored = run.materialize(frame)
                 diagnostics = _diagnostics(stored,base,run.cancellation)
             retained = run.finish(path,stored,algorithm='argentea-'+base['algorithm'],
                                   iterations=diagnostics['levels'],converged=True)

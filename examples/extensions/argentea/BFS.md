@@ -113,9 +113,10 @@ additional graph work. Actual `levels` are separate from the reserved phase coun
 The client uses [bounded lazy session views](DELTA.md#what-the-bound-means) to keep
 each request shallow under the unchanged host wire guard. View registration is
 catalog work, not native execution. One terminal materialization runs the native
-DAG; input snapshots, source-presence validation, and scalar result diagnostics
-are ordinary jobs. Views are dropped after the terminal action. Uncertain
-registration/drop errors expose deferred cleanup metadata; session teardown is
+DAG; input snapshots, required cardinality and scalar result diagnostics are
+ordinary jobs. The source is present by the valid-graph contract; the Python
+client issues no separate source-presence or other input-audit job. Views are
+dropped after the terminal action. Uncertain registration/drop errors expose deferred cleanup metadata; session teardown is
 the fallback. Pecan separately owns staging and result files. Closing a result
 invalidates its frames; `write_parquet` creates caller-owned output.
 
@@ -148,24 +149,23 @@ native `bfs_level_cap` cause after complete topology, no result/retry, and all
 owner closes. A generic cancellation or quota error alone cannot pass. Use
 `--mode local --case graph` to verify explicit local-mode refusal.
 
-Two additional controls verify rejection before native graph execution:
+The malformed-request control verifies rejection before native graph execution:
 
 ```bash
-for case in missing-source unknown-field; do
-  .venv/bin/python examples/extensions/argentea/python/qualify_bfs_inputs.py \
-    --case "$case" --sail-binary "$SAIL_BINARY" \
-    --runtime-source-sha "$RUNTIME_SOURCE_SHA" \
-    --native-source-sha "$NATIVE_SOURCE_SHA" \
-    --output "/tmp/argentea-bfs-input-$case"
-done
+.venv/bin/python examples/extensions/argentea/python/qualify_bfs_inputs.py \
+  --case unknown-field --sail-binary "$SAIL_BINARY" \
+  --runtime-source-sha "$RUNTIME_SOURCE_SHA" \
+  --native-source-sha "$NATIVE_SOURCE_SHA" \
+  --output "/tmp/argentea-bfs-input-unknown-field"
 ```
 
-`missing-source` exercises public snapshot/source validation; `unknown-field`
-submits a deliberately malformed v3 request to schema-time view registration.
-Both require the specific rejection, zero Argentea execution receipts, a usable
-session afterwards, and view/process/staging cleanup. They do not claim to test
-post-initialization corruption. The native DataFusion gates cover malformed
-statistics/completion and pending-channel controls separately.
+`unknown-field` submits a deliberately malformed v3 request to schema-time view
+registration. It requires the specific rejection, zero Argentea execution
+receipts, a usable session afterwards, and view/process/staging cleanup. It does
+not test post-initialization corruption. Missing-source input violates the
+valid-graph contract and is no longer a public client rejection qualification.
+Native DataFusion gates still cover malformed statistics/completion and
+pending-channel controls separately.
 
 For two physical hosts, use the [shared-storage supervisor setup](PYTHON.md#4-run-across-two-physical-hosts):
 

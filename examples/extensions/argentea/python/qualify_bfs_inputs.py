@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Public missing-source and schema-time malformed-request controls, not post-init corruption."""
+"""Schema-time malformed-request controls, not invalid-graph checks or post-init corruption."""
 import argparse
 from pathlib import Path
 import re
 import traceback
 
 from qualify_bfs import IDS,EDGES,REPO,git,group_exists,native_package_identity,package_versions,sha256,utc,save
-from argentea_bfs_client import ArgenteaBfs,ArgenteaBfsRelation,request,phases
+from argentea_bfs_client import ArgenteaBfsRelation,request,phases
 from argentea_views import compose_views
 from argentea_evidence import parse_log
 from argentea_readiness import wait_for_workers
@@ -35,10 +35,8 @@ def malformed_registration(spark,nodes,edges,evidence):
 
 
 def accept_error(case,error):
-    if case=='missing-source':
-        assert isinstance(error,ValueError) and str(error)=='BFS source must occur exactly once in the vertex snapshot'
-    else:
-        assert 'unknown field' in str(error) and INVALID_FIELD in str(error), 'unrelated error is not malformed-schema evidence'
+    assert case == 'unknown-field', 'invalid-graph rejection is outside the public contract'
+    assert 'unknown field' in str(error) and INVALID_FIELD in str(error), 'unrelated error is not malformed-schema evidence'
     assert getattr(error,'cleanup_deferred',None) is False, 'pre-execution error left uncertain owned files'
 
 
@@ -47,15 +45,13 @@ def exercise(endpoint,args):
     from pyspark.sql.connect.client.retries import DefaultPolicy
     spark=SparkSession.builder.remote(endpoint).create()
     spark.client.set_retry_policies([DefaultPolicy(max_retries=0,initial_backoff=100,max_backoff=100,jitter=0)])
-    evidence=dict(case=args.case,outcome='running',boundary='public pre-execution source validation' if args.case=='missing-source' else 'schema-time malformed request registration')
+    evidence=dict(case=args.case,outcome='running',boundary='schema-time malformed request registration')
     try:
         wait_for_workers(spark,evidence=evidence)
         nodes=spark.createDataFrame([(node,) for node in IDS],'id long')
         edges=spark.createDataFrame(EDGES,'src long,dst long')
         try:
-            if args.case=='missing-source':
-                ArgenteaBfs(spark).bfs(nodes,edges,source=999,partitions=5)
-            else:malformed_registration(spark,nodes,edges,evidence)
+            malformed_registration(spark,nodes,edges,evidence)
         except Exception as error:
             evidence.update(error=str(error),error_type=type(error).__name__,run_path=getattr(error,'run_path',None),
                 cleanup_deferred=getattr(error,'cleanup_deferred',None),view_cleanup_deferred=getattr(error,'view_cleanup_deferred',None),
@@ -84,7 +80,7 @@ def exercise(endpoint,args):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--case',choices=['missing-source','unknown-field'],required=True)
+    parser.add_argument('--case',choices=['unknown-field'],required=True)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--sail-binary',type=Path,required=True)
     parser.add_argument('--runtime-source-sha',required=True)

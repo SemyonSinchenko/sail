@@ -115,13 +115,14 @@ finally:
 PY
 ```
 
-The client validates unique non-null BIGINT IDs and existing edge endpoints,
-then creates separately owned input snapshots using the existing Pecan service.
+Inputs have unique non-null BIGINT IDs and existing edge endpoints by the
+valid-graph contract. The client creates separately owned input snapshots using
+the existing Pecan service, without graph-data validation jobs.
 It assigns `owner = pmod(id, P)` and edge ownership by source. Parallel edges and
 loops remain. Ranks start at `1/N`; every update redistributes dangling mass
 uniformly and uses damping `1 - reset_probability` (default `0.85`). All native
-updates execute in one DAG; input validation and reads of the materialized
-result are separate ordinary Sail jobs. Leaving the context releases the owned
+updates execute in one DAG; input snapshots, required cardinality and reads of
+the materialized result are separate ordinary Sail jobs. Leaving the context releases the owned
 result. It is not a reusable cross-job native graph handle.
 
 The prototype accepts 1–32 fixed rounds, 1–64 partitions and nonempty graphs.

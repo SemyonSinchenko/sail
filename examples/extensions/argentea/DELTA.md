@@ -68,8 +68,8 @@ PY
 Vertex 2 is dangling. Uniform initialization produces negative residual at
 vertices 0 and 2, exercising both signed edge and signed dangling updates. The
 looser tolerance is deliberate for this bounded fixture. IDs are non-null unique
-BIGINT values; the client validates edge endpoints and retains isolates,
-parallel edges and loops. Empty owner partitions still complete every barrier.
+BIGINT values and endpoints name existing vertices by contract; the client
+retains isolates, parallel edges and loops without input-audit jobs. Empty owner partitions still complete every barrier.
 
 `iterations` and `pushes` count actual residual pushes, excluding full certificate
 passes. `residual` is `||T(x)-x||1` on normalized output. `error_bound` is

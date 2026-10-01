@@ -234,15 +234,15 @@ def wrapper(monkeypatch, scalar_collect):
     spark.catalog = SimpleNamespace(dropTempView=drop)
 
     class Run:
-        def __init__(self, session, utils, cancellation, partitions):
-            assert session is spark and partitions==3
+        def __init__(self, session, utils, cancellation, partitions, *, repartition_checkpoints=True):
+            assert session is spark and partitions==3 and repartition_checkpoints is True
             self.cancellation, self.closed, self.write_uncertain = cancellation,False,False
             self.path, self.result_path = 'owned/run',None
             state.run = self
             events.append('allocate')
 
-        def materialize(self, frame, *, expected_rows):
-            assert isinstance(frame._plan,Read) and expected_rows==7
+        def materialize(self, frame):
+            assert isinstance(frame._plan,Read)
             assert len(state.views)==getattr(state,'expected_views',32)  # Exact schedule stays alive through materialization.
             events.append('write-native-result')
             self.write_uncertain = state.uncertain
@@ -267,8 +267,9 @@ def wrapper(monkeypatch, scalar_collect):
             self.closed = True
             events.append('close')
 
-    def snapshot(run,nodes,edges,columns):
-        events.append('snapshot-validate')
+    def snapshot(run,nodes,edges,columns, *, count_vertices=True):
+        assert count_vertices is True
+        events.append('snapshot')
         return nodes,edges,7
     monkeypatch.setattr(algorithms,'GraphUtils',lambda session:object())
     monkeypatch.setattr(algorithms,'StagingRun',Run)
@@ -282,7 +283,7 @@ def test_public_wrapper_uses_owned_lifecycle_and_actual_counters(wrapper, scalar
     observed = []
     result = client.ArgenteaDelta(wrapper.spark,observer=observed.append).pagerank(
         source('v',wrapper.spark),source('e',wrapper.spark),partitions=3)
-    assert wrapper.events[:4]==['check-input-schema','tag-add','allocate','snapshot-validate']
+    assert wrapper.events[:4]==['check-input-schema','tag-add','allocate','snapshot']
     assert len(observed)==1 and observed[0]['native_phase_count']==32
     assert len(observed[0]['view_registrations'])==32
     assert not wrapper.views and wrapper.drops==list(reversed(wrapper.registrations))

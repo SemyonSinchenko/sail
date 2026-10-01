@@ -9,7 +9,8 @@ the measured call and may itself require many distributed rounds.
 import math
 from pyspark.sql.connect import functions as F
 from pyspark_pecan import GraphAlgorithms
-from pyspark_pecan.algorithms import _check_input_schema, _positive_integer
+from pyspark_pecan.types import WccOptions
+from pyspark_pecan.algorithms import _check_input_schema
 from traversal_parent_witness import parent_witness_depth
 
 
@@ -45,7 +46,7 @@ def certify(spark, actual, vertices, edges, *, source, weighted, directed=True,
     dst=actual.select(F.col('id').alias('dst'),F.col('distance').alias('target_distance'))
     links=edges.join(src,'src').join(dst,'dst','left').withColumn(
         'candidate',F.col('source_distance')+F.col('weight'))
-    # This matches the algorithms' explicit finite-relaxation contract.
+    # Independently verify the finite-path-sum precondition outside the algorithm timer.
     assert not links.where(F.col('candidate')==float('inf')).limit(1).count(),'distance overflow'
     assert not links.where(F.col('target_distance').isNull()).limit(1).count(),'reachable vertex reported unreachable'
     links=links.withColumn('allowed',F.lit(tolerance)+
@@ -59,7 +60,7 @@ def certify(spark, actual, vertices, edges, *, source, weighted, directed=True,
     wanted=reached.count()
     # These preconditions previously ran in _run even for a zero-round witness.
     # Share its validators so choosing a parent witness cannot widen inputs.
-    _positive_integer(partitions,'partitions')
+    WccOptions(partitions=partitions)
     _check_input_schema(spark,vertices,tight)
     parent_depth=parent_witness_depth(actual,tight,source=source,vertices=count,max_rounds=max_rounds)
 
@@ -88,7 +89,7 @@ def certify(spark, actual, vertices, edges, *, source, weighted, directed=True,
         return rounds
 
     if parent_depth is None:
-        rounds=GraphAlgorithms(spark)._run(vertices,tight,partitions,None,witness)
+        rounds=GraphAlgorithms(spark)._run(vertices,tight,partitions,None,witness,count_vertices=False)
         witness_method='tight_edge_bfs'
     else:
         rounds=None  # No BFS was run; parent depth is an upper bound, not BFS rounds.

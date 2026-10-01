@@ -122,12 +122,49 @@ with graph.wcc(vertices, edges, method="randomized_fused", seed=42,
 spark.stop()
 ```
 
-Inputs require unique, non-null BIGINT vertex `id` and BIGINT edge `src`/`dst`.
-Every endpoint must refer to an existing vertex. Invalid graphs fail explicitly.
-Properties are ignored; results contain the structural columns shown above.
-Duplicate edges and self-loops are permitted. Isolated vertices are preserved.
+### Valid graph contract
+
+Pecan assumes a valid graph and never spends a job checking it. The caller
+guarantees, and Pecan does not verify:
+
+- vertex `id` is BIGINT, unique and non-null;
+- edge `src` and `dst` are BIGINT, non-null, and name existing vertices;
+- for shortest paths, `weight` is DOUBLE, finite and non-negative, and
+  distance sums stay finite;
+- for traversals, the source is a vertex;
+- `distance / delta` fits the engine's floor for delta-star.
+
+The only input check is the schema (column names and BIGINT/DOUBLE types),
+which requires no execution job (planning RPCs may still occur). A graph that breaks the contract produces an undefined
+result, with no promised error diagnosis. Properties are ignored; results contain the structural
+columns shown above. Duplicate edges and self-loops are permitted. Isolated
+vertices are preserved. Arguments (iteration caps, tolerances, seeds,
+methods, sources) are validated once by the Pydantic option models in
+`pyspark_pecan.types`, so a bad argument fails before any server access.
 The client separately snapshots the two input relations into Parquet; this is
 not an atomic snapshot across mutable input sources.
+There is no optional algorithm validation mode. A separate explicit validation
+utility, if desired by a caller, must run before the algorithm and outside its
+timer; benchmark certificates remain independent post-execution checks.
+
+Reference/frontier BFS and SSSP, DeltaStar, and WCC omit an eager vertex count.
+PageRank retains N for normalization and push/pull BFS for direction switching.
+Minimum-label WCC uses a limit-one empty probe to preserve its zero-iteration
+empty result; randomized WCC keeps its contraction counts and metrics. These
+are algorithmic actions, not full-data validity audits. Traversals seed a lazy
+one-row range with exact BIGINT literals instead of filtering the vertex table.
+No checkpoint write issues an additional expected-row count audit.
+
+The relational Grenada adapter shares this Pecan implementation and contract.
+Argentea clients also omit Python input-audit jobs, while retaining counts
+required by native request metadata, native protocol/resource guards and result
+diagnostics. Validation-policy changes must be disclosed when comparing new
+runs with historical runs; existing measurements are not changed retroactively.
+
+The package is fully typed: every definition carries type hints, observer
+events are `IterationEvent` models (`event.as_dict()` gives the flat record
+shape), and contraction rounds are `ContractionStep` models. Package gates run
+`mypy` and `ruff` on `src/pyspark_pecan`.
 
 | Method | Stopping rule | Defaults and limits |
 |---|---|---|

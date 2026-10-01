@@ -70,7 +70,7 @@ def test_invalid_setting_is_rejected_before_graph_utils_ping(monkeypatch, value)
         pytest.fail("invalid configuration must not issue a server request")
 
     monkeypatch.setattr(algorithms, "GraphUtils", unexpected_ping)
-    with pytest.raises(ValueError, match="repartition_checkpoints must be a boolean"):
+    with pytest.raises(ValueError, match="repartition_checkpoints"):
         GraphAlgorithms(object(), repartition_checkpoints=value)
 
 
@@ -90,13 +90,13 @@ def test_public_controller_propagates_setting_to_snapshot_and_body_writes(monkey
     monkeypatch.setattr(algorithms, "GraphUtils", lambda _: utils)
     monkeypatch.setattr(algorithms, "_check_input_schema", lambda *_: None)
 
-    def snapshot(run, *_):
+    def snapshot(run, *_, count_vertices=True):
         run.materialize(Frame(calls))
         run.materialize(Frame(calls))
         return None, None, 3
 
     def body(run, _vertices, _edges, size):
-        return run.materialize(Frame(calls), expected_rows=size)
+        return run.materialize(Frame(calls))
 
     monkeypatch.setattr(algorithms, "_snapshot", snapshot)
     graph = GraphAlgorithms(session, **options)
@@ -113,23 +113,23 @@ def test_only_selected_frame_is_written_and_committed(options, writer):
     calls = []
     source, stored = Frame(calls), Frame(calls, label="stored")
     run = staging(stored, **options)
-    path, result = run.materialize(source, expected_rows=3)
+    path, result = run.materialize(source)
     assert result is stored and run._stages[path] is stored
     assert run.write_uncertain is False
     assert calls == ([('repartition', 7)] if writer == "repartitioned" else []) + [
-        ("writer", writer), ("write", path), ("read", path), ("count", 3)]
+        ("writer", writer), ("write", path), ("read", path)]
 
 
 @pytest.mark.parametrize("repartition", [True, False])
-def test_empty_checkpoint_restores_schema_and_checks_zero_rows(repartition):
+def test_empty_checkpoint_restores_schema_without_row_audit(repartition):
     calls = []
     source = Frame(calls, rows=0)
     stored = Frame(calls, schema=StructType([]), rows=0)
     run = staging(stored, repartition_checkpoints=repartition)
-    path, result = run.materialize(source, expected_rows=0)
+    path, result = run.materialize(source)
     assert result.schema == SCHEMA and run._stages[path] is stored
     assert calls.count(("read", path)) == 2
-    assert ("count", 0) in calls
+    assert not any(kind == "count" for kind, _ in calls)
 
 
 @pytest.mark.parametrize("repartition", [True, False])
@@ -154,12 +154,13 @@ def test_changed_column_name_or_type_is_not_committed(repartition, schema):
 
 
 @pytest.mark.parametrize("repartition", [True, False])
-def test_wrong_row_count_is_not_committed(repartition):
-    run = staging(Frame([], rows=2), repartition_checkpoints=repartition)
-    with pytest.raises(RuntimeError, match="changed its vertex count"):
-        run.materialize(Frame([]), expected_rows=3)
-    assert list(run._stages.values()) == [None]
-    assert run.write_uncertain is False
+def test_materialize_never_counts_rows(repartition: bool) -> None:
+    calls = []
+    stored = Frame(calls, rows=2)
+    run = staging(stored, repartition_checkpoints=repartition)
+    path, result = run.materialize(Frame(calls))
+    assert result is stored and run._stages[path] is stored
+    assert not any(kind == "count" for kind, _ in calls)
 
 
 @pytest.mark.parametrize("repartition", [True, False])

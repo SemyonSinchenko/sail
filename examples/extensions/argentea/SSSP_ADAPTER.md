@@ -98,7 +98,10 @@ Expected `(id, distance, hops, parent)` rows are `(-5,0,0,-5)`,
 `method="reference"` for the reference path. Use `directed=False` to add each
 reverse weighted arc before ownership routing. The default is directed.
 
-The client uses Pecan's validated owned snapshot and retained-result lifecycle.
+The client uses Pecan's owned snapshots and retained-result lifecycle. Inputs
+obey the valid-graph contract, including a present source and finite
+nonnegative weights with finite path sums; the Python client runs no graph-data
+validation jobs.
 It registers shallow phase views, performs one native result materialization,
 validates scalar termination/reachability diagnostics, then releases the views.
 Production clients can write `result.frame` without collecting graph vectors.

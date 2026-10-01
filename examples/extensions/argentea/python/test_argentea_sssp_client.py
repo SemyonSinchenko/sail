@@ -122,9 +122,9 @@ def test_public_sssp_owns_one_materialization_and_all_lazy_views(wrapper,scalar_
     links._cached_schema=StructType([StructField('src',LongType()),StructField('dst',LongType()),StructField('weight',DoubleType())])
     import pyspark_pecan.algorithms as algorithms
     snapshot=algorithms._snapshot
-    def weighted_snapshot(run,nodes,edges,columns):
+    def weighted_snapshot(run,nodes,edges,columns, *, count_vertices=True):
         assert columns==('src','dst','weight')
-        return snapshot(run,nodes,edges,columns)
+        return snapshot(run,nodes,edges,columns,count_vertices=count_vertices)
     monkeypatch.setattr(algorithms,'_snapshot',weighted_snapshot)
     result=client.ArgenteaSssp(wrapper.spark,observer=events.append).sssp(
         source('v',wrapper.spark),links,

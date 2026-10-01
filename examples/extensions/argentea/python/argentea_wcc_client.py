@@ -138,7 +138,8 @@ class ArgenteaWcc:
             seed=42,max_phase_budget=128,batch_rows=4096,cancellation=None):
         """Minimum-ID weak components, with a complete convergence certificate.
 
-        Uses Pecan's validated snapshots and owned result lifecycle. Star is
+        Uses Pecan's owned snapshots and result lifecycle, assuming valid graph
+        inputs without Python input-audit jobs. Star is
         seeded head/tail contraction over retained original adjacency, distinct
         from Banda/Pecan GF64. Caps fail without partial labels. The128-stage
         bound needs separate live-host qualification; it is not a convergence
@@ -162,7 +163,7 @@ class ArgenteaWcc:
                     self.observer(dict(kind='native_plan',request=dict(base),native_phase_count=len(schedule),
                                        frame=frame,plan_bytes=plan_bytes,view_registrations=composition.registrations))
                 run.cancellation.check()
-                path,stored=run.materialize(frame,expected_rows=count)
+                path,stored=run.materialize(frame)
                 diagnostics=_diagnostics(stored,base,run.cancellation)
             retained=run.finish(path,stored,algorithm='argentea-'+base['algorithm'],
                                 iterations=diagnostics['rounds'],converged=True)

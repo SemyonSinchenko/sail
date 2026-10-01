@@ -20,7 +20,7 @@ def test_checkpoint_roundtrip_preserves_rows_schema_and_duplicates(spark, tmp_pa
     schema = StructType([StructField("id", LongType(), False), StructField("value", StringType(), True)])
     frame = spark.createDataFrame(rows, schema)
     run = StagingRun(spark, utils, CancellationToken(), 3, repartition_checkpoints=repartition)
-    path, stored = run.materialize(frame, expected_rows=len(rows))
+    path, stored = run.materialize(frame)
     assert [(f.name, f.dataType) for f in stored.schema] == [(f.name, f.dataType) for f in schema]
     assert sorted(tuple(row) for row in stored.collect()) == sorted(rows)
     assert run._stages[path] is stored and run.write_uncertain is False

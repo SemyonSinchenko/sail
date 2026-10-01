@@ -1,9 +1,13 @@
 //! Thread-local requested-allocation counters, excluding fixture construction.
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::cell::Cell;
+// This allocator is also included by integration tests that only use measure.
+#[allow(dead_code)]
+#[path = "allocations/watch.rs"]
+pub(crate) mod watch;
 
 #[derive(Clone, Copy, Debug, Default)]
-pub(super) struct Counts {
+pub(crate) struct Counts {
     pub calls: usize,
     pub bytes: usize,
     pub peak: usize,
@@ -30,6 +34,7 @@ unsafe impl GlobalAlloc for Measured {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         let pointer = unsafe { System.alloc(layout) };
         if !pointer.is_null() {
+            watch::event(0, pointer as usize, layout.size());
             allocated(layout.size(), 0);
         }
         pointer
@@ -37,11 +42,13 @@ unsafe impl GlobalAlloc for Measured {
     unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
         let pointer = unsafe { System.alloc_zeroed(layout) };
         if !pointer.is_null() {
+            watch::event(0, pointer as usize, layout.size());
             allocated(layout.size(), 0);
         }
         pointer
     }
     unsafe fn dealloc(&self, pointer: *mut u8, layout: Layout) {
+        watch::event(pointer as usize, 0, 0);
         ACTIVE.with(|active| {
             if let Some(mut counts) = active.get() {
                 counts.live -= layout.size() as isize;
@@ -53,12 +60,13 @@ unsafe impl GlobalAlloc for Measured {
     unsafe fn realloc(&self, pointer: *mut u8, layout: Layout, size: usize) -> *mut u8 {
         let result = unsafe { System.realloc(pointer, layout, size) };
         if !result.is_null() {
+            watch::event(pointer as usize, result as usize, size);
             allocated(size, layout.size());
         }
         result
     }
 }
-pub(super) fn measure<T>(f: impl FnOnce() -> T) -> (T, Counts) {
+pub(crate) fn measure<T>(f: impl FnOnce() -> T) -> (T, Counts) {
     struct Reset;
     impl Drop for Reset {
         fn drop(&mut self) {

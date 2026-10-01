@@ -103,6 +103,8 @@ struct Values {
     reached: u64,
     reachable_edges: u64,
     _admission: MemoryReservation,
+    // A successor retains the inbox's label storage and its original charge.
+    _label_admission: Option<MemoryReservation>,
 }
 impl Values {
     fn new(n: usize, r: &Resources) -> Result<Self> {
@@ -117,14 +119,8 @@ impl Values {
             reached: 0,
             reachable_edges: 0,
             _admission: admission,
+            _label_admission: None,
         })
-    }
-    fn copy(&self, r: &Resources) -> Result<Self> {
-        let mut v = Self::new(self.labels.len(), r)?;
-        v.labels.copy_from_slice(&self.labels);
-        v.reached = self.reached;
-        v.reachable_edges = self.reachable_edges;
-        Ok(v)
     }
 }
 #[derive(Debug)]

@@ -1,5 +1,8 @@
 //! Candidate publication occurs only after complete producer markers and EOF.
 use super::*;
+#[cfg(test)]
+#[path = "reuse_tests/mod.rs"]
+mod reuse_tests;
 #[derive(Debug)]
 pub(super) struct Inbox {
     mode: SsspMode,
@@ -174,7 +177,7 @@ impl SsspPartition {
     /// Call after EOF, not merely after the last completion marker.
     pub fn finish(&mut self, phase: &Round) -> Result<()> {
         self.check_phase(phase)?;
-        let State::Receiving(inbox) = std::mem::replace(&mut self.state, State::Failed) else {
+        let State::Receiving(mut inbox) = std::mem::replace(&mut self.state, State::Failed) else {
             return Err("SSSP not receiving updates".into());
         };
         if !inbox.finished.iter().all(|x| *x) {
@@ -204,7 +207,8 @@ impl SsspPartition {
             self.state = state;
             return Ok(());
         }
-        // Charge replacement labels and a pending mask before copying/mutation.
+        // Candidates become the next labels; the old immutable snapshot remains
+        // readable until publication. Admit the pending mask and new frontier.
         let n = self.values.labels.len();
         let pending_admission = self
             .resources
@@ -212,7 +216,32 @@ impl SsspPartition {
             .reserve(n + 128)
             .map_err(|e| e.to_string())?;
         let mut pending = filled(n, false)?;
-        let mut next = self.values.copy(&self.resources)?;
+        let bytes = n
+            .checked_mul(size_of::<usize>())
+            .and_then(|x| x.checked_add(256))
+            .ok_or("SSSP state admission overflow")?;
+        let admission = self
+            .resources
+            .execution
+            .reserve(bytes)
+            .map_err(|e| e.to_string())?;
+        let active = reserve_vec(n)?;
+        let label_bytes = inbox
+            .candidates
+            .capacity()
+            .checked_mul(size_of::<Option<SsspLabel>>())
+            .ok_or("SSSP state admission overflow")?;
+        if label_bytes > inbox._admission.bytes() {
+            return Err("SSSP candidate capacity exceeds its admission".into());
+        }
+        let mut next = Values {
+            labels: std::mem::take(&mut inbox.candidates),
+            active,
+            reached: self.values.reached,
+            reachable_edges: self.values.reachable_edges,
+            _admission: admission,
+            _label_admission: Some(inbox._admission.clone()),
+        };
         for &i in &self.values.active {
             self.resources
                 .execution
@@ -229,25 +258,27 @@ impl SsspPartition {
                 _ => false,
             };
         }
-        for (i, candidate) in inbox.candidates.iter().enumerate() {
+        for (i, label) in next.labels.iter_mut().enumerate() {
             self.resources
                 .execution
                 .charge_work(1)
                 .map_err(|e| e.to_string())?;
+            let candidate = *label;
+            *label = self.values.labels[i];
             if let Some(candidate) = candidate
-                && next.labels[i].is_none_or(|old| candidate.precedes(old))
+                && label.is_none_or(|old| candidate.precedes(old))
             {
-                if next.labels[i].is_none() {
+                if label.is_none() {
                     next.reached = add(next.reached, 1)?;
                     next.reachable_edges = add(
                         next.reachable_edges,
                         self.adjacency.outgoing_at(i).len() as u64,
                     )?;
                     pending[i] = true;
-                } else if candidate.changes_outgoing(next.labels[i].unwrap()) {
+                } else if candidate.changes_outgoing(label.unwrap()) {
                     pending[i] = true;
                 }
-                next.labels[i] = Some(*candidate);
+                *label = Some(candidate);
             }
             if pending[i] {
                 next.active.push(i);
@@ -269,9 +300,18 @@ impl SsspPartition {
             .execution
             .checkpoint()
             .map_err(|e| e.to_string())?;
+        let mode = inbox.mode;
+        // This token still covers the producer arrays. Drop them before returning
+        // their charge; the surviving label Vec retains its capacity admission.
+        drop(inbox);
+        next._label_admission
+            .as_ref()
+            .unwrap()
+            .shrink(label_bytes)
+            .map_err(|e| e.to_string())?;
         self.values = Arc::new(next);
         self.rounds = rounds;
-        self.completed = inbox.mode;
+        self.completed = mode;
         self.work = work;
         self.next_phase = next_phase;
         self.state = state;

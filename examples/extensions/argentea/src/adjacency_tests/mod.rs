@@ -1,4 +1,4 @@
-mod allocations;
+pub(crate) mod allocations;
 use crate::{Operation, Resources, WeightedAdjacency, adjacency::Adjacency};
 use grust_procedures::{ExecutionContext, ExecutionLimits};
 use sail_native_resource_ffi::MemoryLease;
